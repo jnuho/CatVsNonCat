@@ -142,22 +142,22 @@ data "aws_iam_policy_document" "vpc_cni_assume_role_policy" {
     actions = ["sts:AssumeRole"]
 
     principals {
-      type        = "Service"
       identifiers = ["eks.amazonaws.com"]
+      type        = "Service"
     }
   }
   statement {
     actions = ["sts:AssumeRoleWithWebIdentity"]
 
-    principals {
-      type        = "Federated"
-      identifiers = [aws_iam_openid_connect_provider.oidc_provider.arn]
-    }
-
     condition {
       test     = "StringEquals"
       variable = "${replace(data.aws_eks_cluster.my-cluster.identity[0].oidc[0].issuer, "https://", "")}:sub"
       values   = ["system:serviceaccount:kube-system:aws-node"]
+    }
+
+    principals {
+      identifiers = [aws_iam_openid_connect_provider.oidc_provider.arn]
+      type        = "Federated"
     }
   }
 }
@@ -196,10 +196,10 @@ resource "kubernetes_service_account" "aws_node" {
 }
 
 resource "aws_eks_addon" "addons" {
-  for_each     = { for addon in var.addons : addon.name => addon }
-  cluster_name = aws_eks_cluster.my-cluster.name
-  addon_name   = each.value.name
-  addon_version           = each.value.version
+  for_each                    = { for addon in var.addons : addon.name => addon }
+  cluster_name                = aws_eks_cluster.my-cluster.name
+  addon_name                  = each.value.name
+  addon_version               = each.value.version
   resolve_conflicts_on_update = "OVERWRITE"
 
   service_account_role_arn = each.value.name == "vpc-cni" ? aws_iam_role.eks_cni_role.arn : null

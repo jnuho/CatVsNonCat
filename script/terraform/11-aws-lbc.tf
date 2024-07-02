@@ -1,11 +1,10 @@
 # REPLACE OIDC!!
-
 # Run agent on every single node on cluster
-resource "aws_eks_addon" "pod_identity" {
-  cluster_name  = aws_eks_cluster.my-cluster.name
-  addon_name    = "eks-pod-identity-agent"
-  addon_version = "v1.3.0-eksbuild.1"
-}
+# resource "aws_eks_addon" "pod_identity" {
+#   cluster_name  = aws_eks_cluster.my-cluster.name
+#   addon_name    = "eks-pod-identity-agent"
+#   addon_version = "v1.3.0-eksbuild.1"
+# }
 
 # data "aws_iam_policy_document" "aws_lbc" {
 #   statement {
@@ -28,19 +27,29 @@ data "aws_iam_policy_document" "aws_lbc" {
   statement {
     effect = "Allow"
 
-    principals {
-      type        = "Federated"
-      identifiers = [aws_iam_openid_connect_provider.oidc_provider.arn]
-    }
-
     actions = [
-      "sts:AssumeRoleWithWebIdentity"
+      "sts:AssumeRole",
+      "sts:TagSession"
     ]
+
+    principals {
+      type        = "Service"
+      identifiers = ["pods.eks.amazonaws.com"]
+    }
+  }
+  statement {
+    effect  = "Allow"
+    actions = ["sts:AssumeRoleWithWebIdentity"]
 
     condition {
       test     = "StringEquals"
       variable = "${replace(data.aws_eks_cluster.my-cluster.identity[0].oidc[0].issuer, "https://", "")}:sub"
       values   = ["system:serviceaccount:kube-system:aws-load-balancer-controller"]
+    }
+
+    principals {
+      type        = "Federated"
+      identifiers = [aws_iam_openid_connect_provider.oidc_provider.arn]
     }
   }
 }
