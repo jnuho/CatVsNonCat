@@ -81,8 +81,8 @@ resource "aws_eks_node_group" "private_nodes" {
   # Creates EC2 Auto Scaling Group
   scaling_config {
     desired_size = 1
-    max_size     = 5
-    min_size     = 0
+    max_size     = 2
+    min_size     = 1
   }
 
   update_config {

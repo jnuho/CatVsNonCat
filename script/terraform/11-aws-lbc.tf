@@ -22,7 +22,6 @@
 #   }
 # }
 
-
 data "aws_iam_policy_document" "aws_lbc" {
   statement {
     effect = "Allow"
@@ -43,7 +42,13 @@ data "aws_iam_policy_document" "aws_lbc" {
 
     condition {
       test     = "StringEquals"
-      variable = "${replace(data.aws_eks_cluster.my-cluster.identity[0].oidc[0].issuer, "https://", "")}:sub"
+      variable = "${replace(aws_iam_openid_connect_provider.oidc_provider.url, "https://", "")}:aud"
+      values   = ["sts.amazonaws.com"]
+    }
+
+    condition {
+      test     = "StringEquals"
+      variable = "${replace(aws_iam_openid_connect_provider.oidc_provider.url, "https://", "")}:sub"
       values   = ["system:serviceaccount:kube-system:aws-load-balancer-controller"]
     }
 
@@ -74,7 +79,12 @@ resource "kubernetes_service_account" "aws-load-balancer-controller" {
     name      = "aws-load-balancer-controller"
     namespace = "kube-system"
     annotations = {
-      "eks.amazonaws.com/role-arn" = aws_iam_role.aws_lbc.arn
+      "eks.amazonaws.com/role-arn"     = aws_iam_role.aws_lbc.arn
+      "meta.helm.sh/release-name"      = "aws-load-balancer-controller"
+      "meta.helm.sh/release-namespace" = "kube-system"
+    }
+    labels = {
+      "app.kubernetes.io/managed-by" = "Helm"
     }
   }
 }
