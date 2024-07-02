@@ -7,19 +7,41 @@ resource "aws_eks_addon" "pod_identity" {
   addon_version = "v1.3.0-eksbuild.1"
 }
 
+# data "aws_iam_policy_document" "aws_lbc" {
+#   statement {
+#     effect = "Allow"
+
+#     principals {
+#       type        = "Service"
+#       identifiers = ["pods.eks.amazonaws.com"]
+#     }
+
+#     actions = [
+#       "sts:AssumeRole",
+#       "sts:TagSession"
+#     ]
+#   }
+# }
+
+
 data "aws_iam_policy_document" "aws_lbc" {
   statement {
     effect = "Allow"
 
     principals {
-      type        = "Service"
-      identifiers = ["pods.eks.amazonaws.com"]
+      type        = "Federated"
+      identifiers = [aws_iam_openid_connect_provider.oidc_provider.arn]
     }
 
     actions = [
-      "sts:AssumeRole",
-      "sts:TagSession"
+      "sts:AssumeRoleWithWebIdentity"
     ]
+
+    condition {
+      test     = "StringEquals"
+      variable = "${replace(data.aws_eks_cluster.my-cluster.identity[0].oidc[0].issuer, "https://", "")}:sub"
+      values   = ["system:serviceaccount:kube-system:aws-load-balancer-controller"]
+    }
   }
 }
 
@@ -38,12 +60,22 @@ resource "aws_iam_role_policy_attachment" "aws_lbc" {
   role       = aws_iam_role.aws_lbc.name
 }
 
-resource "aws_eks_pod_identity_association" "aws_lbc" {
-  cluster_name    = aws_eks_cluster.my-cluster.name
-  namespace       = "kube-system"
-  service_account = "aws-load-balancer-controller"
-  role_arn        = aws_iam_role.aws_lbc.arn
+resource "kubernetes_service_account" "aws-load-balancer-controller" {
+  metadata {
+    name      = "aws-load-balancer-controller"
+    namespace = "kube-system"
+    annotations = {
+      "eks.amazonaws.com/role-arn" = aws_iam_role.aws_lbc.arn
+    }
+  }
 }
+
+# resource "aws_eks_pod_identity_association" "aws_lbc" {
+#   cluster_name    = aws_eks_cluster.my-cluster.name
+#   namespace       = "kube-system"
+#   service_account = "aws-load-balancer-controller"
+#   role_arn        = aws_iam_role.aws_lbc.arn
+# }
 
 resource "helm_release" "aws_lbc" {
   name = "aws-load-balancer-controller"
