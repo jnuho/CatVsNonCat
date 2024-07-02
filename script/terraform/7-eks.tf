@@ -118,6 +118,21 @@ data "aws_eks_cluster" "my-cluster" {
   depends_on = [aws_eks_cluster.my-cluster]
 }
 
+# manage permissions to applications attach policies to node directly pod will also have same permissions
+# >>> OR create OIDC provider which will allow granting IAM permissions based on the serviceaccount used by the pod.
+
+# Create an OIDC provider for the EKS cluster
+
+data "tls_certificate" "eks_cluster_ca" {
+  url = aws_eks_cluster.my-cluster.identity[0].oidc[0].issuer
+}
+
+resource "aws_iam_openid_connect_provider" "oidc_provider" {
+  client_id_list  = ["sts.amazonaws.com"]
+  thumbprint_list = [data.tls_certificate.eks_cluster_ca.certificates[0].sha1_fingerprint]
+  url             = aws_eks_cluster.my-cluster.identity[0].oidc[0].issuer
+}
+
 
 # The vpc-cni plugin requires you to attach the following IAM policies to an IAM role:
 # AmazonEKS_CNI_Policy
@@ -129,6 +144,20 @@ data "aws_iam_policy_document" "vpc_cni_assume_role_policy" {
     principals {
       type        = "Service"
       identifiers = ["eks.amazonaws.com"]
+    }
+  }
+  statement {
+    actions = ["sts:AssumeRoleWithWebIdentity"]
+
+    principals {
+      type        = "Federated"
+      identifiers = [aws_iam_openid_connect_provider.oidc_provider.arn]
+    }
+
+    condition {
+      test     = "StringEquals"
+      variable = "${replace(data.aws_eks_cluster.my-cluster.identity[0].oidc[0].issuer, "https://", "")}:sub"
+      values   = ["system:serviceaccount:kube-system:aws-node"]
     }
   }
 }
@@ -146,12 +175,31 @@ resource "aws_iam_role_policy_attachment" "eks_cni_role_policy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
 }
 
+data "aws_eks_cluster_auth" "my-cluster" {
+  name = aws_eks_cluster.my-cluster.name
+}
+
+provider "kubernetes" {
+  host                   = data.aws_eks_cluster.my-cluster.endpoint
+  cluster_ca_certificate = base64decode(data.aws_eks_cluster.my-cluster.certificate_authority[0].data)
+  token                  = data.aws_eks_cluster_auth.my-cluster.token
+}
+
+resource "kubernetes_service_account" "aws_node" {
+  metadata {
+    name      = "aws-node"
+    namespace = "kube-system"
+    annotations = {
+      "eks.amazonaws.com/role-arn" = aws_iam_role.eks_cni_role.arn
+    }
+  }
+}
 
 resource "aws_eks_addon" "addons" {
   for_each     = { for addon in var.addons : addon.name => addon }
   cluster_name = aws_eks_cluster.my-cluster.name
   addon_name   = each.value.name
-  # addon_version           = each.value.version
+  addon_version           = each.value.version
   resolve_conflicts_on_update = "OVERWRITE"
 
   service_account_role_arn = each.value.name == "vpc-cni" ? aws_iam_role.eks_cni_role.arn : null
