@@ -9,7 +9,7 @@ data "aws_iam_policy_document" "cluster-role-assume-policy" {
     actions = ["sts:AssumeRole"]
 
     principals {
-      type        = "Service"
+      type = "Service"
       # for IAM role to be used only by EKS services
       identifiers = ["eks.amazonaws.com"]
     }
@@ -18,7 +18,7 @@ data "aws_iam_policy_document" "cluster-role-assume-policy" {
 }
 # This role is assumed by the EKS control plane to manage the cluster.
 resource "aws_iam_role" "eks_cluster_role" {
-  name = "eks-cluster-role"
+  name               = "eks-cluster-role"
   assume_role_policy = data.aws_iam_policy_document.cluster-role-assume-policy.json
 }
 
@@ -94,7 +94,7 @@ resource "aws_eks_cluster" "my-cluster" {
   }
 
   access_config {
-    authentication_mode                         = "API"
+    authentication_mode = "API"
     # to deploy helm chart and plain yaml
     bootstrap_cluster_creator_admin_permissions = true
   }
@@ -113,57 +113,46 @@ resource "aws_eks_cluster" "my-cluster" {
 
 # Ensure the EKS cluster is created before reading its data
 
-# data "aws_eks_cluster" "my-cluster" {
-#   name = aws_eks_cluster.my-cluster.name
-#   depends_on = [aws_eks_cluster.my-cluster]
-# }
+data "aws_eks_cluster" "my-cluster" {
+  name       = aws_eks_cluster.my-cluster.name
+  depends_on = [aws_eks_cluster.my-cluster]
+}
 
-# Create an OIDC provider for the EKS cluster
-
-# data "tls_certificate" "eks_cluster_ca" {
-#   url = data.aws_eks_cluster.my-cluster.certificate_authority[0].data
-# }
-
-# resource "aws_iam_openid_connect_provider" "oidc_provider" {
-#   client_id_list  = ["sts.amazonaws.com"]
-#   thumbprint_list = [data.tls_certificate.eks_cluster_ca.certificates[0].sha1_fingerprint]
-#   url             = data.aws_eks_cluster.my-cluster.identity[0].oidc[0].issuer
-# }
 
 # The vpc-cni plugin requires you to attach the following IAM policies to an IAM role:
 # AmazonEKS_CNI_Policy
 
-# data "aws_iam_policy_document" "vpc_cni_assume_role_policy" {
-#   statement {
-#     actions = ["sts:AssumeRole"]
+data "aws_iam_policy_document" "vpc_cni_assume_role_policy" {
+  statement {
+    actions = ["sts:AssumeRole"]
 
-#     principals {
-#       type        = "Service"
-#       identifiers = ["eks.amazonaws.com"]
-#     }
-#   }
-# }
+    principals {
+      type        = "Service"
+      identifiers = ["eks.amazonaws.com"]
+    }
+  }
+}
 
 # This role is specifically for the VPC CNI add-on, which handles networking for the EKS cluster.
 # : attach AmazonEKS_CNI_Policy to this role
 
-# resource "aws_iam_role" "eks_cni_role" {
-#   name = "eks-cni-role"
-#   assume_role_policy = data.aws_iam_policy_document.vpc_cni_assume_role_policy.json
-# }
+resource "aws_iam_role" "eks_cni_role" {
+  name               = "eks-cni-role"
+  assume_role_policy = data.aws_iam_policy_document.vpc_cni_assume_role_policy.json
+}
 
-# resource "aws_iam_role_policy_attachment" "eks_cni_role_policy" {
-#   role       = aws_iam_role.eks_cni_role.name
-#   policy_arn = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
-# }
+resource "aws_iam_role_policy_attachment" "eks_cni_role_policy" {
+  role       = aws_iam_role.eks_cni_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
+}
 
 
-# resource "aws_eks_addon" "addons" {
-#   for_each                = { for addon in var.addons : addon.name => addon }
-#   cluster_name            = aws_eks_cluster.my-cluster.name
-#   addon_name              = each.value.name
-#   addon_version           = each.value.version
-#   resolve_conflicts_on_update = "OVERWRITE"
+resource "aws_eks_addon" "addons" {
+  for_each     = { for addon in var.addons : addon.name => addon }
+  cluster_name = aws_eks_cluster.my-cluster.name
+  addon_name   = each.value.name
+  # addon_version           = each.value.version
+  resolve_conflicts_on_update = "OVERWRITE"
 
-#   service_account_role_arn = each.value.name == "vpc-cni" ? aws_iam_role.eks_cni_role.arn : null
-# }
+  service_account_role_arn = each.value.name == "vpc-cni" ? aws_iam_role.eks_cni_role.arn : null
+}

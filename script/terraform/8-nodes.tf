@@ -9,7 +9,7 @@ data "aws_iam_policy_document" "nodes_assume_role_policy" {
     actions = ["sts:AssumeRole"]
 
     principals {
-      type        = "Service"
+      type = "Service"
       # for IAM role to be used only by EC2 services
       identifiers = ["ec2.amazonaws.com"]
     }

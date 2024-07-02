@@ -10,11 +10,11 @@
 
 resource "aws_eip" "nat_eip" {
   # Indicates if this EIP is for use in VPC (vpc).
-  domain   = "vpc"
+  domain = "vpc"
 
   # EIP may require IGW to be created first
   # Use depends_on to set an explicit dependency on the IGW.
-  depends_on = [ aws_internet_gateway.igw ]
+  depends_on = [aws_internet_gateway.igw]
 
   tags = {
     Name = "${local.env}-nat-eip"
@@ -28,7 +28,7 @@ resource "aws_nat_gateway" "nat_gw" {
   allocation_id = aws_eip.nat_eip.id
 
   # subnet id of the public subnet in which to place the gateway
-  subnet_id     = aws_subnet.public_zone1.id
+  subnet_id = aws_subnet.public_zone1.id
 
   tags = {
     Name = "${local.env}-nat-gw"
