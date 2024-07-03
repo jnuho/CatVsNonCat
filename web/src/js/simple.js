@@ -37,7 +37,8 @@ window.onload = function(){
         try{
             const response1 = await axios({
                 method: 'post',
-                url: 'http://localhost/web/cat', // in k8s ingress env
+                url: 'http://k8s-default-fenginxi-ab0a71e16a-424716363.ap-northeast-2.elb.amazonaws.com/web/cat', // in LOCAL k8s ingress env
+                // url: 'http://localhost/web/cat', // in LOCAL k8s ingress env
                 // url: 'http://localhost:3001/web/cat', // in docker-compose env
                 data: {
                     cat_url: urlVal,
@@ -190,11 +191,28 @@ window.onload = function(){
 
     function copyToClipboard(id) {
         var textToCopy = document.getElementById(id).innerText.trim();
-        navigator.clipboard.writeText(textToCopy).then(function() {
-                // console.log('Copying to clipboard was successful!');
-        }, function(err) {
+        
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(textToCopy).then(function() {
+                console.log('Copying to clipboard was successful!');
+            }, function(err) {
                 console.error('Could not copy text: ', err);
-        });
+            });
+        } else {
+            // Fallback method for browsers that do not support the Clipboard API
+            var textArea = document.createElement("textarea");
+            textArea.value = textToCopy;
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                console.log('Copying to clipboard was successful!');
+            } catch (err) {
+                console.error('Could not copy text: ', err);
+            }
+            document.body.removeChild(textArea);
+        }
     }
 
 }
