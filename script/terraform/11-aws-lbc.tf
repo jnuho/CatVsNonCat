@@ -80,20 +80,33 @@ output "aws_lbc_role_arn" {
   value = aws_iam_role.aws_lbc.arn
 }
 
-# resource "kubernetes_service_account" "aws-load-balancer-controller" {
-#   metadata {
-#     name      = "aws-load-balancer-controller"
-#     namespace = "kube-system"
-#     annotations = {
-#       "eks.amazonaws.com/role-arn"     = aws_iam_role.aws_lbc.arn
-#       "meta.helm.sh/release-name"      = "aws-load-balancer-controller"
-#       "meta.helm.sh/release-namespace" = "kube-system"
-#     }
-#     labels = {
-#       "app.kubernetes.io/managed-by" = "Helm"
-#     }
-#   }
-# }
+
+# Required to access Kuberentes API from IAM role?
+data "aws_eks_cluster_auth" "my-cluster" {
+  name = aws_eks_cluster.my-cluster.name
+}
+
+# The Kubernetes (K8S) provider is used to interact with the resources supported by Kubernetes.
+provider "kubernetes" {
+  host                   = data.aws_eks_cluster.my-cluster.endpoint
+  cluster_ca_certificate = base64decode(data.aws_eks_cluster.my-cluster.certificate_authority[0].data)
+  token                  = data.aws_eks_cluster_auth.my-cluster.token
+}
+
+resource "kubernetes_service_account" "aws-load-balancer-controller" {
+  metadata {
+    name      = "aws-load-balancer-controller"
+    namespace = "kube-system"
+    annotations = {
+      "eks.amazonaws.com/role-arn"     = aws_iam_role.aws_lbc.arn
+      "meta.helm.sh/release-name"      = "aws-load-balancer-controller"
+      "meta.helm.sh/release-namespace" = "kube-system"
+    }
+    labels = {
+      "app.kubernetes.io/managed-by" = "Helm"
+    }
+  }
+}
 
 # resource "aws_eks_pod_identity_association" "aws_lbc" {
 #   cluster_name    = aws_eks_cluster.my-cluster.name
@@ -102,37 +115,38 @@ output "aws_lbc_role_arn" {
 #   role_arn        = aws_iam_role.aws_lbc.arn
 # }
 
-# resource "helm_release" "aws_lbc" {
-#   name = "aws-load-balancer-controller"
+resource "helm_release" "aws_lbc" {
+  name = "aws-load-balancer-controller"
 
-#   repository = "https://aws.github.io/eks-charts"
-#   chart      = "aws-load-balancer-controller"
-#   namespace  = "kube-system"
-#   version    = "1.7.2"
+  repository = "https://aws.github.io/eks-charts"
+  chart      = "aws-load-balancer-controller"
+  namespace  = "kube-system"
+  version    = "1.7.2"
 
-#   set {
-#     name  = "clusterName"
-#     value = aws_eks_cluster.my-cluster.name
-#   }
+  set {
+    name  = "clusterName"
+    value = aws_eks_cluster.my-cluster.name
+  }
 
-#   set {
-#     name  = "serviceAccount.name"
-#     value = "aws-load-balancer-controller"
-#   }
-#   set {
-#     name  = "region"
-#     value = local.region
-#   }
+  set {
+    name  = "serviceAccount.name"
+    value = kubernetes_service_account.aws-load-balancer-controller.metadata[0].name
+    # value = "aws-load-balancer-controller"
+  }
+  set {
+    name  = "region"
+    value = local.region
+  }
 
-#   set {
-#     name  = "vpcId"
-#     value = aws_vpc.main.id
-#   }
+  set {
+    name  = "vpcId"
+    value = aws_vpc.main.id
+  }
 
-#   # depends_on = [helm_release.cluster_autoscaler]
-#   # depends_on = [ aws_eks_node_group.private_nodes ]
-#   depends_on = [helm_release.metric_server]
-# }
+  # depends_on = [helm_release.cluster_autoscaler]
+  # depends_on = [ aws_eks_node_group.private_nodes ]
+  depends_on = [helm_release.metric_server]
+}
 
 
 # Use module
