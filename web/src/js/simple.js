@@ -62,7 +62,9 @@ window.onload = function(){
     async function getWeatherInfo() {
         try{
             // Make a POST request to the backend
-            const response = await fetch('http://localhost/weather', {
+            const response = await fetch('http://k8s-default-fenginxi-ab0a71e16a-424716363.ap-northeast-2.elb.amazonaws.com/weather', {
+            // const response = await fetch('http://localhost/weather', {
+            // in LOCAL k8s ingress env
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
