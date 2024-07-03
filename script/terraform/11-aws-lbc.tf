@@ -135,7 +135,7 @@ resource "helm_release" "aws_lbc" {
   }
   set {
     name  = "region"
-    value = local.region
+    value = var.region
   }
 
   set {

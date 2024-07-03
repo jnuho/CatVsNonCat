@@ -15,7 +15,7 @@ resource "aws_route_table" "private_rtb" {
   }
 
   tags = {
-    Name = "${local.env}-private-rtb"
+    Name = "${var.env}-private-rtb"
   }
 }
 
@@ -34,7 +34,7 @@ resource "aws_route_table" "public_rtb" {
 
   # a map of tags to assign to the resource
   tags = {
-    Name = "${local.env}-public-rtb"
+    Name = "${var.env}-public-rtb"
   }
 }
 

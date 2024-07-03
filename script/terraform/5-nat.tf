@@ -17,7 +17,7 @@ resource "aws_eip" "nat_eip" {
   depends_on = [aws_internet_gateway.igw]
 
   tags = {
-    Name = "${local.env}-nat-eip"
+    Name = "${var.env}-nat-eip"
   }
 }
 
@@ -31,7 +31,7 @@ resource "aws_nat_gateway" "nat_gw" {
   subnet_id = aws_subnet.public_zone1.id
 
   tags = {
-    Name = "${local.env}-nat-gw"
+    Name = "${var.env}-nat-gw"
   }
 
   depends_on = [

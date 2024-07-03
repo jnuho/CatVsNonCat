@@ -13,7 +13,7 @@ resource "aws_vpc" "main" {
   enable_dns_hostnames = true
 
   tags = {
-    "Name" = "${local.env}-main"
+    "Name" = "${var.env}-main"
   }
 }
 

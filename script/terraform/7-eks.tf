@@ -1,8 +1,8 @@
+
 # The policy that grants an entity permission to assume the role.
 # Used to access AWS resources that you might not normally have access to.
 # The role that Amazon EKS will use to create AWS reousrces for Kubernetes clusters
 
-# Subject to "eks.amazonaws.com"
 
 data "aws_iam_policy_document" "cluster-role-assume-policy" {
   statement {
@@ -16,6 +16,7 @@ data "aws_iam_policy_document" "cluster-role-assume-policy" {
     effect = "Allow"
   }
 }
+
 # This role is assumed by the EKS control plane to manage the cluster.
 resource "aws_iam_role" "eks_cluster_role" {
   name               = "eks-cluster-role"
@@ -28,56 +29,15 @@ resource "aws_iam_role_policy_attachment" "eks_cluster_role_policy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
 }
 
-# Security Group
+# TODO Security Group
 
-# resource "aws_security_group" "eks_cluster_sg" {
-#   name        = "eks-cluster-sg"
-#   description = "Security group for EKS cluster"
-#   vpc_id      = aws_vpc.main.id
-
-#   egress {
-#     from_port   = 0
-#     to_port     = 0
-#     protocol    = "-1"
-#     cidr_blocks = ["0.0.0.0/0"]
-#   }
-
-#   tags = {
-#     Name = "eks-cluster-sg"
-#   }
-# }
-
-# resource "aws_security_group" "alb_sg" {
-#   name        = "alb-sg"
-#   description = "Security group for ALB"
-#   vpc_id      = aws_vpc.main.id
-
-#   ingress {
-#     from_port   = 80
-#     to_port     = 80
-#     protocol    = "tcp"
-#     cidr_blocks = ["xx.xx.xx.xx/32"]
-#   }
-
-#   egress {
-#     from_port   = 0
-#     to_port     = 0
-#     protocol    = "-1"
-#     cidr_blocks = ["0.0.0.0/0"]
-#   }
-
-#   tags = {
-#     Name = "alb-sg"
-#   }
-# }
 
 resource "aws_eks_cluster" "my-cluster" {
-  name     = local.eks_name
-  version  = local.eks_version
+  name     = var.eks_name
+  version  = var.eks_version
   role_arn = aws_iam_role.eks_cluster_role.arn
 
   vpc_config {
-
     # cluster's Kubernetes private API server endpoint is disabled
     endpoint_private_access = false
 
@@ -186,27 +146,6 @@ resource "aws_iam_role_policy_attachment" "eks_cni_role_policy" {
 output "vpc_cni_role_arn" {
   value = aws_iam_role.eks_cni_role.arn
 }
-
-# data "aws_eks_cluster_auth" "my-cluster" {
-#   name = aws_eks_cluster.my-cluster.name
-# }
-
-# # The Kubernetes (K8S) provider is used to interact with the resources supported by Kubernetes.
-# provider "kubernetes" {
-#   host                   = data.aws_eks_cluster.my-cluster.endpoint
-#   cluster_ca_certificate = base64decode(data.aws_eks_cluster.my-cluster.certificate_authority[0].data)
-#   token                  = data.aws_eks_cluster_auth.my-cluster.token
-# }
-
-# resource "kubernetes_service_account" "aws_node" {
-#   metadata {
-#     name      = "aws-node"
-#     namespace = "kube-system"
-#     annotations = {
-#       "eks.amazonaws.com/role-arn" = aws_iam_role.eks_cni_role.arn
-#     }
-#   }
-# }
 
 resource "aws_eks_addon" "addons" {
   for_each                    = { for addon in var.addons : addon.name => addon }

@@ -64,7 +64,7 @@ resource "aws_iam_role_policy_attachment" "nodes_AmazonEC2ContainerRegistryReadO
 
 resource "aws_eks_node_group" "private_nodes" {
   cluster_name    = aws_eks_cluster.my-cluster.name
-  version         = local.eks_version
+  version         = var.eks_version
   node_group_name = "private-nodes"
   node_role_arn   = aws_iam_role.nodes.arn
 

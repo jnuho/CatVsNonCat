@@ -1,8 +1,10 @@
 
 # Configure the AWS Provider
+# The AWS Provider can source credentials and other settings
+# $HOME/.aws/config and $HOME/.aws/credentials
 provider "aws" {
-  profile = local.profile
-  region  = local.region
+  profile = var.profile
+  region  = var.region
 }
 
 # terraform version constraints
