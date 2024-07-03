@@ -4,4 +4,6 @@ aws eks update-kubeconfig --region ap-northeast-2 --name my-cluster --profile te
 
 sleep 1
 
-kubectl get svc -w
+kubectl get svc
+
+kubectl get pod -n kube-system -w

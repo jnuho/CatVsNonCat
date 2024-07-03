@@ -6,6 +6,11 @@ locals {
   zone2       = "ap-northeast-2b"
   eks_name    = "my-cluster"
   eks_version = "1.30"
+
+  # # Add-on versions
+  # vpc_cni_version = "v1.18.2-eksbuild.1"
+  # coredns_version = "v1.11.1-eksbuild.9"
+  # kube_proxy_version = "v1.30.0-eksbuild.3"
 }
 
 variable "addons" {

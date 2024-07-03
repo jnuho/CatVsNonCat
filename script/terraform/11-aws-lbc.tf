@@ -60,7 +60,7 @@ data "aws_iam_policy_document" "aws_lbc" {
 }
 
 resource "aws_iam_role" "aws_lbc" {
-  name               = "${aws_eks_cluster.my-cluster.name}-aws-lbc"
+  name               = "aws-lbc"
   assume_role_policy = data.aws_iam_policy_document.aws_lbc.json
 }
 
@@ -74,20 +74,26 @@ resource "aws_iam_role_policy_attachment" "aws_lbc" {
   role       = aws_iam_role.aws_lbc.name
 }
 
-resource "kubernetes_service_account" "aws-load-balancer-controller" {
-  metadata {
-    name      = "aws-load-balancer-controller"
-    namespace = "kube-system"
-    annotations = {
-      "eks.amazonaws.com/role-arn"     = aws_iam_role.aws_lbc.arn
-      "meta.helm.sh/release-name"      = "aws-load-balancer-controller"
-      "meta.helm.sh/release-namespace" = "kube-system"
-    }
-    labels = {
-      "app.kubernetes.io/managed-by" = "Helm"
-    }
-  }
+
+# Output to be used in 11-aws-lbc.sh
+output "aws_lbc_role_arn" {
+  value = aws_iam_role.aws_lbc.arn
 }
+
+# resource "kubernetes_service_account" "aws-load-balancer-controller" {
+#   metadata {
+#     name      = "aws-load-balancer-controller"
+#     namespace = "kube-system"
+#     annotations = {
+#       "eks.amazonaws.com/role-arn"     = aws_iam_role.aws_lbc.arn
+#       "meta.helm.sh/release-name"      = "aws-load-balancer-controller"
+#       "meta.helm.sh/release-namespace" = "kube-system"
+#     }
+#     labels = {
+#       "app.kubernetes.io/managed-by" = "Helm"
+#     }
+#   }
+# }
 
 # resource "aws_eks_pod_identity_association" "aws_lbc" {
 #   cluster_name    = aws_eks_cluster.my-cluster.name
@@ -96,25 +102,46 @@ resource "kubernetes_service_account" "aws-load-balancer-controller" {
 #   role_arn        = aws_iam_role.aws_lbc.arn
 # }
 
-resource "helm_release" "aws_lbc" {
-  name = "aws-load-balancer-controller"
+# resource "helm_release" "aws_lbc" {
+#   name = "aws-load-balancer-controller"
 
-  repository = "https://aws.github.io/eks-charts"
-  chart      = "aws-load-balancer-controller"
-  namespace  = "kube-system"
-  version    = "1.7.2"
+#   repository = "https://aws.github.io/eks-charts"
+#   chart      = "aws-load-balancer-controller"
+#   namespace  = "kube-system"
+#   version    = "1.7.2"
 
-  set {
-    name  = "clusterName"
-    value = aws_eks_cluster.my-cluster.name
-  }
+#   set {
+#     name  = "clusterName"
+#     value = aws_eks_cluster.my-cluster.name
+#   }
 
-  set {
-    name  = "serviceAccount.name"
-    value = "aws-load-balancer-controller"
-  }
+#   set {
+#     name  = "serviceAccount.name"
+#     value = "aws-load-balancer-controller"
+#   }
+#   set {
+#     name  = "region"
+#     value = local.region
+#   }
 
-  # depends_on = [helm_release.cluster_autoscaler]
-  # depends_on = [ aws_eks_node_group.private_nodes ]
-  depends_on = [helm_release.metric_server]
-}
+#   set {
+#     name  = "vpcId"
+#     value = aws_vpc.main.id
+#   }
+
+#   # depends_on = [helm_release.cluster_autoscaler]
+#   # depends_on = [ aws_eks_node_group.private_nodes ]
+#   depends_on = [helm_release.metric_server]
+# }
+
+
+# Use module
+# https://registry.terraform.io/modules/akw-devsecops/eks/aws/latest/submodules/aws-load-balancer-controller
+# module "eks_aws-load-balancer-controller" {
+#   source  = "akw-devsecops/eks/aws//modules/aws-load-balancer-controller"
+#   version = "3.0.0"
+
+#   # insert the 1 required variable here
+#   # The ARN of the OIDC Provider
+#   oidc_provider_arn = aws_iam_openid_connect_provider.oidc_provider.arn
+# }

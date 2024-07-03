@@ -182,25 +182,31 @@ resource "aws_iam_role_policy_attachment" "eks_cni_role_policy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
 }
 
-data "aws_eks_cluster_auth" "my-cluster" {
-  name = aws_eks_cluster.my-cluster.name
+# Output to be used in 11-aws-lbc.sh
+output "vpc_cni_role_arn" {
+  value = aws_iam_role.eks_cni_role.arn
 }
 
-provider "kubernetes" {
-  host                   = data.aws_eks_cluster.my-cluster.endpoint
-  cluster_ca_certificate = base64decode(data.aws_eks_cluster.my-cluster.certificate_authority[0].data)
-  token                  = data.aws_eks_cluster_auth.my-cluster.token
-}
+# data "aws_eks_cluster_auth" "my-cluster" {
+#   name = aws_eks_cluster.my-cluster.name
+# }
 
-resource "kubernetes_service_account" "aws_node" {
-  metadata {
-    name      = "aws-node"
-    namespace = "kube-system"
-    annotations = {
-      "eks.amazonaws.com/role-arn" = aws_iam_role.eks_cni_role.arn
-    }
-  }
-}
+# # The Kubernetes (K8S) provider is used to interact with the resources supported by Kubernetes.
+# provider "kubernetes" {
+#   host                   = data.aws_eks_cluster.my-cluster.endpoint
+#   cluster_ca_certificate = base64decode(data.aws_eks_cluster.my-cluster.certificate_authority[0].data)
+#   token                  = data.aws_eks_cluster_auth.my-cluster.token
+# }
+
+# resource "kubernetes_service_account" "aws_node" {
+#   metadata {
+#     name      = "aws-node"
+#     namespace = "kube-system"
+#     annotations = {
+#       "eks.amazonaws.com/role-arn" = aws_iam_role.eks_cni_role.arn
+#     }
+#   }
+# }
 
 resource "aws_eks_addon" "addons" {
   for_each                    = { for addon in var.addons : addon.name => addon }
@@ -208,6 +214,8 @@ resource "aws_eks_addon" "addons" {
   addon_name                  = each.value.name
   addon_version               = each.value.version
   resolve_conflicts_on_update = "OVERWRITE"
+
+  depends_on                  = [aws_eks_node_group.private_nodes]
 
   service_account_role_arn = each.value.name == "vpc-cni" ? aws_iam_role.eks_cni_role.arn : null
 }
