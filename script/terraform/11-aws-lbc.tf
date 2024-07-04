@@ -4,6 +4,7 @@
 #   cluster_name  = aws_eks_cluster.my-cluster.name
 #   addon_name    = "eks-pod-identity-agent"
 #   addon_version = "v1.3.0-eksbuild.1"
+#   depends_on    = [aws_eks_node_group.private_nodes]
 # }
 
 # data "aws_iam_policy_document" "aws_lbc" {
@@ -74,12 +75,14 @@ resource "aws_iam_role_policy_attachment" "aws_lbc" {
   role       = aws_iam_role.aws_lbc.name
 }
 
-
-# Output to be used in 11-aws-lbc.sh
-output "aws_lbc_role_arn" {
-  value = aws_iam_role.aws_lbc.arn
-}
-
+# REPLACE OIDC!
+# Associate `AWS IAM Role` with `Kubernetes Service account`!!
+# resource "aws_eks_pod_identity_association" "aws_lbc" {
+#   cluster_name    = aws_eks_cluster.my-cluster.name
+#   namespace       = "kube-system"
+#   service_account = "aws-load-balancer-controller"
+#   role_arn        = aws_iam_role.aws_lbc.arn
+# }
 
 # Required to access Kuberentes API from IAM role?
 data "aws_eks_cluster_auth" "my-cluster" {
@@ -108,12 +111,6 @@ resource "kubernetes_service_account" "aws-load-balancer-controller" {
   }
 }
 
-# resource "aws_eks_pod_identity_association" "aws_lbc" {
-#   cluster_name    = aws_eks_cluster.my-cluster.name
-#   namespace       = "kube-system"
-#   service_account = "aws-load-balancer-controller"
-#   role_arn        = aws_iam_role.aws_lbc.arn
-# }
 
 resource "helm_release" "aws_lbc" {
   name = "aws-load-balancer-controller"
@@ -133,6 +130,8 @@ resource "helm_release" "aws_lbc" {
     value = kubernetes_service_account.aws-load-balancer-controller.metadata[0].name
     # value = "aws-load-balancer-controller"
   }
+
+  # lbc needs to know region and vpcid (but clustername is provided..?)
   set {
     name  = "region"
     value = var.region

@@ -1,9 +1,36 @@
+---
+draft: false
+date: 2024-06-02
+categories:
+    - kubernetes
+    - deeplearning
+    - project
+authors:
+    - junho
+---
 
 ### System overview
 
 |<img src="https://i.imgur.com/w8PxxXk.png" alt="simpledl architecture" width="420">|
 |:--:| 
 | *kubernetes architecture of my application* |
+
+
+### Application demo
+
+The following image is the result of deployment on **multi-node Kuberentes cluster.**
+
+| <img src="https://imgur.com/5seKQM4.gif" alt="pods" width="680"> |
+|:--:| 
+| *web application* |
+
+|<img src="https://d17pwbfgewyq5y.cloudfront.net/microk8s-pods.png" alt="pods" width="680"> |
+|:--:| 
+| *Kubernetes resources* |
+
+[↑ Back to top](#)
+<br><br>
+
 
 <!-- more -->
 
@@ -13,10 +40,10 @@
 * <i style="font-size:24px" class="fa">&#xf09b;</i> <a href="https://github.com/jnuho/simpledl" target="_blank">`github.com/jnuho/simpledl`</a>
 
 - [System overview](#system-overview)
+- [Application demo](#application-demo)
+- [Skill Sets I used](#skill-sets-i-used)
 - [Binary classification](#binary-classification)
 - [Virtualbox network architecture](#virtualbox-network-architecture)
-- [Application demo](#application-demo)
-- [Kubernetes setup](#kubernetes-setup)
 - [Virtualbox setup](#virtualbox-setup)
 - [Microservices](#microservices)
     - [CORS issue](#cors-issue)
@@ -30,6 +57,26 @@
 - [1. Minikube implementation](#minikube-implementation)
 - [2. Microk8s implemntation](#microk8s-implemntation)
 - [3. GCP implementation](#gcp-implementation)
+
+### Skill Sets I used
+
+- Kubernetes
+    - in AWS: EKS cluster with 3 worker node. Terraform to deploy EKS and AWS Load Balancer Controller and Ingress for exposing the app.
+    - in Local testing environment: 3-node cluster w/ [microk8s](https://microk8s.io/docs/getting-started).
+- Docker and `docker-compose` for intitial testing
+- Microservices architectur
+    - Frontend : Nginx (with html, css, js) as a reverse proxy server
+    - Backend : Python (uvicorn), Golang (go-gin) as backend web server
+- Deep learning algorithm for binary classification using basic `numpy`
+    - includes forward and [backward propagation](https://en.wikipedia.org/wiki/Backpropagation)
+    - TODO: `pytorch` for cat/non-cat recognizer
+- Virtualbox (cli) to create 3 master nodes (ubuntu) for k8s cluster
+
+I recently focused on testing a 3-master-node [Kubernetes](https://kubernetes.io/) cluster setup using MicroK8s, with basic web service functionality. **My next goal** is to enhance the Python backend service by adding a fundamental deep learning algorithm. Specifically, the Python backend worker will perform binary classification on cat vs. non-cat images from a given image URL. For implementation, I initially explored using `numpy` for backward/forward propagation, and I am currently exploring the `PyTorch` library.
+
+
+[↑ Back to top](#)
+<br><br>
 
 
 ### Binary classification
@@ -52,41 +99,6 @@ I had to construct a virtualbox environment in which my kubernetes cluster and a
 
 [↑ Back to top](#)
 <br><br>
-
-
-### Application demo
-
-The following image is the result of deployment on **multi-node Kuberentes cluster.**
-
-| <img src="https://d17pwbfgewyq5y.cloudfront.net/microk8s-result.gif" alt="pods" width="680"> |
-|:--:| 
-| *web application* |
-
-|<img src="https://d17pwbfgewyq5y.cloudfront.net/microk8s-pods.png" alt="pods" width="680"> |
-|:--:| 
-| *Kubernetes resources* |
-
-[↑ Back to top](#)
-<br><br>
-
-### Kubernetes setup
-
-- Kubernetes : 3-node cluster w/ [microk8s](https://microk8s.io/docs/getting-started).
-- Docker and `docker-compose` for testing
-- Microservices architecture
-    - Frontend : Nginx (with html, css, js) as a reverse proxy server
-    - Backend : Python uvicorn, Golang go-gin as backend web server
-- Deep learning algorithm for binary classification using basic `numpy`
-    - includes forward and [backward propagation](https://en.wikipedia.org/wiki/Backpropagation)
-    - TODO: `pytorch` for cat/non-cat recognizer
-- Virtualbox (cli) to create 3 master nodes (ubuntu) for k8s cluster
-
-I recently focused on testing a 3-master-node [Kubernetes](https://kubernetes.io/) cluster setup using MicroK8s, with basic web service functionality. **My next goal** is to enhance the Python backend service by adding a fundamental deep learning algorithm. Specifically, the Python backend worker will perform binary classification on cat vs. non-cat images from a given image URL. For implementation, I initially explored using `numpy` for backward/forward propagation, and I am currently exploring the `PyTorch` library.
-
-
-[↑ Back to top](#)
-<br><br>
-
 
 ### Virtualbox Setup
 
@@ -569,106 +581,26 @@ k get ingress
 - Accessing application
     - For accessing these applications in a local cluster, you should access it through node port (30000 ports) or use a reverse proxy to send them.
     - But is there any way to access app on port 80 or 443?
-        - use 1.`Port-forward` or 2.`MetalLB` to allow access to app on port 80 or 443.
+        - use Port-forward or `MetalLB` to allow access to app on port 80 or 443.
 
-### 9-1. Port Forward
+- port forward
 
 ```sh
 k get svc -n ingress-nginx
-    NAME                                 TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)                      AGE
-    ingress-nginx-controller             NodePort    10.109.183.14    <none>        80:31078/TCP,443:31420/TCP   6m17s
-    ingress-nginx-controller-admission   ClusterIP   10.110.101.115   <none>        443/TCP                      6m17s
+NAME                                                                 TYPE                CLUSTER-IP         EXTERNAL-IP     PORT(S)                                            AGE
+ingress-nginx-controller                         NodePort        10.107.26.28     <none>                80:32361/TCP,443:31064/TCP     3h9m
+ingress-nginx-controller-admission     ClusterIP     10.106.14.66     <none>                443/TCP                                            3h9m
 
-
-# In Chrome browser, "http://localhost:8080" -> ingress controller on 80
-k port-forward -n <namespace> svc/<service-name> <local-port>:<service-port>
-# k port-forward -n ingress-nginx svc/ingress-nginx-controller 80:80 3001:3001 3002:3002
-k port-forward -n ingress-nginx svc/ingress-nginx-controller 80:80
-# k get svc -n ingress-nginx svc/ingress-nginx-controller -o yaml
-#k edit svc -n ingress-nginx svc/ingress-nginx-controller
-# spec:
-#   ports:
-#   - name: http
-#     port: 80
-#     protocol: TCP
-#     targetPort: 80
-#   - name: https
-#     port: 443
-#     protocol: TCP
-#     targetPort: 443
-#   - name: custom-port
-#     port: 3001
-#     protocol: TCP
-#     targetPort: 3001
+kubectl port-forward -n <namespace> svc/<service-name> <local-port>:<service-port>
+kubectl port-forward -n ingress-nginx svc/ingress-nginx-controller 80:80 3001:3001 3002:3002
 
 ```
 
-The need for port-forwarding arises due to the way Kubernetes networking and Minikube are structured. Here's a breakdown of why you might need to use port-forwarding and why direct access might not work without it:
-
-### Why Direct Access Might Not Work
-
-9-1-1. **Network Isolation:**
-   - **Kubernetes Networking:** Kubernetes clusters are designed to have an isolated network. Services within the cluster communicate with each other via internal cluster IPs that are not accessible from the outside world directly.
-   - **Minikube Networking:** Minikube sets up a local virtual machine (VM) on your computer. This VM has its own network namespace, separate from your host machine's network. The services running inside Minikube are isolated from your host machine by default.
-
-9-1-2. **ClusterIP Services:**
-   - **ClusterIP Type:** The services you've listed (`be-go-service`, `be-py-service`, `fe-nginx-service`, and `kubernetes`) are of type `ClusterIP`. This means they are only accessible within the cluster. External traffic from your host machine cannot reach these services directly.
-
-9-1-3. **Minikube IP Address:**
-   - Minikube typically runs on a virtual IP address, such as `192.168.49.2` in your case. Accessing this IP directly from your host might not be straightforward due to network isolation.
-
-### Why Port-Forwarding is Needed
-
-Port-forwarding provides a bridge between your host machine and the Kubernetes cluster, allowing you to access cluster services from your local machine as if they were running locally.
-
-- **Accessing Cluster Services:**
-   - Port-forwarding allows you to map a port on your local machine to a port on a pod or service within the cluster. This makes it possible to access cluster services using `localhost` on your host machine.
-
-- **Bypassing Network Isolation:**
-   - By forwarding a port, you bypass the network isolation of the cluster, making it possible to communicate with services running inside Minikube directly from your host.
-
-### Alternative Approaches
-
-If you prefer not to use port-forwarding, there are other approaches you can consider:
-
-- **Minikube Tunnel:**
-   - Minikube provides a `minikube tunnel` command that can create a network tunnel to your cluster, making services of type `LoadBalancer` accessible from your host machine.
-
-   ```sh
-   minikube tunnel
-   ```
-
-- **NodePort Services:**
-   - Change the service type to `NodePort`, which exposes the service on a port on each node of the cluster. You can then access the service using the Minikube IP and the NodePort.
-
-   Example of changing a service to NodePort:
-   ```yaml
-   apiVersion: v1
-   kind: Service
-   metadata:
-     name: fe-nginx-service
-   spec:
-     type: NodePort
-     ports:
-       - port: 8080
-         targetPort: 8080
-         nodePort: 30080  # Example NodePort
-     selector:
-       app: fe-nginx
-   ```
-
-- **Ingress with Minikube IP:**
-   - You can use the Minikube IP address and configure your `/etc/hosts` file to point `localhost` to the Minikube IP.
-
-### Summary
-
-Using `kubectl port-forward` is a convenient and straightforward way to access your services without altering service types or cluster configurations. It helps bridge the network isolation between your host machine and the Kubernetes cluster set up by Minikube.
 
 [↑ Back to top](#)
 <br><br>
 
-
-### 9-2. Installing Metallb
+- Installing Metallb
 
 ```sh
 # strictARP to true
@@ -745,83 +677,6 @@ k get svc
 
 [↑ Back to top](#)
 <br><br>
-
-### 10. Tailscale
-
-- [`Tailscale Funnel Example`](https://tailscale.com/kb/1247/funnel-examples)
-- [`Tailscale Funnel Minikube Guide`](https://tailscale.com/learn/managing-access-to-kubernetes-with-tailscale)
-- With `Tailscale Funnel`, you can expose local services, individual folders, or even plain text to the public internet over HTTPS.
-
-
-- Create Tailscale account and Download
-    - Now talescale dashboard shows your Machines (ip)
-
-- Create Minikube local cluster on your Device (Windows in my case)
-
-- Deploy Tailscale in Your Kubernetes Cluster
-    - Create auth key in Tailscale dashboard: `Settings > Keys > Generate auth key`
-    - Copy the key
-
-- Copy the following YAML manifest and save it to `tailscale-secret.yaml` in your working directory:
-
-```yaml
-apiVersion: v1
-kind: Secret
-metadata:
-  name: tailscale-auth
-stringData:
-  TS_AUTHKEY: tskey-0123456789abcdef
-```
-
-- Next, you must create a Kubernetes service account, role, and role binding to configure role-based access control (RBAC) for your Tailscale deployment. You'll run your Tailscale pods as this new service account. The pods will be able to use the granted RBAC permissions to perform limited interactions with your Kubernetes cluster.
-
-Copy the following YAML manifest to `tailscale-rbac.yaml`:
-
-
-```yaml
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: tailscale
-
----
-
-apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
-metadata:
-  name: tailscale
-rules:
-  - apiGroups: [""]
-    resourceNames: ["tailscale-auth"]
-    resources: ["secrets"]
-    verbs: ["get", "update", "patch"]
-
----
-
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  name: tailscale
-subjects:
-  - kind: ServiceAccount
-    name: tailscale
-roleRef:
-  kind: Role
-  name: tailscale
-  apiGroup: rbac.authorization.k8s.io
-```
-
-- For each sidebar, proxy, and subnet router you want to use, you need to create a new Tailscale pod running the official Docker image.
-
-
-
-
-
-
-
-
-
-
 
 
 ### Using Minikube for image build and local development
@@ -1006,6 +861,83 @@ Here's a high-level overview of the traffic flow when you access `http://localho
 1. **Browser Request**: When you type `http://localhost` into your browser and hit enter, your browser sends a HTTP request to `localhost`, which is resolved to the IP address `127.0.0.1`.
 
 2. **Port Forwarding**: Since you've set up port forwarding with the command `kubectl port-forward -n ingress-nginx svc/ingress-nginx-controller 80:80`, the request to `localhost` on port 80 is forwarded to port 80 on the `ingress-nginx-controller` service.
+
+
+```sh
+ k get svc -n ingress-nginx
+    NAME                                 TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)
+        AGE
+    ingress-nginx-controller             NodePort    10.109.183.14    <none>        80:31078/TCP,443:31420/TCP   6m17s
+    ingress-nginx-controller-admission   ClusterIP   10.110.101.115   <none>        443/TCP                      6m17s
+
+# k port-forward deployment/fe-nginx-deployment 80
+# localhost:8080 -> ingress controller on 80
+k port-forward -n ingress-nginx svc/ingress-nginx-controller 80:80
+```
+
+The need for port-forwarding arises due to the way Kubernetes networking and Minikube are structured. Here's a breakdown of why you might need to use port-forwarding and why direct access might not work without it:
+
+### Why Direct Access Might Not Work
+
+2-1. **Network Isolation:**
+   - **Kubernetes Networking:** Kubernetes clusters are designed to have an isolated network. Services within the cluster communicate with each other via internal cluster IPs that are not accessible from the outside world directly.
+   - **Minikube Networking:** Minikube sets up a local virtual machine (VM) on your computer. This VM has its own network namespace, separate from your host machine's network. The services running inside Minikube are isolated from your host machine by default.
+
+2-2. **ClusterIP Services:**
+   - **ClusterIP Type:** The services you've listed (`be-go-service`, `be-py-service`, `fe-nginx-service`, and `kubernetes`) are of type `ClusterIP`. This means they are only accessible within the cluster. External traffic from your host machine cannot reach these services directly.
+
+2-3. **Minikube IP Address:**
+   - Minikube typically runs on a virtual IP address, such as `192.168.49.2` in your case. Accessing this IP directly from your host might not be straightforward due to network isolation.
+
+### Why Port-Forwarding is Needed
+
+Port-forwarding provides a bridge between your host machine and the Kubernetes cluster, allowing you to access cluster services from your local machine as if they were running locally.
+
+- **Accessing Cluster Services:**
+   - Port-forwarding allows you to map a port on your local machine to a port on a pod or service within the cluster. This makes it possible to access cluster services using `localhost` on your host machine.
+
+- **Bypassing Network Isolation:**
+   - By forwarding a port, you bypass the network isolation of the cluster, making it possible to communicate with services running inside Minikube directly from your host.
+
+### Alternative Approaches
+
+If you prefer not to use port-forwarding, there are other approaches you can consider:
+
+- **Minikube Tunnel:**
+   - Minikube provides a `minikube tunnel` command that can create a network tunnel to your cluster, making services of type `LoadBalancer` accessible from your host machine.
+
+   ```sh
+   minikube tunnel
+   ```
+
+- **NodePort Services:**
+   - Change the service type to `NodePort`, which exposes the service on a port on each node of the cluster. You can then access the service using the Minikube IP and the NodePort.
+
+   Example of changing a service to NodePort:
+   ```yaml
+   apiVersion: v1
+   kind: Service
+   metadata:
+     name: fe-nginx-service
+   spec:
+     type: NodePort
+     ports:
+       - port: 8080
+         targetPort: 8080
+         nodePort: 30080  # Example NodePort
+     selector:
+       app: fe-nginx
+   ```
+
+- **Ingress with Minikube IP:**
+   - You can use the Minikube IP address and configure your `/etc/hosts` file to point `localhost` to the Minikube IP.
+
+### Summary
+
+Using `kubectl port-forward` is a convenient and straightforward way to access your services without altering service types or cluster configurations. It helps bridge the network isolation between your host machine and the Kubernetes cluster set up by Minikube.
+
+
+
 
 3. **Ingress Controller**: The Ingress Controller, which is part of the `ingress-nginx-controller` service, receives the request. The Ingress Controller is responsible for routing the request based on the rules defined in your Ingress resource.
 
@@ -1223,6 +1155,7 @@ print(torch.cuda.is_available())
 ```
 
 
+
 [↑ Back to top](#)
 <br><br>
 
@@ -1234,217 +1167,6 @@ cd leetcode
 go test ./...
 ```
 
-### Crawling
-
-```go
-package main
-
-import (
-	"fmt"
-	"log"
-	"net/http"
-	"os"
-	"strings"
-	"time"
-
-	"github.com/gocolly/colly/v2"
-)
-
-// problem: 문제번호
-// desc: 문제설명
-func WriteToFile(problem, desc string) {
-	// If the
-	fname := "problems/" + problem + ".go"
-	f, err := os.OpenFile(fname, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-	if err != nil {
-		log.Fatal(err)
-	}
-	if _, err := f.Write([]byte(desc)); err != nil {
-		f.Close() // ignore error; Write error takes precedence
-		log.Fatal(err)
-	}
-	if err := f.Close(); err != nil {
-		log.Fatal(err)
-	}
-}
-
-// Go Colly (version 2) is a powerful scraping library for Golang,
-// but it operates at the HTTP level and can parse static HTML documents.
-// Unfortunately, it does not execute JavaScript.
-// As a result, it cannot handle Client-Side Rendered (CSR/JS) websites directly.
-// When dealing with JavaScript-enabled websites, combine go Colly with a Headless Browser
-// https://leetcode.com/api/problems/algorithms/
-func main() {
-	// Create a new collector
-	c := colly.NewCollector(
-		// colly.MaxDepth(2),
-		colly.Async(true), // Enable asynchronous scraping
-	)
-	c.Limit(&colly.LimitRule{DomainGlob: "*", Parallelism: 2})
-
-	// Set up event listeners
-
-	// Step 1: OnRequest - Called before a request is made
-	c.OnRequest(func(r *colly.Request) {
-		// Add headers to mimic a browser request
-		// r.Headers.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3")
-		r.Headers.Set("User-Agent", "Chrome/125.0.6422.142")
-		// You can add mre headers if needed
-		fmt.Println("Visiting", r.URL.String())
-	})
-
-	c.WithTransport(&http.Transport{
-		DisableKeepAlives: true,
-	})
-
-	// Step 2: OnError - Called if an error occurs during the request
-	c.OnError(func(r *colly.Response, err error) {
-		fmt.Println("Request URL:", r.Request.URL, "[status code:", r.StatusCode, "]. failed with response:", string(r.Body), "\nError:", err)
-	})
-
-	// Set up event listeners
-	// c.OnHTML("meta[name=description]", func(e *colly.HTMLElement) {
-	c.OnHTML("div#qd-content", func(e *colly.HTMLElement) {
-		fmt.Println(e)
-		// description := e.Attr("content")
-		// fmt.Println("Problem description:", description)
-	})
-	dates := make(chan string)
-	titles := make(chan string)
-	// Step 3: OnHTML - Called right after OnResponse if the received content is HTML
-	// c.OnHTML("meta[name=description]", func(e *colly.HTMLElement) {
-	// c.OnHTML("a.d-block", func(e *colly.HTMLElement) {
-	c.OnHTML("div.fight-date", func(e *colly.HTMLElement) {
-		// description := e.Attr("content")
-		// fmt.Println("Problem description:", description)
-		// fmt.Println(len(e))
-		dates <- e.Text
-		// fmt.Println(e.Text)
-	})
-	c.OnHTML("div.fight-title", func(e *colly.HTMLElement) {
-		// description := e.Attr("content")
-		// fmt.Println("Problem description:", description)
-		// fmt.Println(len(e))
-		titles <- strings.Trim(e.Text, " ")
-		// fmt.Println(title)
-	})
-	// Wait until all threads are finished
-	c.Wait()
-
-	// Define the URL to crawl
-	// url := "https://leetcode.com/problems/two-sum/description/"
-	url := "https://www.boxingscene.com/schedule"
-
-	go func() {
-		for title := range titles {
-			fmt.Println(title)
-		}
-		for date := range dates {
-			fmt.Println(date)
-		}
-	}()
-	// Start scraping
-	c.Visit(url)
-	// Now let's use chromedp to get the rendered HTML
-	// ctx, cancel := chromedp.NewContext(context.Background())
-	// defer cancel()
-
-	// var htmlContent string
-	// err := chromedp.Run(ctx,
-	// 	// chromedp.Navigate(startURL),
-	// 	chromedp.OuterHTML("html", &htmlContent),
-	// )
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-
-	// Now you can process the rendered HTML using Colly
-	// (e.g., extract data from <div> elements, etc.)
-	// fmt.Println("Rendered HTML content:", htmlContent)
-
-	// Wait for a few seconds to allow Colly to finish its work
-	time.Sleep(5 * time.Second)
-	// Write(Append) to file
-	//defer WriteToFile(problem, result)
-}
-
-```
-
-
-### AWS go sdk
-
-```go
-package main
-
-import (
-	"context"
-	"fmt"
-	"log"
-	"os"
-
-	"github.com/aws/aws-sdk-go-v2/config"
-	"github.com/aws/aws-sdk-go-v2/service/s3"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/joho/godotenv"
-)
-
-func loadEnv() error {
-	err := godotenv.Load(".env")
-	if err != nil {
-		return err
-	}
-}
-
-func main() {
-	// Load .env
-	err := loadEnv()
-	if err != nil {
-		log.Fatalf("Error loading .env file\n")
-	}
-
-	// Load AWS SDK configuration
-	// sdkConfig, err := config.LoadDefaultConfig(context.TODO())
-	sdkConfig, err := config.LoadDefaultConfig(context.TODO(), config.WithSharedConfigProfile("default"))
-	if err != nil {
-		fmt.Println("Couldn't load default configuration. Have you set up your AWS account?")
-		fmt.Println(err)
-		return
-	}
-
-	// Initialize S3 client
-	s3Client := s3.NewFromConfig(sdkConfig)
-
-	// Specify your S3 bucket and image file details
-	bucketName := os.Getenv("aws_s3_bucket")
-	fileName := "worker_pool_pattern.drawio.png"
-	filePath := os.Getenv("aws_s3_local_path") + fileName
-	objectKey := fileName
-
-	// Open the local image file
-	file, err := os.Open(filePath)
-	if err != nil {
-		fmt.Println("Error opening local file:", err)
-		return
-	}
-	defer file.Close()
-
-	// Upload the image to S3
-	_, err = s3Client.PutObject(context.TODO(), &s3.PutObjectInput{
-		Bucket: &bucketName,
-		Key:    &objectKey,
-		Body:   file,
-		// ContentType: aws.String("image/jpeg"), // Set the content type appropriately
-		ContentType: aws.String("image/png"), // Set the content type appropriately
-	})
-	if err != nil {
-		fmt.Println("Error uploading image to S3:", err)
-		return
-	}
-
-	fmt.Println("Image uploaded successfully!")
-}
-
-```
 
 
 [↑ Back to top](#)
@@ -1593,36 +1315,3 @@ gcloud compute ssh instance-20240620-115251 --zone asia-northeast3-a
 
 [↑ Back to top](#)
 <br><br>
-
-### Github Actions
-
-- `.github/workflows/main.yml`
-
-[↑ Back to top](#)
-<br><br>
-
-### golang package
-
-- After updating `pkg/weatherapi.go`
-    - only have to go mod init the project `github.com/jnuho/simpledl`
-    - then any sub-project can be accessed as :
-        - `github.com/jnuho/simpledl/pkg`
-        - `github.com/jnuho/simpledl/backend/web`
-
-[↑ Back to top](#)
-<br><br>
-
-### Writing Dockerfile
-
-- https://docs.docker.com/reference/dockerfile/
-
-
-
-[↑ Back to top](#)
-<br><br>
-
-
-
-### AWS EKS with terraform
-
-- [`LINK`](https://blogd.org/blog/2024/06/25/eks-with-terraform)

@@ -1,9 +1,11 @@
 #!/bin/bash
 
-aws eks update-kubeconfig --region ap-northeast-2 --name my-cluster --profile terraform
+aws eks update-kubeconfig \
+    --region ap-northeast-2 \
+    --name my-cluster \
+    --profile terraform
 
 sleep 1
 
 kubectl get svc
-
 kubectl get pod -n kube-system -w
