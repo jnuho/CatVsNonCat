@@ -2,9 +2,11 @@
 
 # Enable nginx ingress controller
 # 1. minikube addon
-#minikube addons enable ingress
 
-#microk8s enable ingress
+if [ "$(kubectl config current-context)" = "minikube" ]; then
+    minikube addons enable ingress
+fi
+
 #foo@ubuntu-2:~/simpledl/script$ k get pod -n ingress -o wide
 #NAME                                      READY   STATUS    RESTARTS      AGE     IP             NODE       NOMINATED NODE   READINESS GATES
 #nginx-ingress-microk8s-controller-24zmd   1/1     Running   5 (34m ago)   6d19h   10.1.163.174   ubuntu-3   <none>           <none>
@@ -19,8 +21,12 @@
 #sleep 1
 
 # Define ingress routing rule
-kubectl apply -f ingress-aws.yaml
+if [ "$(kubectl config current-context)" = "minikube" ]; then
+    kubectl apply -f ingress-local.yaml
+    kubectl port-forward -n ingress-nginx svc/ingress-nginx-controller 80:80
+else
+    kubectl apply -f ingress-aws.yaml
+fi
 
 #sleep 1
 
-#kubectl port-forward -n ingress-nginx svc/ingress-nginx-controller 80:80
