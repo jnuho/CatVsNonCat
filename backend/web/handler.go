@@ -33,8 +33,8 @@ func catPostHandler(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"cat_url":       result.URL,
-		"go-server":     "ok",
-		"python-server": result.STATUS,
+		"go_server":     "ok",
+		"python_server": result.STATUS,
 	})
 }
 

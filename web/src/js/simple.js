@@ -56,7 +56,12 @@ window.onload = function(){
         }
     }
     function showCat(data) {
-        alert(JSON.stringify(data, null, 4));
+        console.log(JSON.stringify(data, null, 4));
+        const figureElement = document.querySelector('.cat-figure');
+        figureElement.innerHTML = `<img src="${data.cat_url}" class="figure-img img-fluid rounded" alt="A generic square placeholder image with rounded corners in a figure.">`;
+
+        const figureCaptionElement = document.querySelector('.cat-result');
+        figureCaptionElement.innerHTML = data.python_server;
     }
 
     async function getWeatherInfo() {
