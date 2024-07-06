@@ -40,7 +40,7 @@ window.onload = function(){
         try{
             const response1 = await axios({
                 method: 'post',
-                url: process.env.GO_LOCAL,
+                url: process.env.WEB_CAT_LOCAL,
                 // url: 'http://k8s-default-fenginxi-ab0a71e16a-424716363.ap-northeast-2.elb.amazonaws.com/web/cat', // in LOCAL k8s ingress env
                 // url: 'http://localhost/web/cat', // in LOCAL k8s ingress env
                 data: {

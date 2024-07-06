@@ -67,6 +67,15 @@ jobs:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
 
+    - name: Create .env file
+      run: |
+        echo "WEB_CAT_LOCAL=${{ secrets.WEB_CAT_LOCAL}}" >> .env
+        echo "WEB_CAT_AWS=${{ secrets.WEB_CAT_AWS}}" >> .env
+        echo "WEB_WEATHER_LOCAL=${{ secrets.WEB_WEATHER_LOCAL}}" >> .env
+        echo "WEB_WEATHER_AWS=${{ secrets.WEB_WEATHER_AWS}}" >> .env
+        cat .env
+        # Add more environment variables as needed
+
     - name: Build and push Docker image for Nginx
       uses: docker/build-push-action@v5
       with:
