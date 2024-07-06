@@ -49,6 +49,13 @@ window.onload = function(){
             catUrl.value = '';
             catUrl.focus();
         } catch(error) {
+            const figureElement = document.querySelector('.cat-figure');
+            figureElement.innerHTML = `<img src="src/images/error.png" class="figure-img img-fluid rounded" style="height: 256px; width: auto; alt="Error Image">`;
+
+            
+            console.log(error)
+            const figureCaptionElement = document.querySelector('.cat-result');
+            figureCaptionElement.innerHTML = "Error: " + error.response.status + ", " + error.response.data.message;
             // console.error("Error calling /work/cat:", error);
             if (error.response) {
                 console.log(error.response.data);
@@ -58,7 +65,7 @@ window.onload = function(){
     function showCat(data) {
         console.log(JSON.stringify(data, null, 4));
         const figureElement = document.querySelector('.cat-figure');
-        figureElement.innerHTML = `<img src="${data.cat_url}" class="figure-img img-fluid rounded" alt="A generic square placeholder image with rounded corners in a figure." style="height: 256px;">`;
+        figureElement.innerHTML = `<img src="${data.cat_url}" class="figure-img img-fluid rounded" alt="A generic square placeholder image with rounded corners in a figure." style="height: 256px; width: auto;">`;
 
         const figureCaptionElement = document.querySelector('.cat-result');
         figureCaptionElement.innerHTML = "status: " + data.python_server + " (" + data.elapsed.toFixed(5) + " ⏳)";
