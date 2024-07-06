@@ -40,9 +40,8 @@ window.onload = function(){
         try{
             const response1 = await axios({
                 method: 'post',
-                url: process.env.WEB_CAT_LOCAL,
                 // url: 'http://k8s-default-fenginxi-ab0a71e16a-424716363.ap-northeast-2.elb.amazonaws.com/web/cat', // in LOCAL k8s ingress env
-                // url: 'http://localhost/web/cat', // in LOCAL k8s ingress env
+                url: 'http://localhost/web/cat', // in LOCAL k8s ingress env
                 data: {
                     cat_url: urlVal,
                 },
@@ -65,8 +64,8 @@ window.onload = function(){
     async function getWeatherInfo() {
         try{
             // Make a POST request to the backend
-            const response = await fetch(process.env.WEB_WEATHER_LOCAL, {
-            // const response = await fetch('http://localhost/weather', {
+            // const response = await fetch('http://k8s-default-fenginxi-ab0a71e16a-424716363.ap-northeast-2.elb.amazonaws.com/weather', {
+            const response = await fetch('http://localhost/weather', {
             // in LOCAL k8s ingress env
                 method: 'POST',
                 headers: {
