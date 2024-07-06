@@ -35,8 +35,6 @@ window.onload = function(){
 
         var urlVal = catUrl.value;
 
-        const env = process.env.ENV;
-    
         try{
             const response1 = await axios({
                 method: 'post',
