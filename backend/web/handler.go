@@ -1,6 +1,7 @@
 package web
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -13,6 +14,7 @@ func getMethodHandler(c *gin.Context) {
 }
 
 func catPostHandler(c *gin.Context) {
+	startNow := time.Now()
 	catObj, err := validateRequest(c)
 	if err != nil {
 		log.Println("Validation error: ", err)
@@ -31,10 +33,12 @@ func catPostHandler(c *gin.Context) {
 		return
 	}
 
+	duration := time.Since(startNow).Seconds()
 	c.JSON(http.StatusOK, gin.H{
 		"cat_url":       result.URL,
 		"go_server":     "ok",
-		"python_server": result.STATUS,
+		"python_server": fmt.Sprintf("%d (%v seconds)", result.STATUS, duration),
+		// "python_server": result.STATUS,
 	})
 }
 
