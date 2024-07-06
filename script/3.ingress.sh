@@ -3,6 +3,8 @@
 # Enable nginx ingress controller
 # 1. minikube addon
 
+
+
 if [ "$(kubectl config current-context)" = "minikube" ]; then
     minikube addons enable ingress
 fi
@@ -23,7 +25,7 @@ fi
 # Define ingress routing rule
 if [ "$(kubectl config current-context)" = "minikube" ]; then
     kubectl apply -f ingress-local.yaml
-    kubectl port-forward -n ingress-nginx svc/ingress-nginx-controller 80:80
+    kubectl port-forward -n ingress-nginx svc/ingress-nginx-controller 8080:80
 else
     kubectl apply -f ingress-aws.yaml
 fi
