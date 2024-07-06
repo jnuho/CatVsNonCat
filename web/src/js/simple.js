@@ -61,7 +61,7 @@ window.onload = function(){
         figureElement.innerHTML = `<img src="${data.cat_url}" class="figure-img img-fluid rounded" alt="A generic square placeholder image with rounded corners in a figure.">`;
 
         const figureCaptionElement = document.querySelector('.cat-result');
-        figureCaptionElement.innerHTML = data.python_server + "(" + data.elapsed.toFixed(2) + " ⏳)";
+        figureCaptionElement.innerHTML = "status: " + data.python_server + " (" + data.elapsed.toFixed(5) + " ⏳)";
     }
 
     async function getWeatherInfo() {
