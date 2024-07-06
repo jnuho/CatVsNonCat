@@ -1,7 +1,6 @@
 package web
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -37,7 +36,8 @@ func catPostHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"cat_url":       result.URL,
 		"go_server":     "ok",
-		"python_server": fmt.Sprintf("%d (%v seconds)", result.STATUS, duration),
+		"python_server": result.STATUS,
+		"elapsed":       duration,
 		// "python_server": result.STATUS,
 	})
 }
