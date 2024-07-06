@@ -58,7 +58,7 @@ window.onload = function(){
     function showCat(data) {
         console.log(JSON.stringify(data, null, 4));
         const figureElement = document.querySelector('.cat-figure');
-        figureElement.innerHTML = `<img src="${data.cat_url}" class="figure-img img-fluid rounded" alt="A generic square placeholder image with rounded corners in a figure.">`;
+        figureElement.innerHTML = `<img src="${data.cat_url}" class="figure-img img-fluid rounded" alt="A generic square placeholder image with rounded corners in a figure." style="height: 256px;">`;
 
         const figureCaptionElement = document.querySelector('.cat-result');
         figureCaptionElement.innerHTML = "status: " + data.python_server + " (" + data.elapsed.toFixed(5) + " ⏳)";
