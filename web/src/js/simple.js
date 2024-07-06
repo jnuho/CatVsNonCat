@@ -98,7 +98,7 @@ window.onload = function(){
 
     function showElapsed(elapsed) {
         const elapsedEle =document.querySelector('.elapsed');
-        elapsedEle.innerHTML = "3-goroutine in " + elapsed.toFixed(2) + " sec";
+        elapsedEle.innerHTML = "3-worker in " + elapsed.toFixed(2) + "⏳";
     }
 
     function showWeather(weatherList) {
