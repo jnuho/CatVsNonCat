@@ -1,27 +1,29 @@
 package pkg
 
-func BinarySearch(needle int, haystack []int) bool {
-	low := 0
-	high := len(haystack) - 1
+func BinarySearch(arr []int, target int) int {
+	if len(arr) <= 0 {
+		return -1
+	}
 
-	for low <= high {
-		median := (low + high) / 2
+	L := 0
+	R := len(arr) - 1
 
-		if haystack[median] < needle {
-			low = median + 1
+	for L <= R {
+		median := (L + R) / 2
+
+		if arr[median] == target {
+			return median
+		} else if arr[median] > target {
+			R = median - 1
 		} else {
-			high = median - 1
+			L = median + 1
 		}
 	}
 
-	if low == len(haystack) || haystack[low] != needle {
-		return false
-	}
-
-	return true
+	return -1
 }
 
 // func main() {
-// 	items := []int{1, 2, 9, 20, 31, 45, 63, 70, 100}
-// 	fmt.Println(BinarySearch(63, items))
+// 	arr := []int{1, 2, 9, 20, 31, 45, 63, 70, 100}
+// 	fmt.Println(BinarySearch(arr, 63))
 // }
