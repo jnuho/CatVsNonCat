@@ -71,6 +71,15 @@ window.onload = function(){
         figureCaptionElement.innerHTML = "status: " + data.python_server + " (" + data.elapsed.toFixed(5) + " ⏳)";
     }
 
+    // var pasteBtn = document.querySelector('.paste-cat-url-btn');
+    // pasteBtn.addEventListener("click", function(event) {
+    //     paste_into(catUrl);
+    // });
+    // async function paste_into(input) {
+    //     const text = await navigator.clipboard.readText();
+    //     input.value = text;
+    // }
+
     async function getWeatherInfo() {
         try{
             // Make a POST request to the backend
