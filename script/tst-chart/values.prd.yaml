@@ -113,4 +113,4 @@ ingress:
   #      - chart-example.local
 
 config:
-  backend_go_url: http://localhost:8080
+  backend_go_url: http://k8s-default-fenginxi-ab0a71e16a-424716363.ap-northeast-2.elb.amazonaws.com
