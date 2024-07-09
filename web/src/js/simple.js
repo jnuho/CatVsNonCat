@@ -2,6 +2,7 @@
 
 window.onload = function(){
 
+    console.log('Library loaded:', window.ini);
     // await pauses the async function
     // but does not block the entire program.
     // Other code (like console.log('End')) can run while waiting.
