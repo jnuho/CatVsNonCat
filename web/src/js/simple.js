@@ -2,6 +2,28 @@
 
 window.onload = function(){
 
+    // await pauses the async function
+    // but does not block the entire program.
+    // Other code (like console.log('End')) can run while waiting.
+    async function loadAndParseIni() {
+        try {
+            const iniResponse = await fetch('/config/setting.ini');
+            const iniContent = await iniResponse.text();
+
+            // Assuming 'ini' library is already loaded and available
+            const parsedIni = ini.parse(iniContent);
+            console.log('INI file loaded and parsed successfully:', parsedIni);
+
+            return parsedIni
+
+        } catch (error) {
+            console.error('Error fetching or parsing the INI file:', error);
+        }
+    }
+
+    // Call the function to load and parse the .ini file
+    const iniConfig = loadAndParseIni();
+
     // Input
     var catUrl = document.querySelector('.cat-url');
 
@@ -13,12 +35,12 @@ window.onload = function(){
     // Input 'Enter key' event
     catUrl.addEventListener("keydown", function(event) {
         if (event.keyCode == 13) {
-            identityCat();
+            identifyCat();
         }
     });
     
     runCatBtn.addEventListener("click", function(event) {
-        identityCat();
+        identifyCat();
     });
 
     weatherBtn.addEventListener("click", function(event) {
@@ -31,15 +53,15 @@ window.onload = function(){
     });
     
     // cat identification result from go-be-service
-    async function identityCat() {
+    async function identifyCat() {
 
         var urlVal = catUrl.value;
+
 
         try{
             const response1 = await axios({
                 method: 'post',
-                // url: 'http://k8s-default-fenginxi-ab0a71e16a-424716363.ap-northeast-2.elb.amazonaws.com/web/cat', // in LOCAL k8s ingress env
-                url: 'http://localhost:8080/web/cat', // in LOCAL k8s ingress env
+                url: `${iniConfig.backend_go_url}/web/cat`,
                 data: {
                     cat_url: urlVal,
                 },
@@ -84,7 +106,7 @@ window.onload = function(){
         try{
             // Make a POST request to the backend
             // const response = await fetch('http://k8s-default-fenginxi-ab0a71e16a-424716363.ap-northeast-2.elb.amazonaws.com/weather', {
-            const response = await fetch('http://localhost:8080/weather', {
+            const response = await fetch(`${iniConfig.backend_go_url}/weather`, {
             // in LOCAL k8s ingress env
                 method: 'POST',
                 headers: {
@@ -159,10 +181,9 @@ window.onload = function(){
             var digit = "";
 
             try {
-                    const response2 = await axios.post("http://localhost:8080/web/mnist", { // in k8s ingress env
-                    // const response2 = await axios.post("http://localhost:3001/web/mnist", { // in docker-compose env
-                            drawn_digit: digit
-                    });
+                const response2 = await axios.post(`${iniConfig.backend_go_url}/web/mnist`, {
+                    drawn_digit: digit
+                });
 
                     showDigit(response2.data);
             } catch (error) {
@@ -197,7 +218,6 @@ window.onload = function(){
         copyToClipboard("noncat_url2");
     });
 
-
     cat_url1.addEventListener("click", function(event) {
         copyToClipboard("cat_url1");
     });
@@ -210,7 +230,6 @@ window.onload = function(){
     noncat_url2.addEventListener("click", function(event) {
         copyToClipboard("noncat_url2");
     });
-
 
     function copyToClipboard(id) {
         var textToCopy = document.getElementById(id).innerText.trim();
@@ -229,8 +248,12 @@ window.onload = function(){
             textArea.focus();
             textArea.select();
             try {
-                document.execCommand('copy');
-                console.log('Copying to clipboard was successful!');
+                 // document.execCommand('copy'); // Deprecated
+                navigator.clipboard.writeText(textArea.value).then(function() {
+                    console.log('Copying to clipboard was successful!');
+                }, function(err) {
+                    console.error('Could not copy text: ', err);
+                });
             } catch (err) {
                 console.error('Could not copy text: ', err);
             }

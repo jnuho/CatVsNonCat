@@ -10,8 +10,6 @@ import (
 	"sort"
 	"sync"
 	"time"
-
-	"github.com/joho/godotenv"
 )
 
 type GeoCityResponse struct {
@@ -125,14 +123,6 @@ func getCurrWeather(ctx context.Context, city, apiKey string, ch chan<- WeatherR
 	ch <- data
 }
 
-func getEnvVar(envKey string) string {
-	err := godotenv.Load(".env")
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
-	return os.Getenv(envKey)
-}
-
 const (
 	YYYYMMDD  = "2006-01-02"
 	HHMMSS24h = "15:04:05"
@@ -147,7 +137,7 @@ func GetWeatherInfo() []WeatherResponse {
 	log.SetPrefix(time.Now().Format(YYYYMMDD+" "+HHMMSS24h) + ": ")
 	log.SetFlags(log.Lshortfile)
 
-	apiKey := getEnvVar("WEATHER_API_KEY")
+	apiKey := os.Getenv("WEATHER_API_KEY")
 	cities := []string{"Los Angeles,CA,US", "Seattle,WA,US", "Seongnam-si,KR"} //"Taipei,TW"
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)

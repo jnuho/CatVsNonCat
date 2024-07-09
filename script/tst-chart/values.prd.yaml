@@ -70,7 +70,7 @@ ingress:
   annotations:
     alb.ingress.kubernetes.io/scheme: internet-facing
     alb.ingress.kubernetes.io/target-type: ip
-    alb.ingress.kubernetes.io/tags: Environment=dev,Team=devops
+    alb.ingress.kubernetes.io/tags: Environment=prd,Team=devops
     # Default listen-ports:
     # alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
     # Default health check: / or /AWS.ALB/healthcheck
@@ -111,3 +111,6 @@ ingress:
   #  - secretName: chart-example-tls
   #    hosts:
   #      - chart-example.local
+
+config:
+  backend_go_url: http://localhost:8080

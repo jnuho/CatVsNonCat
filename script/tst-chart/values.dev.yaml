@@ -178,3 +178,7 @@ ingress:
   #  - secretName: chart-example-tls
   #    hosts:
   #      - chart-example.local
+
+
+config:
+  backend_go_url: http://localhost:8080

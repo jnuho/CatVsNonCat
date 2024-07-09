@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: application-settings
+data:
+  settings.ini: |
+    app_mode = {{ .Values.appMode }}
+    [backend_go]
+    backend_go_url = {{ .Values.config.backend_go_url }

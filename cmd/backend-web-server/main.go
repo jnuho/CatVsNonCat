@@ -29,6 +29,7 @@ func main() {
 	done := make(chan error)
 
 	// Load environment variables
+	// -> to be used in `backend/web/util.go` and `pkg/weatherapi.go`
 	go func() {
 		if err := godotenv.Load(); err != nil {
 			done <- fmt.Errorf("error loading .env file: %v", err)
