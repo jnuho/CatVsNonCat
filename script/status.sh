@@ -28,8 +28,8 @@ echo "-------[HPA]-------"
 kubectl get hpa
 
 echo ""
-#echo "-------[Configmap]-------"
-#kubectl get configmap
+echo "-------[Configmap]-------"
+kubectl get configmap
 
 #echo ""
 #echo "-------[Secret]-------"

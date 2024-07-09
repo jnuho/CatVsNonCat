@@ -24,10 +24,7 @@ fi
 
 # Define ingress routing rule
 if [ "$(kubectl config current-context)" = "minikube" ]; then
-    kubectl apply -f ingress-local.yaml
     kubectl port-forward -n ingress-nginx svc/ingress-nginx-controller 8080:80
-else
-    kubectl apply -f ingress-aws.yaml
 fi
 
 #sleep 1

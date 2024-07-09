@@ -72,17 +72,22 @@ services:
       # readOnlyRootFilesystem: true
       # runAsNonRoot: true
       # runAsUser: 1000
-# Additional volumes on the output Deployment definition.
-    volumes: []
-# - name: foo
-#   secret:
-#     secretName: mysecret
-#     optional: false
-# Additional volumeMounts on the output Deployment definition.
-    volumeMounts: []
-# - name: foo
-#   mountPath: "/etc/foo"
-#   readOnly: true
+    # Additional volumes on the output Deployment definition.
+    volumes:
+      - name: config-volume
+        configMap:
+          name: application-settings
+      # - name: foo
+      #   secret:
+      #     secretName: mysecret
+      #     optional: false
+    # Additional volumeMounts on the output Deployment definition.
+    volumeMounts:
+      - name: config-volume
+        mountPath: /config
+      # - name: foo
+      #   mountPath: "/etc/foo"
+      #   readOnly: true
     nodeSelector: {}
     tolerations: []
     affinity: {}

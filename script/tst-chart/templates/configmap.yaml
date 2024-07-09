@@ -6,4 +6,4 @@ data:
   settings.ini: |
     app_mode = {{ .Values.appMode }}
     [backend_go]
-    backend_go_url = {{ .Values.config.backend_go_url }
+    backend_go_url = {{ .Values.config.backend_go_url }}

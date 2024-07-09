@@ -26,6 +26,14 @@ services:
       limits:
         memory: 256Mi
         cpu: 100m
+    volumes:
+      - name: config-volume
+        configMap:
+          name: application-settings
+    # Additional volumeMounts on the output Deployment definition.
+    volumeMounts:
+      - name: config-volume
+        mountPath: /config
 
   - name: be-go
     replicaCount: 1
