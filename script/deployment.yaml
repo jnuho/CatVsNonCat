@@ -16,19 +16,19 @@ spec:
         app: fe-nginx
     spec:
       containers:
-      - name: fe-nginx
-        image: jnuho/fe-nginx:latest
-        #imagePullPolicy: IfNotPresent
-        ports:
-        - name: web
-          containerPort: 80
-        # for HPA to calculate usage in percentage
-        resources:
-          requests:
-            memory: 256Mi
-            cpu: 100m
-          limits:
-            memory: 256Mi
-            cpu: 100m
-      #imagePullSecrets:
-      #- name: regcred
+        - name: fe-nginx
+          image: jnuho/fe-nginx:latest
+          #imagePullPolicy: IfNotPresent
+          ports:
+            - name: web
+              containerPort: 80
+          # for HPA to calculate usage in percentage
+          resources:
+            requests:
+              memory: 256Mi
+              cpu: 100m
+            limits:
+              memory: 256Mi
+              cpu: 100m
+        #imagePullSecrets:
+        #- name: regcred

@@ -1,6 +1,8 @@
 #!/bin/bash
 
-kubectl delete -f ingress.yaml
+kubectl delete -f ingress-aws.yaml
+kubectl delete -f ingress-local.yaml
+kubectl delete -f hpa.yaml
 
 kubectl delete -f service.yaml
 kubectl delete -f be/go/service.yaml
