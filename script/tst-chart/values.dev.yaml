@@ -135,8 +135,8 @@ autoscaling:
 
 
 ingress:
+  enabled: true
   name: fe-nginx-ingress
-  enabled: false
   className: "nginx"
   # annotations: {}
   hosts:

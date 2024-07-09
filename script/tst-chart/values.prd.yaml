@@ -72,8 +72,8 @@ autoscaling:
 
 
 ingress:
+  enabled: true
   name: fe-nginx-ingress
-  enabled: false
   className: "alb"
   annotations:
     alb.ingress.kubernetes.io/scheme: internet-facing

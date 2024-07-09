@@ -1,9 +1,7 @@
 #!/bin/bash
 
-# Get the name of the fe-nginx pod
-kubectl delete -f deployment.yaml
+kubectl rollout restart deployment fe-nginx-deployment
 
-sleep 2
+sleep 1
 
-kubectl apply -f deployment.yaml
 kubectl get pod --watch

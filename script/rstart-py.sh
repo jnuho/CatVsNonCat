@@ -1,9 +1,7 @@
 #!/bin/bash
 
-# Get the name of the fe-nginx pod
-kubectl delete -f be/py/deployment.yaml
+kubectl rollout restart deployment be-py-deployment
 
-sleep 2
+sleep 1
 
-kubectl apply -f be/py/deployment.yaml
 kubectl get pod --watch
