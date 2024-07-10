@@ -276,7 +276,7 @@ window.onload = function(){
         
         if (navigator.clipboard && navigator.clipboard.writeText) {
             navigator.clipboard.writeText(textToCopy).then(function() {
-                console.log('Copying to clipboard was successful!');
+                console.log('Copying to clipboard was successful-1!');
             }, function(err) {
                 console.error('Could not copy text: ', err);
             });
@@ -290,7 +290,7 @@ window.onload = function(){
             try {
                  // document.execCommand('copy'); // Deprecated
                 navigator.clipboard.writeText(textArea.value).then(function() {
-                    console.log('Copying to clipboard was successful!');
+                    console.log('Copying to clipboard was successful-2!');
                 }, function(err) {
                     console.error('Could not copy text: ', err);
                 });
