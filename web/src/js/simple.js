@@ -95,7 +95,7 @@ window.onload = function(){
             const response1 = await axios({
                 method: 'post',
                 // url: `${iniConfig.backend_go_url}/web/cat`,
-                url: `web/cat`,
+                url: `/web/cat`,
                 data: {
                     cat_url: urlVal,
                 },
