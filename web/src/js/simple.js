@@ -54,9 +54,9 @@ window.onload = function(){
     }
 
     // Call the function to load and parse the .ini file
-    const iniContent = loadAndParseIni();
-    const parsedIni = parseINIString(iniContent)
-    console.log("LLLDSDDSL" + parsedIni)
+    // const iniContent = loadAndParseIni();
+    // const parsedIni = parseINIString(iniContent)
+    // console.log("LLLDSDDSL" + parsedIni)
 
     // Input
     var catUrl = document.querySelector('.cat-url');
