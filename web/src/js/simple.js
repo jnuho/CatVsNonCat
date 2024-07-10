@@ -2,28 +2,61 @@
 
 window.onload = function(){
 
-    console.log('Library loaded:', window.ini);
     // await pauses the async function
     // but does not block the entire program.
     // Other code (like console.log('End')) can run while waiting.
     async function loadAndParseIni() {
         try {
-            const iniResponse = await fetch('/config/setting.ini');
+            const iniResponse = await fetch('/config/settings.ini');
             const iniContent = await iniResponse.text();
 
+            console.log('INI file loaded successfully:', iniContent);
+
+            return iniContent;
+
             // Assuming 'ini' library is already loaded and available
-            const parsedIni = ini.parse(iniContent);
-            console.log('INI file loaded and parsed successfully:', parsedIni);
-
-            return parsedIni
-
+            // const parsedIni = ini.parse(iniContent);
+            // console.log('INI file loaded and parsed successfully:', parsedIni);
+            // return parsedIni
         } catch (error) {
             console.error('Error fetching or parsing the INI file:', error);
         }
     }
 
+    function parseINIString(data){
+        var regex = {
+            section: /^\s*\[\s*([^\]]*)\s*\]\s*$/,
+            param: /^\s*([^=]+?)\s*=\s*(.*?)\s*$/,
+            comment: /^\s*;.*$/
+        };
+        var value = {};
+        var lines = data.split(/[\r\n]+/);
+        var section = null;
+        lines.forEach(function(line){
+            if(regex.comment.test(line)){
+                return;
+            }else if(regex.param.test(line)){
+                var match = line.match(regex.param);
+                if(section){
+                    value[section][match[1]] = match[2];
+                }else{
+                    value[match[1]] = match[2];
+                }
+            }else if(regex.section.test(line)){
+                var match = line.match(regex.section);
+                value[match[1]] = {};
+                section = match[1];
+            }else if(line.length == 0 && section){
+                section = null;
+            };
+        });
+        return value;
+    }
+
     // Call the function to load and parse the .ini file
-    const iniConfig = loadAndParseIni();
+    const iniContent = loadAndParseIni();
+    const parsedIni = parseINIString(iniContent)
+    console.log("LLLDSDDSL" + parsedIni)
 
     // Input
     var catUrl = document.querySelector('.cat-url');
