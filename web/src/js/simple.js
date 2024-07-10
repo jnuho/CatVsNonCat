@@ -96,7 +96,7 @@ window.onload = function(){
             const response1 = await axios({
                 method: 'post',
                 // url: `${iniConfig.backend_go_url}/web/cat`,
-                url: `http://localhost/web/cat`,
+                url: `http://localhost:8080/web/cat`,
                 data: {
                     cat_url: urlVal,
                 },
@@ -143,7 +143,7 @@ window.onload = function(){
             // const response = await fetch('http://k8s-default-fenginxi-ab0a71e16a-424716363.ap-northeast-2.elb.amazonaws.com/weather', {
             const response = await fetch(
                 // `${iniConfig.backend_go_url}/weather`
-                `http://localhost/weather`,
+                `http://localhost:8080/weather`,
             {
             // in LOCAL k8s ingress env
                 method: 'POST',
@@ -217,11 +217,11 @@ window.onload = function(){
     // Function to get the service list
     async function identifyDigit() {
             var digit = "";
-
+    
             try {
                 const response2 = await axios.post(
                     // `${iniConfig.backend_go_url}/web/mnist`,
-                    `http://localhost/web/mnist`,
+                    `http://localhost:8080/web/mnist`,
                 {
                     drawn_digit: digit
                 });
