@@ -95,7 +95,8 @@ window.onload = function(){
         try{
             const response1 = await axios({
                 method: 'post',
-                url: `${iniConfig.backend_go_url}/web/cat`,
+                // url: `${iniConfig.backend_go_url}/web/cat`,
+                url: `http://localhost/web/cat`,
                 data: {
                     cat_url: urlVal,
                 },
@@ -140,7 +141,10 @@ window.onload = function(){
         try{
             // Make a POST request to the backend
             // const response = await fetch('http://k8s-default-fenginxi-ab0a71e16a-424716363.ap-northeast-2.elb.amazonaws.com/weather', {
-            const response = await fetch(`${iniConfig.backend_go_url}/weather`, {
+            const response = await fetch(
+                // `${iniConfig.backend_go_url}/weather`
+                `http://localhost/weather`,
+            {
             // in LOCAL k8s ingress env
                 method: 'POST',
                 headers: {
@@ -215,7 +219,10 @@ window.onload = function(){
             var digit = "";
 
             try {
-                const response2 = await axios.post(`${iniConfig.backend_go_url}/web/mnist`, {
+                const response2 = await axios.post(
+                    // `${iniConfig.backend_go_url}/web/mnist`,
+                    `http://localhost/web/mnist`,
+                {
                     drawn_digit: digit
                 });
 
