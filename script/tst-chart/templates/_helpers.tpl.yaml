@@ -72,7 +72,7 @@ Create the name of the service account to use
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Values.name }}
+  name: {{ .Values.name }}-deployment
   labels:
     app: {{ .Values.name }}
 spec:
