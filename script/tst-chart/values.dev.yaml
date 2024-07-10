@@ -150,6 +150,13 @@ ingress:
               name: fe-nginx-service
               port:
                 number: 8080
+        - path: /config
+          pathType: Prefix
+          backend:
+            service:
+              name: fe-nginx-service
+              port:
+                number: 8080
         - path: /web/cat
           pathType: Prefix
           backend:
