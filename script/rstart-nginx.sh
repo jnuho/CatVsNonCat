@@ -1,6 +1,6 @@
 #!/bin/bash
 
-kubectl rollout restart deployment fe-nginx-deployment
+kubectl rollout restart deployment fe-nginx
 
 sleep 1
 

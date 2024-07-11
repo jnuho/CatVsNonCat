@@ -1,6 +1,6 @@
 #!/bin/bash
 
-kubectl rollout restart deployment be-go-deployment
+kubectl rollout restart deployment be-go
 
 sleep 1
 

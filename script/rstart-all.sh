@@ -1,8 +1,8 @@
 #!/bin/bash
 
-kubectl rollout restart deployment fe-nginx-deployment
-kubectl rollout restart deployment be-go-deployment
-kubectl rollout restart deployment be-py-deployment
+kubectl rollout restart deployment fe-nginx
+kubectl rollout restart deployment be-go
+kubectl rollout restart deployment be-py
 
 sleep 1
 

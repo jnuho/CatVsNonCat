@@ -1,6 +1,6 @@
 #!/bin/bash
 
-kubectl rollout restart deployment be-py-deployment
+kubectl rollout restart deployment be-py
 
 sleep 1
 

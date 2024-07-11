@@ -11,9 +11,9 @@ echo ""
 echo "-------[Pod]-------"
 kubectl get pod
 
-# echo ""
-# echo "-------[Deployment]-------"
-# kubectl get deploy
+echo ""
+echo "-------[Deployment]-------"
+kubectl get deploy
 
 echo ""
 echo "-------[Service]-------"
