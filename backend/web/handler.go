@@ -47,7 +47,7 @@ func weatherPostHandler(c *gin.Context) {
 	startNow := time.Now()
 
 	list, err := callWeatherAPi()
-	log.Printf("len = ", len(list))
+	log.Println("len = ", len(list))
 
 	duration := time.Since(startNow).Seconds()
 	log.Printf("\nThis operation took: %v\n\n", duration)
