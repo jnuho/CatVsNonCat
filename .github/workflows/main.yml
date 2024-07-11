@@ -12,6 +12,7 @@ on:
       - 'go.sum'
       - 'backend/web/**'
       - 'cmd/backend-web-server/**'
+      - 'pkg/weatherapi.go'
       # be-py
       - 'backend/worker/**'
       # dockerfiles

@@ -138,6 +138,7 @@ func GetWeatherInfo() []WeatherResponse {
 	log.SetFlags(log.Lshortfile)
 
 	apiKey := os.Getenv("WEATHER_API_KEY")
+
 	cities := []string{"Los Angeles,CA,US", "Seattle,WA,US", "Seongnam-si,KR"} //"Taipei,TW"
 
 	ctx, cancel := context.WithTimeout(context.Background(), 500*time.Millisecond)
