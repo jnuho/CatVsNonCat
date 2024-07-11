@@ -88,6 +88,10 @@ func getCurrWeather(ctx context.Context, city, apiKey string, ch chan<- WeatherR
 	info, err := getGeoloc(ctx, city, apiKey)
 	if err != nil {
 		log.Printf("Error getting geolocation: %v\n", err)
+		if ctx.Err() == context.DeadlineExceeded {
+			log.Printf("Context timeout exceeded for %s\n", city)
+			ctx.Done()
+		}
 		return
 	}
 
@@ -106,6 +110,10 @@ func getCurrWeather(ctx context.Context, city, apiKey string, ch chan<- WeatherR
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		log.Printf("Error fetching weather for lat,lon =(%.2f, %.2f): %v\n", info.Lat, info.Lon, err)
+		if ctx.Err() == context.DeadlineExceeded {
+			log.Printf("Context timeout exceeded for %s\n", city)
+			ctx.Done()
+		}
 		return
 	}
 	defer resp.Body.Close()
