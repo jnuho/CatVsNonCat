@@ -61,6 +61,7 @@ func main() {
 	case err := <-done:
 		if err != nil {
 			glog.Fatal(err)
+			log.Printf("`done` channel error!")
 		}
 	// 2. OS signal (e.g., SIGINT, SIGTERM) received on the sigChan channel.
 	case sig := <-sigChan:
