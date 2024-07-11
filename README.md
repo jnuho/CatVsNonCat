@@ -15,19 +15,60 @@ authors:
 ### System overview
 
 
-
-|<img src="https://d17pwbfgewyq5y.cloudfront.net/AWS_EKS_arch.png" alt="simpledl architecture" width="350">|
+|<img src="https://d17pwbfgewyq5y.cloudfront.net/AWS_EKS_arch.png" alt="simpledl architecture" width="550">|
 |:--:| 
 | *kubernetes architecture (EKS) * |
 
-|<img src="https://i.imgur.com/w8PxxXk.png" alt="simpledl architecture" width="320">|
-|:--:| 
-| *kubernetes architecture (Local VirtualBox)* |
-
-
 <!-- more -->
 
-### Skill Sets I used
+
+### Demo
+
+The following image is the result of deployment on **multi-node Kuberentes cluster.**
+
+| <img src="https://imgur.com/5seKQM4.gif" alt="pods" width="600"> |
+|:--:| 
+| *web application* |
+
+
+[↑ Back to top](#)
+<br><br>
+
+* <i style="font-size:24px" class="fa">&#xf09b;</i> <a href="https://github.com/jnuho/simpledl" target="_blank">`github.com/jnuho/simpledl`</a>
+
+- [`About the App`](#about-the-app)
+- [`Skill Sets`](#skill-sets)
+- [`Binary classification`](#binary-classification)
+- [`Virtualbox network architecture`](#virtualbox-network-architecture)
+- [`Virtualbox setup`](#virtualbox-setup)
+- [`Microservices`](#microservices)
+    - [`CORS issue`](#cors-issue)
+    - [`Backend - Golang web server`](#backend-golang-web-server)
+    - [`Backend - Python web server`](#backend-python-web-server)
+        - [`Mathematical background for deep learning image recognizer`](#mathematical-background-for-deep-learning-image-recognizer)
+        - [`Image Classification`](#image-classification)
+        - [`Pytorch`](#pytorch)
+    - [`Frontend - local setup`](#frontend-local-setup)
+- [`Dockerize for image build`](#dockerize)
+- [`1. Minikube implementation`](#minikube-implementation)
+- [`2. Microk8s implemntation`](#microk8s-implemntation)
+- [`3. GCP implementation`](#gcp-implementation)
+- [`Golang ini setting`](#golang-ini-setting)
+
+
+### About the App
+
+
+My initial goal was to revisit the [`skills`](#skill-sets) by creating a simple web application which uses above skill sets.
+
+I had to spend some time trouble shooting on constructing the Infrastructure for both On-premise and AWS cloud envionment.
+
+The application should analyze images and determines whether they depict Cats or Non-cats, although the project is not finished yet.
+I've yet to use pytorch (CNN) to create a model that can recognize Cat vs. Non-cat. For now I only experimented with numpy for binary classification.
+
+
+
+### Skill Sets
 
 - `Kubernetes`
     - AWS: EKS cluster with 3 worker nodes. Terraform to deploy EKS and AWS Load Balancer Controller and Ingress for exposing the app.
@@ -46,7 +87,7 @@ authors:
     - Frontend : Nginx (with html, css, js) as a reverse proxy server
     - Backend : Python (uvicorn), Golang (go-gin) as backend web server
 - `Deep learning` algorithm for binary classification using `numpy` and `pytorch`
-    - forward and [backward propagation](https://en.wikipedia.org/wiki/Backpropagation)
+    - Forward/[backward propagation](https://en.wikipedia.org/wiki/Backpropagation) and Gradient Descent for parameter tuning.
     - TODO: `pytorch` for cat/non-cat recognizer (In progress)
 - `Virtualbox` (with cli) to test configure 3 microk8s Kubernetes master nodes (ubuntu) in local environment
 - `Golang Concurrency`
@@ -54,38 +95,30 @@ authors:
 
 
 ---
-
-I created a web application that analyzes images and determines whether they depict cats or non-cats.
-To achieve this, I utilized `EKS` (Amazon Elastic Kubernetes Service), `Terraform` for infrastructure provisioning, and `Helm` for managing Kubernetes applications.
-
-1. **Nginx Service**:
+1. `Nginx Frontend`
    - Nginx serves as the static content server, handling HTML, CSS, and JavaScript files.
    - It ensures efficient delivery of frontend resources to users' browsers.
 
-2. **Go-Gin Server**:
+2. `Go-Gin Backend`
    - The Go-Gin server acts as an intermediary between the frontend and backend services.
    - It receives requests from the frontend, including requests for cat-related information.
    - Additionally, it performs utility functions, such as fetching weather data for three cities using goroutine concurrency (3-worker).
 
-3. **Python Backend**:
+3. `Python Backend`
    - The Python backend worker is responsible for image classification.
    - TODO (not complete):
     - Given an image URL, it uses PyTorch (and possibly NumPy) to perform binary classification (cat vs. non-cat).
     - The result of the classification is then relayed back to the Go-Gin server.
 
-4. **Flow of Data**:
-   - When a user submits an image URL via the frontend, the Go-Gin server receives the request.
+4. `How it works?`
+   - When a user submits an image URL via the frontend(browser), the Go-Gin server receives the request.
    - It forwards the request to the Python backend.
    - The Python backend processes the image using the deep learning algorithm.
    - Finally, the result (whether the image contains a cat or not) is sent back to the frontend.
 
-5. **Local Development Environment**:
-   - During development, I experimented with both `microk8s` (with VirtualBox) and `minikube`.
-   - These local Kubernetes environments allowed me to test and iterate on my setup before deploying to production.
-
-6. **Next Goal**:
-   - Enhance the Python backend by incorporating a deep learning algorithm.
-   - I initially did a Numpy implementation with 5-Layer and 2,500 repetition.
+5. **Next Goal**:
+   - Enhance the Python backend by incorporating a deep learning algorithm using pytorch.
+   - I initially did a Numpy implementation with 5-Layer and 2,500 iterations for training parameters.
    - Now, I'm exploring the use of PyTorch for training the model and performing predictions
 
 
@@ -96,42 +129,6 @@ To achieve this, I utilized `EKS` (Amazon Elastic Kubernetes Service), `Terrafor
 
 [↑ Back to top](#)
 <br><br>
-
-
-### Application demo
-
-The following image is the result of deployment on **multi-node Kuberentes cluster.**
-
-| <img src="https://imgur.com/5seKQM4.gif" alt="pods" width="600"> |
-|:--:| 
-| *web application* |
-
-
-[↑ Back to top](#)
-<br><br>
-
-* <i style="font-size:24px" class="fa">&#xf09b;</i> <a href="https://github.com/jnuho/simpledl" target="_blank">`github.com/jnuho/simpledl`</a>
-
-- [System overview](#system-overview)
-- [Skills used](#skill-sets-i-used)
-- [Application demo](#application-demo)
-- [Binary classification](#binary-classification)
-- [Virtualbox network architecture](#virtualbox-network-architecture)
-- [Virtualbox setup](#virtualbox-setup)
-- [Microservices](#microservices)
-    - [CORS issue](#cors-issue)
-    - [Backend - Golang web server](#backend-golang-web-server)
-    - [Backend - Python web server](#backend-python-web-server)
-        - [Mathematical background for deep learning image recognizer](#mathematical-background-for-deep-learning-image-recognizer)
-        - [Image Classification](#image-classification)
-        - [Pytorch](#pytorch)
-    - [Frontend - local setup](#frontend-local-setup)
-- [Dockerize for image build](#dockerize)
-- [1. Minikube implementation](#minikube-implementation)
-- [2. Microk8s implemntation](#microk8s-implemntation)
-- [3. GCP implementation](#gcp-implementation)
-- [`Golang ini setting`](#golang-ini-setting)
-
 
 ### Binary classification
 
@@ -146,9 +143,15 @@ It is a basic deep learning image recognizers, one of which was covered in Andre
 I had to construct a virtualbox environment in which my kubernetes cluster and application will be deployed. 🔥
 
 
+|<img src="https://i.imgur.com/w8PxxXk.png" alt="simpledl architecture" width="400">|
+|:--:| 
+| *kubernetes architecture (Local VirtualBox)* |
+
+
 |<img src="https://d17pwbfgewyq5y.cloudfront.net/virtualbox_NAT.drawio.png" alt="pods" width="520">|
 |:--:| 
 | *NAT network* |
+
 
 
 [↑ Back to top](#)
