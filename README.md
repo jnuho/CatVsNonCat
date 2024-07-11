@@ -24,11 +24,15 @@ authors:
 
 ### Demo
 
-The following image is the result of deployment on **multi-node Kuberentes cluster.**
+The following image is the result of deployment on **EKS** Kuberentes cluster, and using ALB endpoint.
 
 | <img src="https://imgur.com/5seKQM4.gif" alt="pods" width="600"> |
 |:--:| 
 | *web application* |
+
+|<img src="https://d17pwbfgewyq5y.cloudfront.net/microk8s-pods.png" alt="pods" width="600"> |
+|:--:| 
+| *Kubernetes resources* |
 
 
 [↑ Back to top](#)
@@ -42,17 +46,17 @@ The following image is the result of deployment on **multi-node Kuberentes clust
 - [`Virtualbox network architecture`](#virtualbox-network-architecture)
 - [`Virtualbox setup`](#virtualbox-setup)
 - [`Microservices`](#microservices)
-    - [`CORS issue`](#cors-issue)
     - [`Backend - Golang web server`](#backend-golang-web-server)
+        - [`CORS issue`](#cors-issue)
     - [`Backend - Python web server`](#backend-python-web-server)
         - [`Mathematical background for deep learning image recognizer`](#mathematical-background-for-deep-learning-image-recognizer)
         - [`Image Classification`](#image-classification)
         - [`Pytorch`](#pytorch)
-    - [`Frontend - local setup`](#frontend-local-setup)
+    - [`Frontend - nginx`](#frontend-nginx)
 - [`Dockerize for image build`](#dockerize)
 - [`1. Minikube implementation`](#minikube-implementation)
 - [`2. Microk8s implemntation`](#microk8s-implemntation)
-- [`3. GCP implementation`](#gcp-implementation)
+- [`3. EKS implementation`](#eks-implementation)
 - [`Golang ini setting`](#golang-ini-setting)
 
 
@@ -93,38 +97,6 @@ I've yet to use pytorch (CNN) to create a model that can recognize Cat vs. Non-c
 - `Golang Concurrency`
     - used context, channel, goroutine for concurrent programming
 
-
----
-1. `Nginx Frontend`
-   - Nginx serves as the static content server, handling HTML, CSS, and JavaScript files.
-   - It ensures efficient delivery of frontend resources to users' browsers.
-
-2. `Go-Gin Backend`
-   - The Go-Gin server acts as an intermediary between the frontend and backend services.
-   - It receives requests from the frontend, including requests for cat-related information.
-   - Additionally, it performs utility functions, such as fetching weather data for three cities using goroutine concurrency (3-worker).
-
-3. `Python Backend`
-   - The Python backend worker is responsible for image classification.
-   - TODO (not complete):
-    - Given an image URL, it uses PyTorch (and possibly NumPy) to perform binary classification (cat vs. non-cat).
-    - The result of the classification is then relayed back to the Go-Gin server.
-
-4. `How it works?`
-   - When a user submits an image URL via the frontend(browser), the Go-Gin server receives the request.
-   - It forwards the request to the Python backend.
-   - The Python backend processes the image using the deep learning algorithm.
-   - Finally, the result (whether the image contains a cat or not) is sent back to the frontend.
-
-5. **Next Goal**:
-   - Enhance the Python backend by incorporating a deep learning algorithm using pytorch.
-   - I initially did a Numpy implementation with 5-Layer and 2,500 iterations for training parameters.
-   - Now, I'm exploring the use of PyTorch for training the model and performing predictions
-
-
-|<img src="https://d17pwbfgewyq5y.cloudfront.net/microk8s-pods.png" alt="pods" width="400"> |
-|:--:| 
-| *Kubernetes resources* |
 
 
 [↑ Back to top](#)
@@ -223,34 +195,64 @@ sudo ip link set enp0s3 up
 
 ### Microservices
 
-1. frontend: nginx (nodejs vite in local) + javascript + html + css
-2. backend/web: golang (gin framework)
-3. backend/worker: python (fast api, numpy, scikit-learn)
-    - https://fastapi.tiangolo.com/tutorial/
+- `Frontend - Nginx`
+   - Nginx serves as the static content server, handling HTML, CSS, and JavaScript files.
+   - It ensures efficient delivery of frontend resources to users' browsers.
+- `Backend - Go-Gin web-server`
+   - The Go-Gin server acts as an intermediary between the frontend and backend services.
+   - It receives requests from the frontend, including requests for cat-related information.
+   - Additionally, it performs utility functions, such as fetching weather data for three cities using goroutine concurrency (3-worker).
 
+- `Backend - Python uvicorn + fast api web-server`
+    - The Python backend worker is responsible for image classification.
+    - TODO (not complete):
+    - Given an image URL, it uses PyTorch (and possibly NumPy) to perform binary classification (cat vs. non-cat).
+    - The result of the classification is then relayed back to the Go-Gin server.
 
-### Communication between services
+- `How it works?`
+    - When a user submits an image URL via the frontend(browser), the Go-Gin server receives the request.
+    - It forwards the request to the Python backend.
+    - The Python backend processes the image using the deep learning algorithm.
+    - Finally, the result (whether the image contains a cat or not) is sent back to the frontend.
 
-1. **HTTP/REST API**: You can expose a REST API on your Python backend and have the Golang server make HTTP requests to it. This is similar to how your JavaScript frontend communicates with the Golang server
+- `Next Goal`
+    - Enhance the Python backend by incorporating a deep learning algorithm using pytorch.
+    - I initially did a Numpy implementation with 5-Layer and 2,500 iterations for training parameters.
+    - Now, I'm exploring the use of PyTorch for training the model and performing predictions
 
-2. **gRPC/Protobuf**: gRPC is a high-performance, open-source universal RPC framework, and Protobuf (short for Protocol Buffers) is a method for serializing structured data. You can use gRPC and Protobuf for communication between your Golang and Python applications. This method is efficient and type-safe, but it might be a bit more complex to set up compared to a REST API.
-
-3. **Message Queue**: If your use case involves asynchronous processing or you want to decouple your Golang and Python applications, you can use a message queue like RabbitMQ or Apache Kafka. In this setup, your Golang application would publish messages to the queue, and your Python application would consume these messages.
-
-4. **Socket Programming**: You can use sockets for communication if both your Golang and Python applications are running on the same network. This method requires a good understanding of network programming.
-
-5. **Database**: If both applications have access to a shared database, you can use the database as a communication medium. One application writes to the database, and the other one reads from it.
 
 
 [↑ Back to top](#)
 <br><br>
 
 
-### CORS issue
+
+### Backend Golang web server
+
+- `go.mod`, `go.sum` must be in github repo root directory
+- sources:
+    - `cmd/backend-server/main.go`
+    - `backend/web/handler.go`
+    - `backend/web/server.go`
+    - `backend/web/util.go`
+    - `backend/pkg/weatherapi.go`
+
+```sh
+cd simpledl
+go mod init github.com/jnuho/simpledl
+go mod tidy
+```
+
+
+[↑ Back to top](#)
+<br><br>
+
+#### CORS issue
 
 - https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
 
-When a web application tries to make a request to a server that’s on a different domain, protocol, or port, it encounters a CORS (Cross-Origin Resource Sharing) issue. Add headers to backend server accordingly
+When a web application tries to make a request to a server that’s on a different domain, protocol, or port,
+it encounters a CORS (Cross-Origin Resource Sharing) issue. Add headers to backend server accordingly
 
 ```
 For security reasons, browsers restrict cross-origin HTTP requests initiated from scripts.
@@ -261,30 +263,6 @@ from the same origin the application was loaded from unless the response
 from other origins includes the right CORS headers.
 
 => Add appropriate headers in golang server.
-```
-
-
-[↑ Back to top](#)
-<br><br>
-
-### Backend Golang web server
-
-- `go.mod`, `go.sum` must be in github repo root directory
-
-```sh
-cd simpledl
-go mod init github.com/jnuho/simpledl
-go mod tidy
-
-
-cd simpledl/pkg
-go mod init github.com/jnuho/simpledl/pkg
-go mod tidy
-
-
-cd simpledl/cmd/backend-web-server
-go mod init github.com/jnuho/simpledl/cmd/backend-web-server
-go mod tidy
 ```
 
 
@@ -355,9 +333,43 @@ The basic operations for forward and backward propagations in deep learning algo
 [↑ Back to top](#)
 <br><br>
 
-### Frontend - local setup
 
-- Download    & install nodejs 20.12.2
+### Pytorch
+
+https://youtu.be/EMXfZB8FVUA?si=XL8SckGQi9xQDgtc
+https://pytorch.org/get-started/locally/
+
+- CPU (Without Nvidia CUDA) only
+
+```sh
+pip3 install torch torchvision torchaudio
+
+# requirements.txt
+torch==2.3.0
+torchaudio==2.3.0
+torchvision==0.18.0
+
+# install using requirements.txt
+python install -r requirements.txt
+```
+
+```python
+import torch
+
+x = torch.rand(3)
+# tensor([.5907, .0781, .3094])
+print(x)
+
+print(torch.cuda.is_available())
+```
+
+
+[↑ Back to top](#)
+<br><br>
+
+### Frontend - nginx
+
+- Download & install nodejs 20.12.2
     - for local development using `vite`
 
 ```sh
@@ -380,7 +392,8 @@ npm create vite@latest
     }
 ```
 
-Note that I will be using nginx instead in production environment. I used nodejs vite just for local development environment.
+I used nodejs vite just for local development environment.
+I will be using nginx in production environment.
 
 ```sh
 # install dependencies specified in package.json
@@ -1182,39 +1195,7 @@ open port 3001
 [↑ Back to top](#)
 <br><br>
 
-### Pytorch
 
-https://youtu.be/EMXfZB8FVUA?si=XL8SckGQi9xQDgtc
-https://pytorch.org/get-started/locally/
-
-- CPU (Without Nvidia CUDA) only
-
-```sh
-pip3 install torch torchvision torchaudio
-
-# requirements.txt
-torch==2.3.0
-torchaudio==2.3.0
-torchvision==0.18.0
-
-# install using requirements.txt
-python install -r requirements.txt
-```
-
-```python
-import torch
-
-x = torch.rand(3)
-# tensor([.5907, .0781, .3094])
-print(x)
-
-print(torch.cuda.is_available())
-```
-
-
-
-[↑ Back to top](#)
-<br><br>
 
 
 ### golang `testing`
@@ -1229,149 +1210,13 @@ go test ./...
 [↑ Back to top](#)
 <br><br>
 
-### GCP implementation
-
-- Create google account to get free credit for gcloud
-
-- create ubuntu vm
-- ip restriction
-- install google cloud sdk and init
-
-```sh
-gcloud compute security-policies create my-security-policy
-gcloud compute security-policies rules create 1000 \
-    --security-policy my-security-policy \
-    --action allow \
-    --src-ip-ranges <your-home-ip>
-gcloud compute security-policies rules create 2000 
-    --security-policy my-security-policy \
-    --action deny \
-    --src-ip-ranges 0.0.0.0/0
-gcloud compute backend-services update <your-backend-service> \
-    --security-policy my-security-policy
-```
-
-- GCP console setup
-    - vm instacne : create with machine type(E2- memory 4GB)
-    - VPC network : firewalls > add filewall rule (your ip)
-
-- gcp ssh connect
-
-```sh
-gcloud compute ssh --zone "REGION" "INSTANCE_NAME" --project "PROJECT_NAME"
-```
-
+### EKS implemntation
 
 
 [↑ Back to top](#)
 <br><br>
 
 
-- Google Kubernetes Engine
-    - <a href="https://www.youtube.com/watch?v=P1x1Rk_TzV4" target="_blank">Ingress in 5 Minutes</a>
-    - <a href="https://youtu.be/8RQvtagsrg0?si=IwP0qNMz0kutUOVo" target="_blank">GKE Load Balancing</a>
-    - <a href="https://youtu.be/jW_-KZCjsm0?si=u8-842mszl7O9Kr3" target="_blank">GKE tutorial</a>
-    - https://www.youtube.com/watch?v=QvVmQtO-ftU&ab_channel=GoogleCloudTech
-
-- GKE provides a variety of Kubernetes-native constructs to manage L4 and L7 load balancers on Google Cloud.
-    - Service, Ingress, Gateway, Network endpoint groups
-    - GKE load balancers work by routing traffic to pods based on a set of rules
-    - Exposing services outside of the cluster
-        - NodePort Service
-            - uses GKE Node IP, exposes a service on the "same" port on every Node
-        - Load Balancer Service
-            - L4 routing (TCP/UDP), allocates a routable IP+port to a Cloud Load Balancer and uses a Node Port to forward traffic to backend pods
-        - Ingress/Gateway
-            - L7 routing (HTTP/S), allocates a routable IP + HTTP/S ports to a Cloud Load Balancer and uses Pods' IP address to forward traffic directly
-
-
-0. Create new project and enable Google Kuberentes Engine api
-
-1. Create Kubernetes cluster (console/cli)
-    - in console create a cluster
-    - 3 nodes, 6CPUs 12 GB
-
-```sh
-gcloud container clusters create my-cluster --zone=asia-northeast3-a --num-nodes=3 --machine-type=n1-standard-2
-
-gcloud container clusters list
-```
-
-2. Download and install Google Cloud SDK (gcloud)
-
-```sh
-gcloud version
-gcloud components install kubectl
-```
-
-3. Authenticate with gcloud
-    - authenticate using your google cloud credentials
-
-```sh
-gcloud auth login
-```
-
-4. Configure kubectl to Use Your GKE Cluster
-
-```sh
-# set the default project for all gcloud commands
-gcloud config set project poised-cortex-422112-g5
-
-# Connect to cluster
-# `in console 3 dots > Connect` gives a command:
-gcloud container clusters get-credentials my-cluster --zone asia-northeast3-a --project poised-cortex-422112-g5
-#     > kubeconfig entry generated for my-cluster
-
-# Deploy microservices by creating deployment and service
-kubectl create deployment hello-world-rest-api --image=jnuho/fe-nginx:latest
-
-kubectl expose deployment hello-world-rest-api --type=LoadBalancer --port=8080
-
-kubectl get service
-    TYPE                 CLUSTER-IP         EXTERNAL-IP
-    LoadBalancer 10.80.13.230     <pending>
-
-k get svc --watch
-    TYPE                 CLUSTER-IP         EXTERNAL-IP
-    LoadBalancer 10.80.13.230     35.184.204.214
-
-curl 35.184.204.214:8080/hello-world
-```
-
-
-[↑ Back to top](#)
-<br><br>
-
-
-- golang cloud library to create VM
-    - Create Service account
-        - IAM & Admin > Service accounts > Create Service account
-            - Assign the `Compute Admin` role
-            - click 3 dots for 'Key Management'
-            - Create key (JSON) and download and rename `gcp-sa-key.json`
-    - Write golang code to execute to create GCP VM.
-
-```
-gcp_credential="my-sa-key.json"
-gcp_vm_region="asia-northeast3"
-gcp_vm_zone="asia-northeast3-a"
-gcp_vm_machine_type="e2-medium"
-#ubuntu 24.04 50GB
-#gcp_vm_boot_disk=50GB
-#gcp_vm_identity_and_api_access="Allow full access to all Cloud APIs
-#gcp_vm_firewall="http,https,loadbalancer_health_check"
-```
-
-
-- Download Google Cloud SDK and use gcloud to access vm
-
-```sh
-gcloud init
-gcloud compute ssh instance-20240620-115251 --zone asia-northeast3-a
-```
-
-[↑ Back to top](#)
-<br><br>
 
 ## Golang ini setting
 
