@@ -1,6 +1,6 @@
 ---
 draft: false
-date: 2024-07-11
+date: 2024-06-02
 categories:
     - Kubernetes
     - Deep Learning
