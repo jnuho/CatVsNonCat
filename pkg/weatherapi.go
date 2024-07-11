@@ -141,7 +141,7 @@ func SortWeatherResponsesByNames(weatherResponses []WeatherResponse) {
 	sort.Sort(ByName(weatherResponses))
 }
 
-func GetWeatherInfo() []WeatherResponse {
+func GetWeatherInfo() ([]WeatherResponse, error) {
 	log.SetPrefix(time.Now().Format(YYYYMMDD+" "+HHMMSS24h) + ": ")
 	log.SetFlags(log.Lshortfile)
 
@@ -173,6 +173,11 @@ func GetWeatherInfo() []WeatherResponse {
 	}
 	SortWeatherResponsesByNames(weather_list)
 
-	return weather_list
+	if ctx.Err() == context.DeadlineExceeded {
+		log.Printf("Context timeout exceeded...\n")
+		err := ctx.Err()
+		return weather_list, err
+	}
+	return weather_list, nil
 
 }
