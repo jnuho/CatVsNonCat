@@ -95,7 +95,7 @@ window.onload = function(){
             const response1 = await axios({
                 method: 'post',
                 // url: `${iniConfig.backend_go_url}/web/cat`,
-                url: `http://localhost:8080/web/cat`,
+                url: `/web/cat`,
                 data: {
                     cat_url: urlVal,
                 },
@@ -142,7 +142,7 @@ window.onload = function(){
             // const response = await fetch('http://k8s-default-fenginxi-ab0a71e16a-424716363.ap-northeast-2.elb.amazonaws.com/weather', {
             const response = await fetch(
                 // `${iniConfig.backend_go_url}/weather`
-                `http://localhost:8080/weather`,
+                `/weather`,
             {
             // in LOCAL k8s ingress env
                 method: 'POST',
