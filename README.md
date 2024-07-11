@@ -1,21 +1,28 @@
 ---
 draft: false
-date: 2024-06-02
+date: 2024-07-11
 categories:
     - Kubernetes
     - Deep Learning
     - Project
     - EKS
     - Terraform
+    - Helm
 authors:
     - junho
 ---
 
 ### System overview
 
+
+
+|<img src="https://d17pwbfgewyq5y.cloudfront.net/AWS_EKS_arch.png" alt="simpledl architecture" width="350">|
+|:--:| 
+| *kubernetes architecture (EKS) * |
+
 |<img src="https://i.imgur.com/w8PxxXk.png" alt="simpledl architecture" width="320">|
 |:--:| 
-| *kubernetes architecture of my application* |
+| *kubernetes architecture (Local VirtualBox)* |
 
 
 <!-- more -->
