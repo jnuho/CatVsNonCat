@@ -30,9 +30,13 @@ The following image is the result of deployment on **EKS** Kuberentes cluster, a
 |:--:| 
 | *web application* |
 
-|<img src="https://d17pwbfgewyq5y.cloudfront.net/microk8s-pods.png" alt="pods" width="600"> |
+| <img src="https://imgur.com/YpjRWc6.png" alt="pods" width="500"> |
 |:--:| 
-| *Kubernetes resources* |
+| *ingress resource* |
+
+| <img src="https://imgur.com/Ymkj2PH.png" alt="pods" width="500"> |
+|:--:| 
+| *aws load-balancer controller pod in `kube-system` namespace* |
 
 
 [↑ Back to top](#)
@@ -1097,7 +1101,9 @@ vim /var/snap/microk8s/current/var/kubernetes/backend/cluster.yaml
 |:--:| 
 | *result of a cluster* |
 
-
+|<img src="https://d17pwbfgewyq5y.cloudfront.net/microk8s-pods.png" alt="pods" width="600"> |
+|:--:| 
+| *Kubernetes resources* |
 
 [↑ Back to top](#)
 <br><br>
@@ -1115,6 +1121,7 @@ vim /var/snap/microk8s/current/var/kubernetes/backend/cluster.yaml
 |<img src="https://d17pwbfgewyq5y.cloudfront.net/microk8s-cause.png" alt="pods" width="700">|
 |:--:| 
 | *pod resources* |
+
 
 
 ```
