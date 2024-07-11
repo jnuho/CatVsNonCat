@@ -95,7 +95,7 @@ window.onload = function(){
             const response1 = await axios({
                 method: 'post',
                 // url: `${iniConfig.backend_go_url}/web/cat`,
-                url: `/web/cat`,
+                url: `http://localhost:8080/web/cat`,
                 data: {
                     cat_url: urlVal,
                 },
@@ -142,7 +142,7 @@ window.onload = function(){
             // const response = await fetch('http://k8s-default-fenginxi-ab0a71e16a-424716363.ap-northeast-2.elb.amazonaws.com/weather', {
             const response = await fetch(
                 // `${iniConfig.backend_go_url}/weather`
-                `/weather`,
+                `http://localhost:8080/weather`,
             {
             // in LOCAL k8s ingress env
                 method: 'POST',
@@ -178,8 +178,14 @@ window.onload = function(){
 
     function showElapsed(elapsed) {
         const elapsedEle =document.querySelector('.elapsed');
-        elapsedEle.innerHTML = "3-worker in " + elapsed.toFixed(2) + "⏳";
+        elapsedEle.innerHTML = "<i>3-worker in " + elapsed.toFixed(2) + " sec</i>⏳";
     }
+
+    const cityMap = {
+        "Los Angeles": "Los Angeles",
+        "Seattle": "Seattle",
+        "Seongnam-si": "성남시"
+    };
 
     function showWeather(weatherList) {
         // Iterate over the weather list using forEach and xtract the required elements
@@ -196,7 +202,8 @@ window.onload = function(){
             // Select the element with the corresponding class name
             const weatherElement = document.querySelector(`.weather${index + 1}`);
             if (weatherElement) {
-                weatherElement.innerHTML = `${name} ${temp}°C, ${humidity}% <img src="${iconUrl}" style="width: 25px; height: 25px;">`;
+                const nameVal = cityMap[`${name}`];
+                weatherElement.innerHTML = `<i>${nameVal} ${temp}°C, ${humidity}%</i> <img src="${iconUrl}" style="width: 25px; height: 25px;">`;
             }
         });
     }
