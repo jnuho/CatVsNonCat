@@ -182,9 +182,11 @@ window.onload = function(){
     }
 
     const cityMap = {
-        "Los Angeles": "Los Angeles",
+        "Los Angeles": "LA",
         "Seattle": "Seattle",
-        "Seongnam-si": "성남시"
+        "Miami": "Miami",
+        "Austin": "Texas",
+        "Seongnam-si": "성남"
     };
 
     function showWeather(weatherList) {
