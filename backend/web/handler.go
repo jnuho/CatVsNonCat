@@ -25,8 +25,8 @@ func catPostHandler(c *gin.Context) {
 
 	result, err := callPythonBackend(catObj.URL)
 	if err != nil {
-		log.Println("Python backend call error:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   err.Error(),
 			"message": "Error calling Python backend",
 		})
 		return
