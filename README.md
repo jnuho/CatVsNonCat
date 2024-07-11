@@ -26,10 +26,12 @@ authors:
     - AWS: EKS cluster with 3 worker nodes. Terraform to deploy EKS and AWS Load Balancer Controller and Ingress for exposing the app.
     - Local: 3-node cluster w/ [microk8s](https://microk8s.io/docs/getting-started).
 - `Terraform` iac to create:
-    - [`LINK`](https://blogd.org/blog/2024/07/01/eks-with-terraform/)
+    - [`LINK`](EKS_with_Terraform_and_Helm.md)
     - AWS network resources
     - IAM Role and policy association with serviceaccount
     - EKS cluster, node group, addons
+- `Helm Chart`
+    - [`LINK`](helm.pdf)
 - `Docker` and `Dockerfile` for building images
 - `Github Actions` for CI
     - Github repository -> Dockerhub image repository
@@ -43,7 +45,42 @@ authors:
 - `Golang Concurrency`
     - used context, channel, goroutine for concurrent programming
 
-I recently focused on testing a 3-master-node [Kubernetes](https://kubernetes.io/) cluster setup using MicroK8s, with basic web service functionality. **My next goal** is to enhance the Python backend service by adding a fundamental deep learning algorithm. Specifically, the Python backend worker will perform binary classification on cat vs. non-cat images from a given image URL. For implementation, I initially explored using `numpy` for backward/forward propagation, and I am currently exploring the `PyTorch` library.
+
+---
+
+I created a web application that analyzes images and determines whether they depict cats or non-cats.
+To achieve this, I utilized `EKS` (Amazon Elastic Kubernetes Service), `Terraform` for infrastructure provisioning, and `Helm` for managing Kubernetes applications.
+
+1. **Nginx Service**:
+   - Nginx serves as the static content server, handling HTML, CSS, and JavaScript files.
+   - It ensures efficient delivery of frontend resources to users' browsers.
+
+2. **Go-Gin Server**:
+   - The Go-Gin server acts as an intermediary between the frontend and backend services.
+   - It receives requests from the frontend, including requests for cat-related information.
+   - Additionally, it performs utility functions, such as fetching weather data for three cities using goroutine concurrency (3-worker).
+
+3. **Python Backend**:
+   - The Python backend worker is responsible for image classification.
+   - TODO (not complete):
+    - Given an image URL, it uses PyTorch (and possibly NumPy) to perform binary classification (cat vs. non-cat).
+    - The result of the classification is then relayed back to the Go-Gin server.
+
+4. **Flow of Data**:
+   - When a user submits an image URL via the frontend, the Go-Gin server receives the request.
+   - It forwards the request to the Python backend.
+   - The Python backend processes the image using the deep learning algorithm.
+   - Finally, the result (whether the image contains a cat or not) is sent back to the frontend.
+
+5. **Local Development Environment**:
+   - During development, I experimented with both `microk8s` (with VirtualBox) and `minikube`.
+   - These local Kubernetes environments allowed me to test and iterate on my setup before deploying to production.
+
+6. **Next Goal**:
+   - Enhance the Python backend by incorporating a deep learning algorithm.
+   - I initially did a Numpy implementation with 5-Layer and 2,500 repetition.
+   - Now, I'm exploring the use of PyTorch for training the model and performing predictions
+
 
 |<img src="https://d17pwbfgewyq5y.cloudfront.net/microk8s-pods.png" alt="pods" width="400"> |
 |:--:| 
@@ -86,6 +123,7 @@ The following image is the result of deployment on **multi-node Kuberentes clust
 - [1. Minikube implementation](#minikube-implementation)
 - [2. Microk8s implemntation](#microk8s-implemntation)
 - [3. GCP implementation](#gcp-implementation)
+- [`Golang ini setting`](#golang-ini-setting)
 
 
 ### Binary classification
@@ -1321,6 +1359,37 @@ gcp_vm_machine_type="e2-medium"
 gcloud init
 gcloud compute ssh instance-20240620-115251 --zone asia-northeast3-a
 ```
+
+[↑ Back to top](#)
+<br><br>
+
+## Golang ini setting
+
+In software development, managing configurations across different environments—such as development (dev), staging (stg), and production (prd)—is crucial. 
+
+Each environment often requires distinct settings, such as API endpoint URLs, database connections, and environment variables.
+
+Hard-coding these values directly into the application code can lead to maintenance challenges and potential errors during deployment.
+
+- Environment-Specific Values Files
+    - 
+
+```yaml
+# One can also set different namespace for each environment on values.xxx.yaml
+
+# 1. Development envionment
+helm install tst-release ./tst-chart -f ./tst-chart/values.dev.yaml
+
+# 2. Stage envionment
+helm install tst-release ./tst-chart -f ./tst-chart/values.stg.yaml
+
+# 3. Production envionment
+helm install tst-release ./tst-chart -f ./tst-chart/values.prd.yaml
+```
+
+
+
+
 
 [↑ Back to top](#)
 <br><br>
