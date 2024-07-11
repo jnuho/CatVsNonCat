@@ -182,10 +182,10 @@ window.onload = function(){
     }
 
     const cityMap = {
-        "Los Angeles": "LA",
-        "Seattle": "Seattle",
-        "Miami": "Miami",
-        "Austin": "Texas",
+        "Los Angeles": "CA",
+        "Seattle": "WA",
+        "Miami": "FL",
+        "Austin": "TX",
         "Seongnam-si": "성남"
     };
 
@@ -193,7 +193,7 @@ window.onload = function(){
         // Iterate over the weather list using forEach and xtract the required elements
         weatherList.forEach((weather, index) => {
             const name = weather.name;
-            const temp = weather.main.temp;
+            const temp = weather.main.temp.toFixed(1);
             const humidity = weather.main.humidity;
             const icon = weather.weather[0].icon;
             var iconUrl = "https://openweathermap.org/img/wn/" + icon + ".png";
