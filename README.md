@@ -28,7 +28,7 @@ I will be explaining about details in the following post.
 
 The following image is the result of deployment on **EKS** Kuberentes cluster, and using ALB endpoint.
 
-| <img src="https://imgur.com/5seKQM4.gif" alt="pods" width="500"> |
+| <img src="https://imgur.com/CAgwA5H.gif" alt="pods" width="500"> |
 |:--:| 
 | *web application* |
 
