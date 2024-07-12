@@ -1,6 +1,6 @@
 ---
 draft: false
-date: 2024-06-02
+date: 2024-07-11
 categories:
     - Kubernetes
     - Deep Learning
@@ -12,28 +12,31 @@ authors:
     - junho
 ---
 
-### System overview
+## System overview
 
 |<img src="https://d17pwbfgewyq5y.cloudfront.net/AWS_EKS.drawio.png?" alt="simpledl architecture" width="680">|
 |:--:| 
 | *kubernetes architecture (EKS)* |
 
+This is the final result of my applicaiton which seems complicated.
+I will be explaining about details in the following post.
+
 <!-- more -->
 
 
-### Demo
+## Demo
 
 The following image is the result of deployment on **EKS** Kuberentes cluster, and using ALB endpoint.
 
-| <img src="https://imgur.com/5seKQM4.gif" alt="pods" width="600"> |
+| <img src="https://imgur.com/5seKQM4.gif" alt="pods" width="500"> |
 |:--:| 
 | *web application* |
 
-| <img src="https://imgur.com/YpjRWc6.png" alt="pods" width="500"> |
+| <img src="https://imgur.com/YpjRWc6.png" alt="pods" width="400"> |
 |:--:| 
 | *ingress resource* |
 
-| <img src="https://imgur.com/Ymkj2PH.png" alt="pods" width="500"> |
+| <img src="https://imgur.com/Ymkj2PH.png" alt="pods" width="400"> |
 |:--:| 
 | *aws load-balancer controller pod in `kube-system` namespace* |
 
@@ -43,27 +46,34 @@ The following image is the result of deployment on **EKS** Kuberentes cluster, a
 
 * <i style="font-size:24px" class="fa">&#xf09b;</i> <a href="https://github.com/jnuho/simpledl" target="_blank">`github.com/jnuho/simpledl`</a>
 
+- [`Why Kuberenetes`](#why-kubernetes)
 - [`About the App`](#about-the-app)
 - [`Skill Sets`](#skill-sets)
 - [`Binary classification`](#binary-classification)
-- [`Virtualbox network architecture`](#virtualbox-network-architecture)
-- [`Virtualbox setup`](#virtualbox-setup)
 - [`Microservices`](#microservices)
-    - [`Backend - Golang web server`](#backend-golang-web-server)
-        - [`CORS issue`](#cors-issue)
-    - [`Backend - Python web server`](#backend-python-web-server)
-        - [`Mathematical background for deep learning image recognizer`](#mathematical-background-for-deep-learning-image-recognizer)
+    - [`Backend - Golang`](#backend-golang-web-server)
+    - [`Backend - Python`](#backend-python-web-server)
+        - [`Mathematical background`](#mathematical-background)
         - [`Image Classification`](#image-classification)
         - [`Pytorch`](#pytorch)
-    - [`Frontend - nginx`](#frontend-nginx)
+    - [`Frontend - Nginx`](#frontend-nginx)
 - [`Dockerize for image build`](#dockerize)
-- [`1. Minikube implementation`](#minikube-implementation)
-- [`2. Microk8s implemntation`](#microk8s-implemntation)
-- [`3. EKS implementation`](#eks-implementation)
-- [`Golang ini setting`](#golang-ini-setting)
+- [`EKS implementation`](#eks-implementation)
+    - [`AWS LoadBalancer Controller`](#aws-loadbalancer-controller)
+    - [`Traffic Flow in AWS EKS`](#traffic-flow-in-aws-eks)
+- [`Appendix`](#appendix)
+    - [`Virtualbox network architecture`](#virtualbox-network-architecture)
+    - [`Virtualbox setup`](#virtualbox-setup)
+    - [`CORS issue`](#cors-issue)
+    - [`Minikube implementation`](#minikube-implementation)
+    - [`Microk8s implemntation`](#microk8s-implemntation)
+    - [`Golang ini setting`](#golang-ini-setting)
+
+## Why Kubernetes
 
 
-### About the App
+
+## About the App
 
 
 My initial goal was to revisit the [`skills`](#skill-sets) by creating a simple web application which uses above skill sets.
@@ -75,7 +85,7 @@ I've yet to use pytorch (CNN) to create a model that can recognize Cat vs. Non-c
 
 
 
-### Skill Sets
+## Skill Sets
 
 - `Kubernetes`
     - AWS: EKS cluster with 3 worker nodes. Terraform to deploy EKS and AWS Load Balancer Controller and Ingress for exposing the app.
@@ -105,13 +115,316 @@ I've yet to use pytorch (CNN) to create a model that can recognize Cat vs. Non-c
 [↑ Back to top](#)
 <br><br>
 
-### Binary classification
+## Binary classification
 
 It is a basic deep learning image recognizers, one of which was covered in Andrew Ng's coursera course. I plan to test two simple deep learning models to identify cat images and hand-written digits (0-9), respectively and return the result of identification to the browser.
 
 [↑ Back to top](#)
 <br><br>
 
+
+
+## Microservices
+
+- `Frontend - Nginx`
+   - Nginx serves as the static content server, handling HTML, CSS, and JavaScript files.
+   - It ensures efficient delivery of frontend resources to users' browsers.
+- `Backend - Go-Gin web-server`
+   - The Go-Gin server acts as an intermediary between the frontend and backend services.
+   - It receives requests from the frontend, including requests for cat-related information.
+   - Additionally, it performs utility functions, such as fetching weather data for three cities using goroutine concurrency (3-worker).
+
+- `Backend - Python uvicorn + fast api web-server`
+    - The Python backend worker is responsible for image classification.
+    - TODO (not complete):
+    - Given an image URL, it uses PyTorch (and possibly NumPy) to perform binary classification (cat vs. non-cat).
+    - The result of the classification is then relayed back to the Go-Gin server.
+
+- `How it works?`
+    - When a user submits an image URL via the frontend(browser), the Go-Gin server receives the request.
+    - It forwards the request to the Python backend.
+    - The Python backend processes the image using the deep learning algorithm.
+    - Finally, the result (whether the image contains a cat or not) is sent back to the frontend.
+
+- `Next Goal`
+    - Enhance the Python backend by incorporating a deep learning algorithm using pytorch.
+    - I initially did a Numpy implementation with 5-Layer and 2,500 iterations for training parameters.
+    - Now, I'm exploring the use of PyTorch for training the model and performing predictions
+
+
+
+[↑ Back to top](#)
+<br><br>
+
+
+
+## Backend Golang web server
+
+- `go.mod`, `go.sum` must be in github repo root directory
+- sources:
+    - `cmd/backend-server/main.go`
+    - `backend/web/handler.go`
+    - `backend/web/server.go`
+    - `backend/web/util.go`
+    - `backend/pkg/weatherapi.go`
+
+```sh
+cd simpledl
+go mod init github.com/jnuho/simpledl
+go mod tidy
+```
+
+
+[↑ Back to top](#)
+<br><br>
+
+
+## Backend Python web server
+
+- Use FastAPI + Unicorn
+    - FastAPI is an ASGI (<b>Asynchronous</b> Server Gateway Interface) framework which requires an ASGI server to run.
+    - Unicorn is a lightning-fast ASGI server implementation
+
+- install python (download .exe from python.org)
+    - check Add to PATH option (required)
+
+
+- Run the python web server
+
+```sh
+uvicorn main:app --port 3002
+```
+
+
+[↑ Back to top](#)
+<br><br>
+
+### Mathematical background
+
+The basic operations for forward and backward propagations in deep learning algorithm are as follows:
+
+- Forward propagation for layer $l$: $a^{[l-1]}\rightarrow a^{[l]}, z^{[l]}, w^{[l]}, b^{[l]}$
+
+    $Z^{[l]} = W^{[l]} A^{[l-1]} + b^{[l]}$
+
+    $A^{[l]} = g^{[l]} (Z^{[l]})$
+
+    (for $i=1,\dots,L$ with initial value $A^{[0]} = X$)
+
+<br>
+
+- Backward propagation for layer $l$: $da^{[l]} \rightarrow da^{[l-1]},dW^{[l]}, db^{[l]}$
+
+    $dZ^{[l]} = dA^{[l]} * {g^{[l]}}^{'}(Z^{[l]})$
+
+    $dW^{[l]} = \frac{1}{m}dZ^{[l]}{A^{[l-1]}}^T$
+
+    $db^{[l]} = \frac{1}{m}np.sum(dZ^{[l]}, axis=1, keepdims=True)$
+
+    $dA^{[l-1]} = {W^{[l]}}^T dZ^{[l]} = \frac{dJ}{dA^{[l-1]}} = \frac{dZ^{[l]}}{dA^{[l-1]}} \frac{dJ}{dZ^{[l]}} = \frac{dZ^{[l]}}{dA^{[l-1]}} dZ^{[l]}$
+
+    (with initial value $dZ^{[L]} = A^{[L]}-Y$)
+
+
+
+[↑ Back to top](#)
+<br><br>
+
+## Image Classification
+
+- cat vs.non-cat image classification and hand-written digits recognition
+- https://www.youtube.com/watch?v=JgtWVML4Ykg&ab_channel=SheldonVon
+- https://detexify.kirelabs.org/classify.html
+- https://mco-mnist-draw-rwpxka3zaa-ue.a.run.app/
+
+
+
+[↑ Back to top](#)
+<br><br>
+
+
+## Pytorch
+
+https://youtu.be/EMXfZB8FVUA?si=XL8SckGQi9xQDgtc
+https://pytorch.org/get-started/locally/
+
+- CPU (Without Nvidia CUDA) only
+
+```sh
+pip3 install torch torchvision torchaudio
+
+# requirements.txt
+torch==2.3.0
+torchaudio==2.3.0
+torchvision==0.18.0
+
+# install using requirements.txt
+python install -r requirements.txt
+```
+
+```python
+import torch
+
+x = torch.rand(3)
+# tensor([.5907, .0781, .3094])
+print(x)
+
+print(torch.cuda.is_available())
+```
+
+
+[↑ Back to top](#)
+<br><br>
+
+## Frontend - nginx
+
+- Download & install nodejs 20.12.2
+    - for local development using `vite`
+
+```sh
+npm create vite@latest
+    ? Project name: lesson11
+    > choose Vanilla, TypeScript
+```
+
+- Edit `package.json` to edit port and dependencies
+
+```json
+    "scripts": {
+        "dev": "vite --host 0.0.0.0 --port 8080",
+        "build": "tsc && vite build",
+        "preview": "vite preview"
+    },
+
+    "dependencies": {
+        "axios": "^1.6.8"
+    }
+```
+
+I used nodejs vite just for local development environment.
+I will be using nginx in production environment.
+
+```sh
+# install dependencies specified in package.json
+# install if package.json changes e.g. project name
+npm i
+npm run dev
+    VITE v5.2.9    ready in 180 ms
+
+    ➜    Local:     http://localhost:4200/
+    ➜    Network: use --host to expose
+    ➜    press h + enter to show help
+```
+
+- Edit code
+    - Write `index.html`
+    - Create directory: `./model`, `./templates`
+    - Define models and templates
+    - Edit `main.ts`
+
+
+
+[↑ Back to top](#)
+<br><br>
+
+## Dockerize
+
+**NOTE**: It is crucial to optimize Docker images to be as compact as possible.
+One strategy to achieve this is by utilizing base images that are minimalistic, such as the Alpine image.
+
+- [NOTE on defining backend endpoint in frontend](https://stackoverflow.com/a/56375180/23876187)
+    - frontend app is not in any container, but the javascript is served from container as a js script file to <b>your browser</b>!
+
+- frontend nginx service
+
+
+
+[↑ Back to top](#)
+<br><br>
+
+
+## EKS implementation
+
+
+
+[↑ Back to top](#)
+<br><br>
+
+### AWS LoadBalancer Controller
+
+- [`AWS document`](https://docs.aws.amazon.com/eks/latest/userguide/aws-load-balancer-controller.html)
+- [`AWS LoadBalancer Controller`](https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.8/how-it-works/)
+
+
+- The `AWS Load Balancer Controller` (pods in kube-system namespace) watches for changes in Kubernetes `Ingress` resources.
+    - When an Ingress resource is created or updated, the controller translates the Ingress resource into configurations for AWS ALBs or NLBs.
+    - It ensures that the ALB/NLB is configured correctly to route traffic based on the rules specified in the Ingress resource.
+
+- In order for this Kubernetes pod to be able to create AWS resources like ALBs(based on Kubernetes Ingress), and NLBs(based on Service resources),
+    - it needs `IAM Role` with proper policies attached to use AWS API to create and configure an ALB.
+    - The AWS Load Balancer Controller, running as a pod in the `kube-system` namespace,
+    - monitors for new or updated Ingress resources with the alb ingress class.
+
+
+### Traffic Flow in AWS EKS
+
+- `Client Request to ALB`
+    - The client (e.g., browser) sends a request to the AWS Application Load Balancer (ALB).
+    - The ALB serves as the entry point into the Kubernetes cluster.
+- `ALB to Ingress Controller`
+    - The ALB forwards the request directly to the Kubernetes cluster based on the rules defined in the ALB's configuration.
+    - The AWS Load Balancer Controller is responsible for creating and configuring the ALB based on the Ingress resource
+    - It is deployed in your cluster and runs in the kube-system namespace.
+    - It watches for Ingress resources that are annotated to use an AWS ALB and automatically creates and configures the ALB based on these resources.
+- `Ingress Controller (e.g., NGINX Ingress)`
+    - The Ingress Controller (e.g., NGINX Ingress Controller) is responsible for implementing the rules defined in the Ingress resource.
+    - It receives requests from the ALB via the AWS Load Balancer Controller and routes them to the appropriate Kubernetes Services(ClusterIP) based on the Ingress rules.
+- `Service to Pods`
+    - Finally, the Service routes the request to one or more Pods that belong to the targeted Kubernetes workload (Deployment, StatefulSet, etc.).
+    - The Pods process the request and generate responses, which flow back through the same path to reach the client.
+    - The Service forwards the request to the appropriate Pods, which are the application instances.
+    - The Pods process the request and generate a response, which is sent back through the same path.
+    - Kubernetes Services, specifically those of type ClusterIP, provide a stable virtual IP address to access a set of Pods.
+    - The Ingress Controller routes traffic to the corresponding Service based on the Ingress rules.
+
+- Recap
+    - **Client** sends requests to the AWS ALB.
+
+    - **AWS ALB**: This is created and managed by the AWS Load Balancer Controller based on the Ingress resource definitions. It handles incoming traffic from clients.
+    - **Ingress Controller**: It interprets the Ingress resource rules and routes the traffic to the appropriate Kubernetes backend services.
+    - **Service (ClusterIP)**: It provides a stable IP address and DNS name to access the Pods and internal load balancing across Pods.
+    - **Pods**: These are the application instances that handle the actual processing of requests.
+
+The AWS Load Balancer Controller's role is to manage the lifecycle and configuration of AWS ALBs/NLBs based on Kubernetes Ingress resources. It does not handle the traffic directly. Instead, it ensures that the ALB is correctly set up to route traffic to the Kubernetes cluster, where the Ingress Controller then takes over to route the traffic within the cluster to the appropriate services and pods.actual instances of your application that handle requests and generate responses.
+
+
+```
+Client (Browser)
+   |
+   v
+AWS ALB (Application Load Balancer)  <-- Created and managed by AWS Load Balancer Controller
+   |
+   v
+Ingress Controller (e.g., NGINX)     <-- Routes traffic within the cluster based on Ingress rules
+   |
+   v
+Service (ClusterIP)
+   |
+   v
+Pods (Application Instances)
+
+```
+
+Requests from clients are efficiently routed to the appropriate Kubernetes workloads
+based on the defined rules and configurations managed by the AWS Load Balancer Controller
+and Ingress resources within an AWS EKS cluster.
+
+
+[↑ Back to top](#)
+<br><br>
+
+
+## Appendix
 
 ### Virtualbox network architecture
 
@@ -196,61 +509,7 @@ sudo ip link set enp0s3 up
 [↑ Back to top](#)
 <br><br>
 
-### Microservices
-
-- `Frontend - Nginx`
-   - Nginx serves as the static content server, handling HTML, CSS, and JavaScript files.
-   - It ensures efficient delivery of frontend resources to users' browsers.
-- `Backend - Go-Gin web-server`
-   - The Go-Gin server acts as an intermediary between the frontend and backend services.
-   - It receives requests from the frontend, including requests for cat-related information.
-   - Additionally, it performs utility functions, such as fetching weather data for three cities using goroutine concurrency (3-worker).
-
-- `Backend - Python uvicorn + fast api web-server`
-    - The Python backend worker is responsible for image classification.
-    - TODO (not complete):
-    - Given an image URL, it uses PyTorch (and possibly NumPy) to perform binary classification (cat vs. non-cat).
-    - The result of the classification is then relayed back to the Go-Gin server.
-
-- `How it works?`
-    - When a user submits an image URL via the frontend(browser), the Go-Gin server receives the request.
-    - It forwards the request to the Python backend.
-    - The Python backend processes the image using the deep learning algorithm.
-    - Finally, the result (whether the image contains a cat or not) is sent back to the frontend.
-
-- `Next Goal`
-    - Enhance the Python backend by incorporating a deep learning algorithm using pytorch.
-    - I initially did a Numpy implementation with 5-Layer and 2,500 iterations for training parameters.
-    - Now, I'm exploring the use of PyTorch for training the model and performing predictions
-
-
-
-[↑ Back to top](#)
-<br><br>
-
-
-
-### Backend Golang web server
-
-- `go.mod`, `go.sum` must be in github repo root directory
-- sources:
-    - `cmd/backend-server/main.go`
-    - `backend/web/handler.go`
-    - `backend/web/server.go`
-    - `backend/web/util.go`
-    - `backend/pkg/weatherapi.go`
-
-```sh
-cd simpledl
-go mod init github.com/jnuho/simpledl
-go mod tidy
-```
-
-
-[↑ Back to top](#)
-<br><br>
-
-#### CORS issue
+### CORS issue
 
 - https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
 
@@ -272,169 +531,6 @@ from other origins includes the right CORS headers.
 [↑ Back to top](#)
 <br><br>
 
-
-### Backend Python web server
-
-- Use FastAPI + Unicorn
-    - FastAPI is an ASGI (<b>Asynchronous</b> Server Gateway Interface) framework which requires an ASGI server to run.
-    - Unicorn is a lightning-fast ASGI server implementation
-
-- install python (download .exe from python.org)
-    - check Add to PATH option (required)
-
-
-- Run the python web server
-
-```sh
-uvicorn main:app --port 3002
-```
-
-
-[↑ Back to top](#)
-<br><br>
-
-#### Mathematical background for deep learning image recognizer
-
-The basic operations for forward and backward propagations in deep learning algorithm are as follows:
-
-- Forward propagation for layer $l$: $a^{[l-1]}\rightarrow a^{[l]}, z^{[l]}, w^{[l]}, b^{[l]}$
-
-    $Z^{[l]} = W^{[l]} A^{[l-1]} + b^{[l]}$
-
-    $A^{[l]} = g^{[l]} (Z^{[l]})$
-
-    (for $i=1,\dots,L$ with initial value $A^{[0]} = X$)
-
-<br>
-
-- Backward propagation for layer $l$: $da^{[l]} \rightarrow da^{[l-1]},dW^{[l]}, db^{[l]}$
-
-    $dZ^{[l]} = dA^{[l]} * {g^{[l]}}^{'}(Z^{[l]})$
-
-    $dW^{[l]} = \frac{1}{m}dZ^{[l]}{A^{[l-1]}}^T$
-
-    $db^{[l]} = \frac{1}{m}np.sum(dZ^{[l]}, axis=1, keepdims=True)$
-
-    $dA^{[l-1]} = {W^{[l]}}^T dZ^{[l]} = \frac{dJ}{dA^{[l-1]}} = \frac{dZ^{[l]}}{dA^{[l-1]}} \frac{dJ}{dZ^{[l]}} = \frac{dZ^{[l]}}{dA^{[l-1]}} dZ^{[l]}$
-
-    (with initial value $dZ^{[L]} = A^{[L]}-Y$)
-
-
-
-[↑ Back to top](#)
-<br><br>
-
-### Image Classification
-
-- cat vs.non-cat image classification and hand-written digits recognition
-- https://www.youtube.com/watch?v=JgtWVML4Ykg&ab_channel=SheldonVon
-- https://detexify.kirelabs.org/classify.html
-- https://mco-mnist-draw-rwpxka3zaa-ue.a.run.app/
-
-
-
-[↑ Back to top](#)
-<br><br>
-
-
-### Pytorch
-
-https://youtu.be/EMXfZB8FVUA?si=XL8SckGQi9xQDgtc
-https://pytorch.org/get-started/locally/
-
-- CPU (Without Nvidia CUDA) only
-
-```sh
-pip3 install torch torchvision torchaudio
-
-# requirements.txt
-torch==2.3.0
-torchaudio==2.3.0
-torchvision==0.18.0
-
-# install using requirements.txt
-python install -r requirements.txt
-```
-
-```python
-import torch
-
-x = torch.rand(3)
-# tensor([.5907, .0781, .3094])
-print(x)
-
-print(torch.cuda.is_available())
-```
-
-
-[↑ Back to top](#)
-<br><br>
-
-### Frontend - nginx
-
-- Download & install nodejs 20.12.2
-    - for local development using `vite`
-
-```sh
-npm create vite@latest
-    ? Project name: lesson11
-    > choose Vanilla, TypeScript
-```
-
-- Edit `package.json` to edit port and dependencies
-
-```json
-    "scripts": {
-        "dev": "vite --host 0.0.0.0 --port 8080",
-        "build": "tsc && vite build",
-        "preview": "vite preview"
-    },
-
-    "dependencies": {
-        "axios": "^1.6.8"
-    }
-```
-
-I used nodejs vite just for local development environment.
-I will be using nginx in production environment.
-
-```sh
-# install dependencies specified in package.json
-# install if package.json changes e.g. project name
-npm i
-npm run dev
-    VITE v5.2.9    ready in 180 ms
-
-    ➜    Local:     http://localhost:4200/
-    ➜    Network: use --host to expose
-    ➜    press h + enter to show help
-```
-
-- Edit code
-    - Write `index.html`
-    - Create directory: `./model`, `./templates`
-    - Define models and templates
-    - Edit `main.ts`
-
-
-
-[↑ Back to top](#)
-<br><br>
-
-### Dockerize
-
-**NOTE**: It is crucial to optimize Docker images to be as compact as possible.
-One strategy to achieve this is by utilizing base images that are minimalistic, such as the Alpine image.
-
-- [NOTE on defining backend endpoint in frontend](https://stackoverflow.com/a/56375180/23876187)
-    - frontend app is not in any container, but the javascript is served from container as a js script file to <b>your browser</b>!
-
-- frontend nginx service
-
-
-
-[↑ Back to top](#)
-<br><br>
 
 ### Minikube implementation
 
@@ -1197,92 +1293,11 @@ open port 3001
 ```
 
 
-
 [↑ Back to top](#)
 <br><br>
 
 
-
-
-### golang `testing`
-
-```sh
-cd leetcode
-go test ./...
-```
-
-
-
-[↑ Back to top](#)
-<br><br>
-
-### EKS implementation
-
-- Traffic Flow in AWS EKS
-    - `Client Request to ALB`
-        - The ALB serves as the entry point into the Kubernetes cluster.
-    - `ALB to AWS Load Balancer Controller`
-        - The AWS Load Balancer Controller, running as a pod within the `kube-system` namespace of the EKS cluster,
-        - intercepts the request from the ALB. Its primary role is to **manage AWS load balancers (ALBs or NLBs)** according to Kubernetes resources.
-    - `AWS Load Balancer Controller and Ingress Resource`
-        - The AWS Load Balancer Controller watches for changes in Kubernetes Ingress resources.
-        - When an Ingress resource is created or updated, the controller translates the Ingress resource into configurations for AWS ALBs or NLBs.
-        - It ensures that the ALB/NLB is configured correctly to route traffic based on the rules specified in the Ingress resource.
-        - <b>Since this k8s object has to be granted access to AWS resources (ELB), it needs IAM Role with proper policies attached.</b>
-    - `Ingress Resource`
-        - The Ingress resource in Kubernetes defines how incoming requests should be routed within the cluster.
-        - It includes **rules** for routing traffic based on hostnames, paths, or other criteria to different Kubernetes Services.
-    - `Ingress Controller (e.g., NGINX Ingress)`
-        - The Ingress Controller (e.g., NGINX Ingress Controller) is responsible for implementing the rules defined in the Ingress resource.
-        - It receives requests from the ALB via the AWS Load Balancer Controller and routes them to the appropriate Kubernetes Services based on the Ingress rules.
-    - `Service (ClusterIP)`
-        - Kubernetes Services, specifically those of type ClusterIP, provide a stable virtual IP address to access a set of Pods.
-        - The Ingress Controller routes traffic to the corresponding Service based on the Ingress rules.
-    - `Service to Pods`
-        - Finally, the Service routes the request to one or more Pods that belong to the targeted Kubernetes workload (Deployment, StatefulSet, etc.).
-        - The Pods process the request and generate responses, which flow back through the same path to reach the client.
-
-- Recap
-    - **Client** sends requests to the AWS ALB.
-    - **AWS Load Balancer Controller** manages AWS ALB/NLB configurations based on Kubernetes Ingress resources.
-    - **Ingress Resource** defines traffic routing rules within the Kubernetes cluster.
-    - **Ingress Controller (e.g., NGINX)** implements Ingress rules and directs traffic to Kubernetes Services.
-    - **Service (ClusterIP)** provides internal load balancing across Pods.
-    - **Pods** are the actual instances of your application that handle requests and generate responses.
-
-```
-Client (Browser)
-   |
-   v
-AWS ALB (Application Load Balancer)
-   |
-   v
-AWS Load Balancer Controller (Pod)
-   |
-   v
-Ingress Resource (Kubernetes)
-   |
-   v
-Ingress Controller (e.g., NGINX)
-   |
-   v
-Service (ClusterIP)
-   |
-   v
-Pods (Application Instances)
-```
-
-Requests from clients are efficiently routed to the appropriate Kubernetes workloads
-based on the defined rules and configurations managed by the AWS Load Balancer Controller
-and Ingress resources within an AWS EKS cluster.
-
-
-[↑ Back to top](#)
-<br><br>
-
-
-
-## Golang ini setting
+### Golang ini setting
 
 In software development, managing configurations across different environments—such as development (dev), staging (stg), and production (prd)—is crucial. 
 
@@ -1308,7 +1323,7 @@ helm install tst-release ./tst-chart -f ./tst-chart/values.prd.yaml
 
 
 
-
-
 [↑ Back to top](#)
 <br><br>
+
+
