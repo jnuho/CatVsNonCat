@@ -297,12 +297,13 @@ window.onload = function(){
             textArea.focus();
             textArea.select();
             try {
-                 // document.execCommand('copy'); // Deprecated
-                navigator.clipboard.writeText(textArea.value).then(function() {
-                    console.log('Copying to clipboard was successful-2!');
-                }, function(err) {
-                    console.error('Could not copy text: ', err);
-                });
+                document.execCommand('copy'); // Deprecated
+                console.log('Copying to clipboard was successful!');
+                // navigator.clipboard.writeText(textArea.value).then(function() {
+                //     console.log('Copying to clipboard was successful-2!');
+                // }, function(err) {
+                //     console.error('Could not copy text: ', err);
+                // });
             } catch (err) {
                 console.error('Could not copy text: ', err);
             }
