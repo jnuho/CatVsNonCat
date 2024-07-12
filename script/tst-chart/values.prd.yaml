@@ -9,6 +9,7 @@ services:
       # maxReplicas: 1
       # targetCPUUtilizationPercentage: 80
       # targetMemoryUtilizationPercentage: 70
+    revisionHistoryLimit: 3
     image:
       repository: jnuho/fe-nginx
       tag: "latest"
@@ -37,6 +38,7 @@ services:
 
   - name: be-go
     replicaCount: 1
+    revisionHistoryLimit: 3
     image:
       repository: jnuho/be-go
       tag: "latest"
@@ -50,6 +52,7 @@ services:
 
   - name: be-py
     replicaCount: 1
+    revisionHistoryLimit: 3
     image:
       repository: jnuho/be-py
       tag: "latest"

@@ -79,6 +79,9 @@ spec:
   {{- if not .Values.autoscaling }}
   replicas: {{ .Values.replicaCount }}
   {{- end }}
+  {{- if .Values.revisionHistoryLimit }}
+  revisionHistoryLimit: {{ .Values.revisionHistoryLimit }}
+  {{- end }}
   selector:
     matchLabels:
       app: {{ .Values.name }}

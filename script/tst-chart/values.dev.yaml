@@ -9,6 +9,7 @@ services:
       # maxReplicas: 1
       # targetCPUUtilizationPercentage: 80
       # targetMemoryUtilizationPercentage: 70
+    revisionHistoryLimit: 3
     image:
       repository: jnuho/fe-nginx
       # Overrides the image tag whose default is the chart appVersion.
@@ -96,6 +97,7 @@ services:
     replicaCount: 1
     # autoscaling:
     #   enabled: false
+    revisionHistoryLimit: 3
     image:
       repository: jnuho/be-go
       tag: "latest"
@@ -112,6 +114,7 @@ services:
     replicaCount: 1
     # autoscaling:
     #   enabled: false
+    revisionHistoryLimit: 3
     image:
       repository: jnuho/be-py
       tag: "latest"
