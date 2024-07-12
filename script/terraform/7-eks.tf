@@ -154,7 +154,7 @@ resource "aws_eks_addon" "addons" {
   addon_version               = each.value.version
   resolve_conflicts_on_update = "OVERWRITE"
 
-  depends_on                  = [aws_eks_node_group.private_nodes]
+  depends_on = [aws_eks_node_group.private_nodes]
 
   service_account_role_arn = each.value.name == "vpc-cni" ? aws_iam_role.eks_cni_role.arn : null
 }
