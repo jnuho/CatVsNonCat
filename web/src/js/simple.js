@@ -205,7 +205,7 @@ window.onload = function(){
             const weatherElement = document.querySelector(`.weather${index + 1}`);
             if (weatherElement) {
                 const nameVal = cityMap[`${name}`];
-                weatherElement.innerHTML = `<i>${nameVal} ${temp}°C ${humidity}%</i> <img src="${iconUrl}" style="width: 25px; height: 25px;">`;
+                weatherElement.innerHTML = `${nameVal} ${temp}°C ${humidity}% <img src="${iconUrl}" style="width: 25px; height: 25px;">`;
             }
         });
     }
