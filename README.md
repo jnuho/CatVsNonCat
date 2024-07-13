@@ -31,7 +31,7 @@ This is the final architecture of my applicaiton, which I will be explaining in 
 [↑ Back to top](#)
 <br><br>
 
-* <i style="font-size:24px" class="fa">&#xf09b;</i> <a href="https://github.com/jnuho/simpledl" target="_blank">`github.com/jnuho/simpledl`</a>
+* <i style="font-size:24px" class="fa">&#xf09b;</i> <a href="https://github.com/jnuho/simpledl" target="_blank">`simpledl`</a>
 
 - [`Why Kuberenetes`](#why-kubernetes)
 - [`Skill Sets`](#skill-sets)
@@ -39,39 +39,32 @@ This is the final architecture of my applicaiton, which I will be explaining in 
     - [`1.Frontend - Nginx`](#frontend-nginx)
     - [`2. Backend - Golang`](#backend-golang-web-server)
     - [`3. Backend - Python`](#backend-python-web-server)
-        - [`Mathematical background`](#mathematical-background)
-        - [`Image Classification`](#image-classification)
-- [`Dockerize for image build`](#dockerize)
+- [`Dockerize`](#dockerize)
 - [`EKS implementation`](#eks-implementation)
     - [`AWS LoadBalancer Controller`](#aws-loadbalancer-controller)
     - [`Traffic Flow in AWS EKS`](#traffic-flow-in-aws-eks)
     - [`Terraform`](#terraform)
 - [`Appendix`](#appendix)
-    <!-- - [`Binary classification`](#binary-classification)
-    - [`vite for development`](#vite-for-development)
-    - [`Virtualbox network architecture`](#virtualbox-network-architecture)
-    - [`Virtualbox setup`](#virtualbox-setup)
-    - [`CORS issue`](#cors-issue)
-    - [`Minikube implementation`](#minikube-implementation)
-    - [`Microk8s implemntation`](#microk8s-implemntation)
-    - [`Golang ini setting`](#golang-ini-setting) -->
 
 
 ## Why Kubernetes
 
-I initially tried `docker-compose` for local envionment and faced limitations in scalability and Load balancing.
+I experimented with `docker-compose` for local development and faced limitations in Scalability, Load balancing, and Cloud integration.
+Kubernetes, with its rich set of APIs, became a clear and logical choice to address these challenges.
 
 ### Scalability
-docker-compose is limited to deploying containers on a single host. In contrast, Kubernetes offers robust orchestration and management of containerized applications across a cluster of nodes, ensuring high availability and resource efficiency.
+
+docker-compose is limited to deploying containers on a single host. In contrast, Kubernetes offers orchestration and management of containerized applications across a cluster of nodes, ensuring high availability and resource efficiency.
 
 ### Load Balancing
-docker-compose lacks built-in load balancing capabilities. In past projects, we had to set up HAProxy manually in front of the Docker Compose containers to achieve load balancing. This approach not only introduced additional operational overhead but also increased the complexity of the deployment. Kubernetes, on the other hand, provides native support for load balancing through various service types such as `ClusterIP`, `NodePort`, and `LoadBalancer`, streamlining the process and reducing operational workload.
 
-### Ingress Controllers and Cloud Integration
-Kubernetes offers extensive compatibility with third-party ingress controllers, enabling flexible and powerful management of external access to services. Additionally, Kubernetes seamlessly integrates with cloud environments like AWS. For instance, the AWS ALB Ingress Controller and the AWS Load Balancer Controller allow for automatic provisioning and configuration of load balancers, aligning perfectly with Kubernetes ingress resources. This integration enhances operational efficiency and leverages cloud-native services to optimize application deployment and scalability.
+docker-compose lacks built-in load balancing capabilities. I had to set up HAProxy manually in front of the Docker Compose containers to achieve load balancing. Kubernetes, on the other hand, provides native support for load balancing through various service types such as `ClusterIP`, `NodePort`, and `LoadBalancer`, streamlining the process and reducing operational workload.
 
-In summary, while Docker Compose is suitable for local development and small-scale applications, it falls short in terms of scalability, load balancing, and cloud integration.
-Kubernetes provides a comprehensive solution for these challenges, making it a superior choice for managing containerized applications in production environments.
+### Cloud Integration
+
+Kubernetes offers compatibility with third-party ingress controllers, enabling external access to services. Kubernetes seamlessly integrates with cloud environments like AWS.
+For instance, the AWS Load Balancer Controller allow for automatic provisioning and configuration of load balancers, aligning with Kubernetes ingress resources. This integration enhances operational efficiency and leverages cloud-native services to optimize application deployment and scalability.
+
 
 
 ## About the App
@@ -180,77 +173,6 @@ I've yet to use pytorch (CNN) to create a model that can recognize Cat vs. Non-c
 uvicorn main:app --port 3002
 ```
 
-
-[↑ Back to top](#)
-<br><br>
-
-### Mathematical background
-
-The basic operations for forward and backward propagations in deep learning algorithm are as follows:
-
-|<img src="https://imgur.com/ZJ94x9B.png" alt="propagation" width="450">|
-|:--:| 
-| *Forward and Backward propagation* |
-
-<!-- - Forward propagation for layer $l$: $a^{[l-1]}\rightarrow a^{[l]}, z^{[l]}, w^{[l]}, b^{[l]}$
-
-    $Z^{[l]} = W^{[l]} A^{[l-1]} + b^{[l]}$
-
-    $A^{[l]} = g^{[l]} (Z^{[l]})$
-
-    (for $i=1,\dots,L$ with initial value $A^{[0]} = X$)
-
-<br>
-
-- Backward propagation for layer $l$: $da^{[l]} \rightarrow da^{[l-1]},dW^{[l]}, db^{[l]}$
-
-    $dZ^{[l]} = dA^{[l]} * {g^{[l]}}^{'}(Z^{[l]})$
-
-    $dW^{[l]} = \frac{1}{m}dZ^{[l]}{A^{[l-1]}}^T$
-
-    $db^{[l]} = \frac{1}{m}np.sum(dZ^{[l]}, axis=1, keepdims=True)$
-
-    $dA^{[l-1]} = {W^{[l]}}^T dZ^{[l]} = \frac{dJ}{dA^{[l-1]}} = \frac{dZ^{[l]}}{dA^{[l-1]}} \frac{dJ}{dZ^{[l]}} = \frac{dZ^{[l]}}{dA^{[l-1]}} dZ^{[l]}$
-
-    (with initial value $dZ^{[L]} = A^{[L]}-Y$) -->
-
-
-[↑ Back to top](#)
-<br><br>
-
-## Image Classification
-
-- cat vs.non-cat image classification and hand-written digits recognition
-- https://www.youtube.com/watch?v=JgtWVML4Ykg&ab_channel=SheldonVon
-- https://detexify.kirelabs.org/classify.html
-- https://mco-mnist-draw-rwpxka3zaa-ue.a.run.app/
-- pytorch
-    - https://youtu.be/EMXfZB8FVUA?si=XL8SckGQi9xQDgtc
-    - https://pytorch.org/get-started/locally/
-
-- CPU (Without Nvidia CUDA) only
-
-```sh
-pip3 install torch torchvision torchaudio
-
-# requirements.txt
-torch==2.3.0
-torchaudio==2.3.0
-torchvision==0.18.0
-
-# install using requirements.txt
-python install -r requirements.txt
-```
-
-```python
-import torch
-
-x = torch.rand(3)
-# tensor([.5907, .0781, .3094])
-print(x)
-
-print(torch.cuda.is_available())
-```
 
 [↑ Back to top](#)
 <br><br>
@@ -371,7 +293,21 @@ and Ingress resources within an AWS EKS cluster.
 
 
 
+
+
+
 ## Appendix
+
+- [`Binary classification`](#binary-classification)
+- [`Mathematical background`](#mathematical-background)
+- [`Image Classification`](#image-classification)
+- [`vite for development`](#vite-for-development)
+- [`Virtualbox network architecture`](#virtualbox-network-architecture)
+- [`Virtualbox setup`](#virtualbox-setup)
+- [`CORS issue`](#cors-issue)
+- [`Minikube implementation`](#minikube-implementation)
+- [`Microk8s implemntation`](#microk8s-implemntation)
+- [`Golang ini setting`](#golang-ini-setting)
 
 ### Binary classification
 
@@ -379,6 +315,79 @@ It is a basic deep learning image recognizers, one of which was covered in Andre
 
 [↑ Back to top](#)
 <br><br>
+
+
+### Mathematical background
+
+The basic operations for forward and backward propagations in deep learning algorithm are as follows:
+
+|<img src="https://imgur.com/ZJ94x9B.png" alt="propagation" width="450">|
+|:--:| 
+| *Forward and Backward propagation* |
+
+<!-- - Forward propagation for layer $l$: $a^{[l-1]}\rightarrow a^{[l]}, z^{[l]}, w^{[l]}, b^{[l]}$
+
+    $Z^{[l]} = W^{[l]} A^{[l-1]} + b^{[l]}$
+
+    $A^{[l]} = g^{[l]} (Z^{[l]})$
+
+    (for $i=1,\dots,L$ with initial value $A^{[0]} = X$)
+
+<br>
+
+- Backward propagation for layer $l$: $da^{[l]} \rightarrow da^{[l-1]},dW^{[l]}, db^{[l]}$
+
+    $dZ^{[l]} = dA^{[l]} * {g^{[l]}}^{'}(Z^{[l]})$
+
+    $dW^{[l]} = \frac{1}{m}dZ^{[l]}{A^{[l-1]}}^T$
+
+    $db^{[l]} = \frac{1}{m}np.sum(dZ^{[l]}, axis=1, keepdims=True)$
+
+    $dA^{[l-1]} = {W^{[l]}}^T dZ^{[l]} = \frac{dJ}{dA^{[l-1]}} = \frac{dZ^{[l]}}{dA^{[l-1]}} \frac{dJ}{dZ^{[l]}} = \frac{dZ^{[l]}}{dA^{[l-1]}} dZ^{[l]}$
+
+    (with initial value $dZ^{[L]} = A^{[L]}-Y$) -->
+
+
+[↑ Back to top](#)
+<br><br>
+
+### Image Classification
+
+- cat vs.non-cat image classification and hand-written digits recognition
+- https://www.youtube.com/watch?v=JgtWVML4Ykg&ab_channel=SheldonVon
+- https://detexify.kirelabs.org/classify.html
+- https://mco-mnist-draw-rwpxka3zaa-ue.a.run.app/
+- pytorch
+    - https://youtu.be/EMXfZB8FVUA?si=XL8SckGQi9xQDgtc
+    - https://pytorch.org/get-started/locally/
+
+- CPU (Without Nvidia CUDA) only
+
+```sh
+pip3 install torch torchvision torchaudio
+
+# requirements.txt
+torch==2.3.0
+torchaudio==2.3.0
+torchvision==0.18.0
+
+# install using requirements.txt
+python install -r requirements.txt
+```
+
+```python
+import torch
+
+x = torch.rand(3)
+# tensor([.5907, .0781, .3094])
+print(x)
+
+print(torch.cuda.is_available())
+```
+
+[↑ Back to top](#)
+<br><br>
+
 
 
 ### vite for development
@@ -1348,5 +1357,4 @@ helm install tst-release ./tst-chart -f ./tst-chart/values.prd.yaml
 
 [↑ Back to top](#)
 <br><br>
-
 
