@@ -106,7 +106,9 @@ resource "kubernetes_service_account" "aws-load-balancer-controller" {
       "meta.helm.sh/release-namespace" = "kube-system"
     }
     labels = {
-      "app.kubernetes.io/managed-by" = "Helm"
+      "app.kubernetes.io/managed-by" = "Helm",
+      "app.kubernetes.io/component" = "controller",
+      "app.kubernetes.io/name" = "aws-load-balancer-controller"
     }
   }
 }

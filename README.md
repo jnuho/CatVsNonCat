@@ -14,32 +14,19 @@ authors:
 
 ## System overview
 
-|<img src="https://d17pwbfgewyq5y.cloudfront.net/AWS_EKS.drawio.png?" alt="simpledl architecture" width="680">|
+|<img src="https://d17pwbfgewyq5y.cloudfront.net/AWS_EKS.drawio.png?" alt="simpledl architecture" width="720">|
 |:--:| 
 | *kubernetes architecture (EKS)* |
 
-This is the final result of my applicaiton which seems complicated.
-I will be explaining about details in the following post.
+This is the final architecture of my applicaiton, which I will be explaining in the following post.
 
 <!-- more -->
 
+## Application Demo
 
-## Demo
-
-The following image is the result of deployment on **EKS** Kuberentes cluster, and using ALB endpoint.
-
-| <img src="https://imgur.com/CAgwA5H.gif" alt="pods" width="500"> |
+| <img src="https://imgur.com/CAgwA5H.gif" alt="pods" width="700"> |
 |:--:| 
 | *web application* |
-
-| <img src="https://imgur.com/YpjRWc6.png" alt="pods" width="400"> |
-|:--:| 
-| *ingress resource* |
-
-| <img src="https://imgur.com/Ymkj2PH.png" alt="pods" width="400"> |
-|:--:| 
-| *aws load-balancer controller pod in `kube-system` namespace* |
-
 
 [↑ Back to top](#)
 <br><br>
@@ -47,40 +34,54 @@ The following image is the result of deployment on **EKS** Kuberentes cluster, a
 * <i style="font-size:24px" class="fa">&#xf09b;</i> <a href="https://github.com/jnuho/simpledl" target="_blank">`github.com/jnuho/simpledl`</a>
 
 - [`Why Kuberenetes`](#why-kubernetes)
-- [`About the App`](#about-the-app)
 - [`Skill Sets`](#skill-sets)
-- [`Binary classification`](#binary-classification)
 - [`Microservices`](#microservices)
-    - [`Backend - Golang`](#backend-golang-web-server)
-    - [`Backend - Python`](#backend-python-web-server)
+    - [`1.Frontend - Nginx`](#frontend-nginx)
+    - [`2. Backend - Golang`](#backend-golang-web-server)
+    - [`3. Backend - Python`](#backend-python-web-server)
         - [`Mathematical background`](#mathematical-background)
         - [`Image Classification`](#image-classification)
-        - [`Pytorch`](#pytorch)
-    - [`Frontend - Nginx`](#frontend-nginx)
 - [`Dockerize for image build`](#dockerize)
 - [`EKS implementation`](#eks-implementation)
     - [`AWS LoadBalancer Controller`](#aws-loadbalancer-controller)
     - [`Traffic Flow in AWS EKS`](#traffic-flow-in-aws-eks)
+    - [`Terraform`](#terraform)
 - [`Appendix`](#appendix)
+    <!-- - [`Binary classification`](#binary-classification)
+    - [`vite for development`](#vite-for-development)
     - [`Virtualbox network architecture`](#virtualbox-network-architecture)
     - [`Virtualbox setup`](#virtualbox-setup)
     - [`CORS issue`](#cors-issue)
     - [`Minikube implementation`](#minikube-implementation)
     - [`Microk8s implemntation`](#microk8s-implemntation)
-    - [`Golang ini setting`](#golang-ini-setting)
+    - [`Golang ini setting`](#golang-ini-setting) -->
+
 
 ## Why Kubernetes
 
+I initially tried `docker-compose` for local envionment and faced limitations in scalability and Load balancing.
+
+### Scalability
+docker-compose is limited to deploying containers on a single host. In contrast, Kubernetes offers robust orchestration and management of containerized applications across a cluster of nodes, ensuring high availability and resource efficiency.
+
+### Load Balancing
+docker-compose lacks built-in load balancing capabilities. In past projects, we had to set up HAProxy manually in front of the Docker Compose containers to achieve load balancing. This approach not only introduced additional operational overhead but also increased the complexity of the deployment. Kubernetes, on the other hand, provides native support for load balancing through various service types such as `ClusterIP`, `NodePort`, and `LoadBalancer`, streamlining the process and reducing operational workload.
+
+### Ingress Controllers and Cloud Integration
+Kubernetes offers extensive compatibility with third-party ingress controllers, enabling flexible and powerful management of external access to services. Additionally, Kubernetes seamlessly integrates with cloud environments like AWS. For instance, the AWS ALB Ingress Controller and the AWS Load Balancer Controller allow for automatic provisioning and configuration of load balancers, aligning perfectly with Kubernetes ingress resources. This integration enhances operational efficiency and leverages cloud-native services to optimize application deployment and scalability.
+
+In summary, while Docker Compose is suitable for local development and small-scale applications, it falls short in terms of scalability, load balancing, and cloud integration.
+Kubernetes provides a comprehensive solution for these challenges, making it a superior choice for managing containerized applications in production environments.
 
 
 ## About the App
-
 
 My initial goal was to revisit the [`skills`](#skill-sets) by creating a simple web application which uses above skill sets.
 
 I had to spend some time trouble shooting on constructing the Infrastructure for both On-premise and AWS cloud envionment.
 
 The application should analyze images and determines whether they depict Cats or Non-cats, although the project is not finished yet.
+
 I've yet to use pytorch (CNN) to create a model that can recognize Cat vs. Non-cat. For now I only experimented with numpy for binary classification.
 
 
@@ -114,14 +115,6 @@ I've yet to use pytorch (CNN) to create a model that can recognize Cat vs. Non-c
 
 [↑ Back to top](#)
 <br><br>
-
-## Binary classification
-
-It is a basic deep learning image recognizers, one of which was covered in Andrew Ng's coursera course. I plan to test two simple deep learning models to identify cat images and hand-written digits (0-9), respectively and return the result of identification to the browser.
-
-[↑ Back to top](#)
-<br><br>
-
 
 
 ## Microservices
@@ -158,25 +151,17 @@ It is a basic deep learning image recognizers, one of which was covered in Andre
 
 
 
-## Backend Golang web server
+## Frontend nginx
 
-- `go.mod`, `go.sum` must be in github repo root directory
-- sources:
-    - `cmd/backend-server/main.go`
-    - `backend/web/handler.go`
-    - `backend/web/server.go`
-    - `backend/web/util.go`
-    - `backend/pkg/weatherapi.go`
-
-```sh
-cd simpledl
-go mod init github.com/jnuho/simpledl
-go mod tidy
-```
+- Vanilla Javascript
+- HTML/CSS - bootstrap
+- Nginx server that serves static files: /usr/share/nginx/html
+- Dockerized with `nginx:alpine` Image
 
 
 [↑ Back to top](#)
 <br><br>
+
 
 
 ## Backend Python web server
@@ -203,7 +188,11 @@ uvicorn main:app --port 3002
 
 The basic operations for forward and backward propagations in deep learning algorithm are as follows:
 
-- Forward propagation for layer $l$: $a^{[l-1]}\rightarrow a^{[l]}, z^{[l]}, w^{[l]}, b^{[l]}$
+|<img src="https://imgur.com/ZJ94x9B.png" alt="propagation" width="700">|
+|:--:| 
+| *Forward and Backward propagation* |
+
+<!-- - Forward propagation for layer $l$: $a^{[l-1]}\rightarrow a^{[l]}, z^{[l]}, w^{[l]}, b^{[l]}$
 
     $Z^{[l]} = W^{[l]} A^{[l-1]} + b^{[l]}$
 
@@ -223,8 +212,7 @@ The basic operations for forward and backward propagations in deep learning algo
 
     $dA^{[l-1]} = {W^{[l]}}^T dZ^{[l]} = \frac{dJ}{dA^{[l-1]}} = \frac{dZ^{[l]}}{dA^{[l-1]}} \frac{dJ}{dZ^{[l]}} = \frac{dZ^{[l]}}{dA^{[l-1]}} dZ^{[l]}$
 
-    (with initial value $dZ^{[L]} = A^{[L]}-Y$)
-
+    (with initial value $dZ^{[L]} = A^{[L]}-Y$) -->
 
 
 [↑ Back to top](#)
@@ -236,17 +224,9 @@ The basic operations for forward and backward propagations in deep learning algo
 - https://www.youtube.com/watch?v=JgtWVML4Ykg&ab_channel=SheldonVon
 - https://detexify.kirelabs.org/classify.html
 - https://mco-mnist-draw-rwpxka3zaa-ue.a.run.app/
-
-
-
-[↑ Back to top](#)
-<br><br>
-
-
-## Pytorch
-
-https://youtu.be/EMXfZB8FVUA?si=XL8SckGQi9xQDgtc
-https://pytorch.org/get-started/locally/
+- pytorch
+    - https://youtu.be/EMXfZB8FVUA?si=XL8SckGQi9xQDgtc
+    - https://pytorch.org/get-started/locally/
 
 - CPU (Without Nvidia CUDA) only
 
@@ -272,60 +252,9 @@ print(x)
 print(torch.cuda.is_available())
 ```
 
-
 [↑ Back to top](#)
 <br><br>
 
-## Frontend - nginx
-
-- Download & install nodejs 20.12.2
-    - for local development using `vite`
-
-```sh
-npm create vite@latest
-    ? Project name: lesson11
-    > choose Vanilla, TypeScript
-```
-
-- Edit `package.json` to edit port and dependencies
-
-```json
-    "scripts": {
-        "dev": "vite --host 0.0.0.0 --port 8080",
-        "build": "tsc && vite build",
-        "preview": "vite preview"
-    },
-
-    "dependencies": {
-        "axios": "^1.6.8"
-    }
-```
-
-I used nodejs vite just for local development environment.
-I will be using nginx in production environment.
-
-```sh
-# install dependencies specified in package.json
-# install if package.json changes e.g. project name
-npm i
-npm run dev
-    VITE v5.2.9    ready in 180 ms
-
-    ➜    Local:     http://localhost:4200/
-    ➜    Network: use --host to expose
-    ➜    press h + enter to show help
-```
-
-- Edit code
-    - Write `index.html`
-    - Create directory: `./model`, `./templates`
-    - Define models and templates
-    - Edit `main.ts`
-
-
-
-[↑ Back to top](#)
-<br><br>
 
 ## Dockerize
 
@@ -356,6 +285,11 @@ One strategy to achieve this is by utilizing base images that are minimalistic, 
 - [`AWS LoadBalancer Controller`](https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.8/how-it-works/)
 
 
+- Controller 
+    - In Kubernetes, controllers are control loops that watch the state of your cluster, then make or request changes where needed.
+    - Each controller tries to move the current cluster state closer to the desired state.
+    - The Load Balancer Controller watches for Kubernetes Ingress or Service resources.
+ 
 - The `AWS Load Balancer Controller` (pods in kube-system namespace) watches for changes in Kubernetes `Ingress` resources.
     - When an Ingress resource is created or updated, the controller translates the Ingress resource into configurations for AWS ALBs or NLBs.
     - It ensures that the ALB/NLB is configured correctly to route traffic based on the rules specified in the Ingress resource.
@@ -423,8 +357,97 @@ and Ingress resources within an AWS EKS cluster.
 [↑ Back to top](#)
 <br><br>
 
+| <img src="https://imgur.com/YpjRWc6.png" alt="pods" width="700"> |
+|:--:| 
+| *ingress resource* |
+
+| <img src="https://imgur.com/Ymkj2PH.png" alt="pods" width="400"> |
+|:--:| 
+| *aws load-balancer controller pod in `kube-system` namespace* |
+
+
+[↑ Back to top](#)
+<br><br>
+
+
 
 ## Appendix
+
+### Binary classification
+
+It is a basic deep learning image recognizers, one of which was covered in Andrew Ng's coursera course. I plan to test two simple deep learning models to identify cat images and hand-written digits (0-9), respectively and return the result of identification to the browser.
+
+[↑ Back to top](#)
+<br><br>
+
+
+### vite for development
+
+- Download & install nodejs 20.12.2
+    - for local development using `vite`
+
+```sh
+npm create vite@latest
+    ? Project name: lesson11
+    > choose Vanilla, TypeScript
+```
+
+- Edit `package.json` to edit port and dependencies
+
+```json
+    "scripts": {
+        "dev": "vite --host 0.0.0.0 --port 8080",
+        "build": "tsc && vite build",
+        "preview": "vite preview"
+    },
+
+    "dependencies": {
+        "axios": "^1.6.8"
+    }
+```
+
+I used nodejs vite for local development environment.
+I will be using nginx in production environment.
+
+```sh
+# install dependencies specified in package.json
+# install if package.json changes e.g. project name
+npm i
+npm run dev
+    VITE v5.2.9    ready in 180 ms
+
+    ➜    Local:     http://localhost:4200/
+    ➜    Network: use --host to expose
+    ➜    press h + enter to show help
+```
+
+- Edit code
+    - Write `index.html`
+    - Create directory: `./model`, `./templates`
+    - Define models and templates
+    - Edit `main.ts`
+
+
+
+[↑ Back to top](#)
+<br><br>
+
+## Backend Golang web server
+
+- `go.mod`, `go.sum` must be in github repo root directory
+- sources:
+    - `cmd/backend-server/main.go`
+    - `backend/web/handler.go`
+    - `backend/web/server.go`
+    - `backend/web/util.go`
+    - `backend/pkg/weatherapi.go`
+
+```sh
+cd simpledl
+go mod init github.com/jnuho/simpledl
+go mod tidy
+```
+
 
 ### Virtualbox network architecture
 
