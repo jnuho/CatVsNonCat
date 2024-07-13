@@ -2,23 +2,24 @@
 draft: false
 date: 2024-07-11
 categories:
-    - Kubernetes
-    - Deep Learning
-    - Project
-    - EKS
-    - Terraform
-    - Helm
+  - Kubernetes
+  - Deep Learning
+  - Project
+  - EKS
+  - Terraform
+  - Helm
 authors:
-    - junho
+  - junho
+cssclasses:
 ---
 
 ## System overview
 
 |<img src="https://d17pwbfgewyq5y.cloudfront.net/AWS_EKS.drawio.png?" alt="simpledl architecture" width="720">|
 |:--:| 
-| *Kubernetes architecture (EKS)* |
+| *kubernetes architecture (EKS)* |
 
-The final architecture of my application, which I will be explaining in the following post.
+This is the final architecture of my applicaiton, which I will be explaining in the following post.
 
 <!-- more -->
 
@@ -31,7 +32,7 @@ The final architecture of my application, which I will be explaining in the foll
 [↑ Back to top](#)
 <br><br>
 
-* <i style="font-size:24px" class="fa">&#xf09b;</i> <a href="https://github.com/jnuho/simpledl" target="_blank">`simpledl`</a>
+* <img src="https://github.githubassets.com/assets/GitHub-Mark-ea2971cee799.png" style="width:22px"> <a href="https://github.com/jnuho/simpledl" target="_blank">`simpledl`</a>
 
 - [`Why Kuberenetes`](#why-kubernetes)
 - [`Skill Sets`](#skill-sets)
@@ -49,9 +50,8 @@ The final architecture of my application, which I will be explaining in the foll
 
 ## Why Kubernetes
 
-I experimented with `docker-compose` for local development and faced limitations in Scalability, Load balancing, and Cloud-native integration.
-
-Kubernetes provides an extensive set of APIs that effectively address these challenges.
+I experimented with `docker-compose` for local development and faced limitations in Scalability, Load balancing, and Cloud integration.
+Kubernetes, with its rich set of APIs, became a clear and logical choice to address these challenges.
 
 ### Scalability
 
@@ -59,19 +59,13 @@ docker-compose is limited to deploying containers on a single host. In contrast,
 
 ### Load Balancing
 
-docker-compose lacks built-in load balancing capabilities. It requires to set up HAProxy manually to achieve many functionalities that Load balancer provides.
-Kubernetes, on the other hand, provides advanced, native support for load balancing and traffic routing through `Ingress`, `Ingress Controller`, and `AWS Load Balancer Controller`.
+docker-compose lacks built-in load balancing capabilities. I had to set up HAProxy manually in front of the Docker Compose containers to achieve load balancing. Kubernetes, on the other hand, provides native support for load balancing through various service types such as `ClusterIP`, `NodePort`, and `LoadBalancer`, streamlining the process and reducing operational workload.
 
+### Cloud Integration
 
-### Cloud-Native Integration
+Kubernetes offers compatibility with third-party ingress controllers, enabling external access to services. Kubernetes seamlessly integrates with cloud environments like AWS.
+For instance, the AWS Load Balancer Controller allow for automatic provisioning and configuration of load balancers, aligning with Kubernetes ingress resources. This integration enhances operational efficiency and leverages cloud-native services to optimize application deployment and scalability.
 
-Kubernetes natively supports cloud environments, enabling seamless integration with services like AWS. It allows for:
-
-- Use of cloud-specific ingress controllers
-- Automatic provisioning of cloud resources (e.g., load balancers)
-- Alignment with cloud-native services for optimized deployment and scalability
-
-This integration enhances operational efficiency in cloud environments, embodying key cloud-native principles of automation and scalability.
 
 
 ## About the App
