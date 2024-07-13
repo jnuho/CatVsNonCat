@@ -188,7 +188,7 @@ uvicorn main:app --port 3002
 
 The basic operations for forward and backward propagations in deep learning algorithm are as follows:
 
-|<img src="https://imgur.com/ZJ94x9B.png" alt="propagation" width="700">|
+|<img src="https://imgur.com/ZJ94x9B.png" alt="propagation" width="550">|
 |:--:| 
 | *Forward and Backward propagation* |
 
