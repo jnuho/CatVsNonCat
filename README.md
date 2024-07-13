@@ -32,7 +32,7 @@ This is the final architecture of my applicaiton, which I will be explaining in 
 [↑ Back to top](#)
 <br><br>
 
-* <img src="https://github.githubassets.com/assets/GitHub-Mark-ea2971cee799.png" style="width:22px; pointer-events: none;"> <a href="https://github.com/jnuho/simpledl" target="_blank">`simpledl`</a>
+* <a href="https://github.com/jnuho/simpledl" target="_blank">`Github`</a>
 
 - [`Why Kuberenetes`](#why-kubernetes)
 - [`Skill Sets`](#skill-sets)
