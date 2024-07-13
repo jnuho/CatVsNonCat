@@ -167,7 +167,7 @@ window.onload = function(){
             const elapsed = data.elapsed;
         
             showWeather(weatherList, elapsed);
-            showElapsed(elapsed);
+            showElapsed(`${weatherList.length}`, elapsed);
         } catch(error) {
             // console.error("Error calling /work/cat:", error);
             if (error.response) {
@@ -176,9 +176,9 @@ window.onload = function(){
         }
     }
 
-    function showElapsed(elapsed) {
+    function showElapsed(numOfWorker, elapsed) {
         const elapsedEle =document.querySelector('.elapsed');
-        elapsedEle.innerHTML = "<i>3-worker in " + elapsed.toFixed(2) + " sec</i>⏳";
+        elapsedEle.innerHTML = `<i>${numOfWorker}-worker in ` + elapsed.toFixed(2) + ` sec</i>⏳`;
     }
 
     const cityMap = {
