@@ -73,7 +73,7 @@ Kubernetes Consistency   | Not applicable                     | Mirrors producti
 docker-compose is limited to deploying containers on a single host. In contrast, Kubernetes offers orchestration and management of containerized applications across a cluster of nodes, ensuring high availability and resource efficiency.
 
 
-| <img src="https://imgur.com/Cc5oFFZ.png" alt="simpledl architecture" width="500"> |
+| <img src="https://imgur.com/rvtBRlL.png" alt="simpledl architecture" width="500"> |
 | :--: |
 |  *docker-compose vs. Kubernetes* |
 
