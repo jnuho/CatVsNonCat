@@ -14,8 +14,8 @@ authors:
 
 ## System overview
 
-|<img src="https://d17pwbfgewyq5y.cloudfront.net/AWS_EKS.drawio.png?" alt="simpledl architecture" width="720">|
-|:--:| 
+| <img src="https://d17pwbfgewyq5y.cloudfront.net/AWS_EKS.drawio.png?" alt="simpledl architecture" width="750"> |
+| :--: |
 | *Kubernetes architecture (EKS)* |
 
 The final architecture of my application, which I will be explaining in the following post.
@@ -24,7 +24,7 @@ The final architecture of my application, which I will be explaining in the foll
 
 ## Application Demo
 
-| <img src="https://imgur.com/CAgwA5H.gif" alt="pods" width="700"> |
+| <img src="https://imgur.com/CAgwA5H.gif" alt="pods" width="680"> |
 |:--:| 
 | *web application* |
 
@@ -49,19 +49,92 @@ The final architecture of my application, which I will be explaining in the foll
 
 ## Why Kubernetes
 
-I experimented with `docker-compose` for local development and faced limitations in Scalability, Load balancing, and Cloud-native integration.
+docker-compose has many limitations in `Scalability`, `Load balancing`, and `Cloud-native integration`.
+
+Even in local development environment, minikube was a better choice due to the aspect of `Kubernetes Consistency`.
 
 Kubernetes provides an extensive set of APIs that effectively address these challenges.
+
+| | docker-compose | Kubernetes
+--|--|--
+Scalability              | Limited to a single host             | Simulates multi-node scaling
+Load Balancing           | Requires manual setup (e.g., HAProxy)| Built-in Kubernetes Service load balancing
+Cloud-Native Integration | Minimal cloud integration      | Supports Kubernetes-native cloud integrations
+Kubernetes Consistency   | Not applicable                     | Mirrors production Kubernetes environments
+
+
+| <img src="https://imgur.com/j0RI7lF.png" alt="simpledl architecture" width="550"> |
+| :--: |
+|  *docker-compose vs. Kubernetes* |
 
 ### Scalability
 
 docker-compose is limited to deploying containers on a single host. In contrast, Kubernetes offers orchestration and management of containerized applications across a cluster of nodes, ensuring high availability and resource efficiency.
+
+
+| <img src="https://imgur.com/Cc5oFFZ.png" alt="simpledl architecture" width="500"> |
+| :--: |
+|  *docker-compose vs. Kubernetes* |
+
+
+- `HPA` implements control loop with interval set by kube-controller-manager.
+    - based on `CPU` and `Memory` usage
+    - pre-requisite:
+        - metric-server
+        - `deployment.spec.template.spec.containers[i].resources`
+        - `hpa.spec.metrics[i].resouce` CPU and Memory
+
+- hpa.yaml
+    - uses `name: fe-nginx` to identify target
+    - in order to enable HPA to work on another metrics, you need to define addtional component.
+
+```yaml
+# ...
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: fe-nginx
+  minReplicas: 1
+  maxReplicas: 5
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 80
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 70
+```
+
+- deployment.yaml
+
+```yaml
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 100m
+              memory: 256Mi
+```
+
+
+- metric-server scrapes from kublet and publish metrics to `metrics.k8s.io/v1beta` Kubernetes api.
+    - install metric-server with helm!
 
 ### Load Balancing
 
 docker-compose lacks built-in load balancing capabilities. It requires to set up HAProxy manually to achieve many functionalities that Load balancer provides.
 Kubernetes, on the other hand, provides advanced, native support for load balancing and traffic routing through `Ingress`, `Ingress Controller`, and `AWS Load Balancer Controller`.
 
+1. Layer 4 implementation
+2. Layer 7 inplementation
 
 ### Cloud-Native Integration
 
@@ -73,6 +146,11 @@ Kubernetes natively supports cloud environments, enabling seamless integration w
 
 This integration enhances operational efficiency in cloud environments, embodying key cloud-native principles of automation and scalability.
 
+### Kubernetes Consistency
+
+Simulates Production Environment: Minikube runs a single-node Kubernetes cluster on your local machine.
+
+Feature Parity: Allows developers to use the same Kubernetes features and resources locally as they would in a production environment (e.g., Deployments, Services, ConfigMaps, Secrets).
 
 ## About the App
 
