@@ -14,7 +14,7 @@ authors:
 
 ## System overview
 
-| <img src="https://d17pwbfgewyq5y.cloudfront.net/AWS_EKS.drawio.png?" alt="simpledl architecture" width="750"> |
+| <img src="https://imgur.com/REm69w9.png" alt="simpledl architecture" width="750"> |
 | :--: |
 | *Kubernetes architecture (EKS)* |
 
