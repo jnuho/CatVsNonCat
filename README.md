@@ -77,7 +77,7 @@ Kubernetes offers orchestration and management of containerized applications acr
 
 
 - `Horizonal Pod Autoscaling` implements control loop that checks `CPU` and `Memory` usage via metrics api from api-server
-- `Vertical Pod Autoscaling`: [LINK](#https://kubernetes.io/docs/tasks/configure-pod-container/resize-container-resources/)
+- `Vertical Pod Autoscaling`: [LINK](https://kubernetes.io/docs/tasks/configure-pod-container/resize-container-resources)
 
 - pre-requisites for `HPA`:
     - install metric-server on the worker nodes with helm!
