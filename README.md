@@ -133,15 +133,28 @@ spec:
 docker-compose lacks built-in load balancing capabilities. It requires to set up HAProxy manually to achieve many functionalities that Load balancer provides.
 Kubernetes, on the other hand, provides advanced, native support for load balancing and traffic routing through `Ingress`, `Ingress Controller`, and `AWS Load Balancer Controller`.
 
-1. AWS Load Balancer Controller (Layer 4/ Layer4 implementation)
+1. AWS Load Balancer Controller (Layer 4 / Layer7 implementation)
+    - The LBC creates an ALB when you create a Kubernetes Ingress
+        - Review the annotations you can apply to an Ingress resource. 
+    - The LBC creates an NLB when you create a Kubernetes Service of type LoadBalancer.
+        - Review the annotations you can apply to a Service resource.
+    - But ALB is much slower than NLB and more expensive.
 
 
-| <img src="https://imgur.com/UUP6HFU.png" alt="simpledl architecture" width="500"> |
+
+| <img src="https://imgur.com/UaF1vHK.png" alt="simpledl architecture" width="500"> |
 | :--: |
-|  *docker-compose vs. Kubernetes* |
+|  *AWS Load Balancer Controller - L4 or L7* |
 
 2. Ingress Controller (3rd Party implementation)
 
+
+
+| <img src="https://imgur.com/yw30ipo.png" alt="simpledl architecture" width="500"> |
+| :--: |
+|  *Ingress Controller* |
+
+Nginx ingress controller, for example, will convert Ingress into nginx lua configuration. The controller acts as a proxy and redirects traffic into pods.
 
 ### Cloud-Native Integration
 

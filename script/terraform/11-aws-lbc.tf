@@ -41,11 +41,11 @@ data "aws_iam_policy_document" "aws_lbc" {
     effect  = "Allow"
     actions = ["sts:AssumeRoleWithWebIdentity"]
 
-    condition {
-      test     = "StringEquals"
-      variable = "${replace(aws_iam_openid_connect_provider.oidc_provider.url, "https://", "")}:aud"
-      values   = ["sts.amazonaws.com"]
-    }
+    # condition {
+    #   test     = "StringEquals"
+    #   variable = "${replace(aws_iam_openid_connect_provider.oidc_provider.url, "https://", "")}:aud"
+    #   values   = ["sts.amazonaws.com"]
+    # }
 
     condition {
       test     = "StringEquals"
@@ -131,6 +131,10 @@ resource "helm_release" "aws_lbc" {
     name  = "serviceAccount.name"
     value = kubernetes_service_account.aws-load-balancer-controller.metadata[0].name
     # value = "aws-load-balancer-controller"
+  }
+  set {
+    name  = "serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"
+    value = aws_iam_role.aws_lbc.arn
   }
 
   # lbc needs to know region and vpcid (but clustername is provided..?)

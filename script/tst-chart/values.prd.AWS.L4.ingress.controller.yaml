@@ -19,10 +19,6 @@ services:
       type: LoadBalancer
       port: 8080
       targetPort: 80
-      annotations:
-        service.beta.kubernetes.io/aws-load-balancer-type: external
-        service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: ip
-        service.beta.kubernetes.io/aws-load-balancer-scheme: internet-facing
     containerPort: 80
     resources:
       requests:
@@ -81,16 +77,7 @@ autoscaling:
 ingress:
   enabled: true
   name: fe-nginx-ingress
-  className: "alb"
-  annotations:
-    alb.ingress.kubernetes.io/scheme: internet-facing
-    alb.ingress.kubernetes.io/target-type: ip
-    alb.ingress.kubernetes.io/tags: Environment=prd,Team=devops
-    # Default listen-ports:
-    # alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
-    # Default health check: / or /AWS.ALB/healthcheck
-    # alb.ingress.kubernetes.io/healthcheck-path: /health
-    #alb.ingress.kubernetes.io/security-groups: sg-02c6500ca5cf9bba6 # Add this annotation
+  className: "external-nginx"
   hosts:
     - http:
         paths:

@@ -110,11 +110,11 @@ data "aws_iam_policy_document" "vpc_cni_assume_role_policy" {
     actions = ["sts:AssumeRoleWithWebIdentity"]
     effect  = "Allow"
 
-    condition {
-      test     = "StringEquals"
-      variable = "${replace(aws_iam_openid_connect_provider.oidc_provider.url, "https://", "")}:aud"
-      values   = ["sts.amazonaws.com"]
-    }
+    # condition {
+    #   test     = "StringEquals"
+    #   variable = "${replace(aws_iam_openid_connect_provider.oidc_provider.url, "https://", "")}:aud"
+    #   values   = ["sts.amazonaws.com"]
+    # }
 
     condition {
       test     = "StringEquals"
