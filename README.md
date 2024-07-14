@@ -14,7 +14,7 @@ authors:
 
 ## System overview
 
-| <img src="https://imgur.com/REm69w9.png" alt="simpledl architecture" width="750"> |
+| <img src="https://imgur.com/REm69w9.png" alt="EKS architecture" width="750"> |
 | :--: |
 | *Kubernetes architecture (EKS)* |
 
@@ -24,7 +24,7 @@ The final architecture of my application, which I will be explaining in the foll
 
 ## Application Demo
 
-| <img src="https://imgur.com/CAgwA5H.gif" alt="pods" width="650"> |
+| <img src="https://imgur.com/CAgwA5H.gif" alt="demo" width="650"> |
 |:--:| 
 | *web application* |
 
@@ -50,10 +50,9 @@ The final architecture of my application, which I will be explaining in the foll
 
 ## Why Kubernetes
 
-While docker-compose <img src="https://i0.wp.com/codeblog.dotsandbrackets.com/wp-content/uploads/2016/10/compose-logo.jpg?w=28"> is convenient for local development, it falls short in terms of `scalability`, `load balancing`, and seamless `cloud-native integration`. Kubernetes offers a rich set of APIs to address these challenges.
-
-
-For local development, I opted for <img src="https://blog.radwell.codes/wp-content/uploads/2021/05/minikube-logo-full.png" alt="simpledl architecture" width="75"> over docker-compose to align with Kuberentes best practices. This `consistency` ensures a smoother transition to production, where I'm using AWS EKS <img src="https://diagrams.mingrammer.com/img/resources/aws/compute/elastic-kubernetes-service.png" alt="simpledl architecture" width="28">.
+- While docker-compose <img src="https://i0.wp.com/codeblog.dotsandbrackets.com/wp-content/uploads/2016/10/compose-logo.jpg?w=28"> is convenient for local development, it falls short in terms of `scalability`, `load balancing`, and seamless `cloud-native integration`.
+- Kubernetes offers a rich set of APIs to address these challenges.
+- For local development, I chose <img src="https://blog.radwell.codes/wp-content/uploads/2021/05/minikube-logo-full.png" alt="minikube logo" width="75"> over docker-compose to align with Kuberentes best practices. This `consistency` ensures a smoother transition to production, where I'm using AWS EKS <img src="https://diagrams.mingrammer.com/img/resources/aws/compute/elastic-kubernetes-service.png" alt="EKS logo" width="28">.
 
 
 | | docker-compose | Kubernetes
@@ -61,26 +60,26 @@ For local development, I opted for <img src="https://blog.radwell.codes/wp-conte
 Scalability              | Limited to a single host             | Simulates multi-node scaling
 Load Balancing           | Requires manual setup (e.g., HAProxy)| Built-in Kubernetes Service load balancing
 Cloud-Native Integration | Minimal cloud integration      | Supports Kubernetes-native cloud integrations
-Kubernetes Consistency   | Not applicable                     | Mirrors production Kubernetes environments
 
 
-| <img src="https://imgur.com/qqDsoa2.png" alt="simpledl architecture" width="550"> |
+| <img src="https://imgur.com/qqDsoa2.png" alt="dc vs k8s" width="550"> |
 | :--: |
 |  *docker-compose vs. Kubernetes* |
 
 ### Scalability
 
-docker-compose is limited to deploying containers on a single host. In contrast, Kubernetes offers orchestration and management of containerized applications across a cluster of nodes, ensuring high availability and resource efficiency.
+Kubernetes offers orchestration and management of containerized applications across a cluster of nodes, ensuring high availability and resource efficiency.
 
 
-| <img src="https://imgur.com/rvtBRlL.png" alt="simpledl architecture" width="500"> |
+| <img src="https://imgur.com/rvtBRlL.png" alt="metric-server" width="500"> |
 | :--: |
-|  *docker-compose vs. Kubernetes* |
+|  *HPA and metric-server* |
 
 
-- `HPA` implements control loop that checks `CPU` and `Memory` usage via metrics api from api-server
+- `Horizonal Pod Autoscaling` implements control loop that checks `CPU` and `Memory` usage via metrics api from api-server
+- `Vertical Pod Autoscaling`: [LINK](#https://kubernetes.io/docs/tasks/configure-pod-container/resize-container-resources/)
 
-- pre-requisites:
+- pre-requisites for `HPA`:
     - install metric-server on the worker nodes with helm!
     - hpa.yaml: `spec.metrics[i].resource` on CPU and Memory
     - deployment.yaml: `spec.template.spec.containers[i].resources`
@@ -126,28 +125,49 @@ docker-compose is limited to deploying containers on a single host. In contrast,
 docker-compose lacks built-in load balancing capabilities. It requires to set up HAProxy manually to achieve many functionalities that Load balancer provides.
 Kubernetes, on the other hand, provides advanced, native support for load balancing and traffic routing through `Ingress`, `Ingress Controller`, and `AWS Load Balancer Controller`.
 
-1. AWS Load Balancer Controller (Layer 4 / Layer7 implementation)
-    - The LBC creates an ALB when you create a Kubernetes Ingress
-        - Review the annotations you can apply to an Ingress resource. 
-    - The LBC creates an NLB when you create a Kubernetes Service of type LoadBalancer.
-        - Review the annotations you can apply to a Service resource.
-    - But ALB is much slower than NLB and more expensive.
+#### AWS Load Balancer Controller
+
+- The LBC creates an ALB when you create a Kubernetes Ingress
+    - Review the annotations you can apply to an Ingress resource. 
+- The LBC creates an NLB when you create a Kubernetes Service of type LoadBalancer.
+    - Review the annotations you can apply to a Service resource.
+- But ALB is much slower than NLB and more expensive.
 
 
 
-| <img src="https://imgur.com/UaF1vHK.png" alt="simpledl architecture" width="500"> |
+| <img src="https://imgur.com/UaF1vHK.png" alt="aws-lbc" width="520"> |
 | :--: |
 |  *AWS Load Balancer Controller - L4 or L7* |
 
-2. Ingress Controller (3rd Party implementation)
+#### Ingress Controller
+
+- 3rd Party [implementation](#https://kubernetes.github.io/ingress-nginx/deploy)
+- Nginx ingress controller listens to Ingress resources created in the Kubernetes cluster.
+    - must specify `ingressClassName` as the name of Ingress Nginx controller. (helm installing using Terraform, specify same name as this. default classname is 'nginx-ingress')
+    - Traffic reachs AWS NLB ->  Nginx ingress controller ->(Ingres Rule) Service -> Pod
+    - Monitoring tools like `Prometheus` <img src="https://upload.wikimedia.org/wikipedia/commons/3/38/Prometheus_software_logo.svg" width=28> can scrape metrics (traffic, latency, errors for all Ingresses) from the nginx ingress controller (pod) without implementing anything on the Application side!!
+    - ALSO, for each Ingress being created, it is converted to Nignx native `Lua` configuration and routes to the target service!
+    - All the Ingresses use the same Load Balancer! COST and MAINTENANCE saved!
+    - the Ingress Controller creates its own Service of type LoadBalancer, which triggers the NLB creation. (during helm isntall process)
+    - This is the point where the NLB is created by the AWS cloud provider.
+    - When you create an Ingress resource with the specified ingressClassName, the NGINX Ingress Controller reads the Ingress rules and updates its configuration accordingly.
 
 
-
-| <img src="https://imgur.com/yw30ipo.png" alt="simpledl architecture" width="300"> |
+| <img src="https://imgur.com/yw30ipo.png" alt="ingress-controller" width="320"> |
 | :--: |
-|  *Ingress Controller* |
+
+| <img src="https://kubernetes.io/docs/images/ingress.svg" alt="ingress" width="520"> |
+| :--: |
 
 Nginx ingress controller, for example, will convert Ingress into nginx lua configuration. The controller acts as a proxy and redirects traffic into pods.
+
+```sh
+kubectl get ingressclass
+# NAME            CONTROLLER           PARAMETERS  AGE
+# alb             ingress.k8s.aws/alb  <none>      20m
+# external-nginx  ingress.k8s.aws/alb  <none>      20m
+
+```
 
 ### Cloud-Native Integration
 
@@ -157,13 +177,6 @@ Kubernetes natively supports cloud environments, enabling seamless integration w
 - Automatic provisioning of cloud resources (e.g., load balancers)
 - Alignment with cloud-native services for optimized deployment and scalability
 
-This integration enhances operational efficiency in cloud environments, embodying key cloud-native principles of automation and scalability.
-
-### Kubernetes Consistency
-
-Simulates Production Environment: Minikube runs a single-node Kubernetes cluster on your local machine.
-
-Feature Parity: Allows developers to use the same Kubernetes features and resources locally as they would in a production environment (e.g., Deployments, Services, ConfigMaps, Secrets).
 
 ## About the App
 
@@ -323,6 +336,167 @@ One strategy to achieve this is by utilizing base images that are minimalistic, 
 [↑ Back to top](#)
 <br><br>
 
+
+## Terraform
+
+
+
+- VPC, Subnet, igw, nat, route table
+- IAM role with assume-role-policy
+    - attach the required Amazon EKS IAM managed policy to it.
+- Attach AmazonEKSClusterPolicy policy to IAM role: `6-eks.tf`
+- TODO: Add-Ons
+
+https://developer.hashicorp.com/terraform/install
+
+- Download terraform.exe
+
+시스템변수 > Path에 추가 C:\Program  Files\terraform_1.8.5_windows_amd64
+
+
+```sh
+# Navigate to your Terraform configuration directory
+cd path/to/your/terraform/configuration
+
+# Initialize Terraform
+terraform init
+
+# Validate the configuration
+terraform validate
+
+# Format the Configuration
+terraform fmt
+
+# Plan the deployment
+terraform plan
+
+# Apply the configuration
+terraform apply
+
+# With DEBUGGING enabled
+TF_LOG=DEBUG terraform apply
+
+# Destroy
+# terraform destroy
+```
+
+
+
+## Helm Chart
+
+- Install `helm`
+    - on the same client PC as `kubectl`
+
+```sh
+curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+chmod 700 get_helm.sh
+./get_helm.sh
+```
+
+- Configure `kubectl`
+    - Check context : `kubectl config current-context`
+    - Update `.kube/config`
+
+```sh
+# TO LOCAL
+kubectl config use-context minikube
+
+# TO EKS
+aws eks update-kubeconfig --region ap-northeast-2 --name my-cluster --profile terraform
+```
+
+- Create helm chart
+
+```sh
+helm create tst-chart
+```
+
+- Check validity
+
+```sh
+cd simpledl/script
+tree
+    tst-chart
+       ├── Chart.yaml
+       ├── charts
+       ├── templates
+       │   ├── _helpers.tpl
+       │   ├── deployment.yaml
+       │   ├── hpa.yaml
+       │   ├── ingress.yaml
+       │   └── service.yaml
+       ├── values.dev.yaml
+       └── values.prd.yaml
+
+helm lint tst-chart
+helm template tst-chart --debug
+
+# check results without installation
+# helm install --dry-run tst-chart --generate-name
+helm install --dry-run tst-release ./tst-chart -f ./tst-chart/values.prd.AWS.L4.ingress.controller.yaml
+```
+
+- Install
+
+```sh
+helm install tst-release ./tst-chart -f ./tst-chart/values.prd.AWS.L4.ingress.controller.yaml
+```
+
+- Upgrade
+    - Helm will perform a rolling update for the affected resources (e.g., Deployments, StatefulSets).
+    - Pods are replaced one by one, ensuring zero-downtime during the update.
+    - Helm manages this process transparently.
+    - Edit `values.dev.yaml` and apply `helm upgrade` command
+
+```yaml
+services: 
+  - name: fe-nginx
+    replicaCount: 3
+```
+
+```sh
+helm list
+    NAME            NAMESPACE       REVISION        UPDATED                                 STATUS          CHART              APP VERSION
+    tst-release     default         1               2024-07-09 14:25:50.410043621 +0900 KST deployed        tst-chart-0.1.0    1.16.0
+
+helm upgrade tst-release ./tst-chart -f ./tst-chart/values.prd.AWS.L4.ingress.controller.yaml
+    Release "tst-release" has been upgraded. Happy Helming!
+    NAME: tst-release
+    LAST DEPLOYED: Tue Jul  9 14:35:35 2024
+    NAMESPACE: default
+    STATUS: deployed
+    REVISION: 2
+    TEST SUITE: None
+
+helm list
+    NAME            NAMESPACE       REVISION        UPDATED                                 STATUS          CHART              APP VERSION
+    tst-release     default         2               2024-07-09 14:35:35.404055879 +0900 KST deployed        tst-chart-0.1.0    1.16.0
+```
+
+- Rollback
+
+```sh
+helm rollback tst-release VERSION_NO
+```
+
+- Uninstall (Helm v3)
+    - `helm delete --purge` in Helm V2
+
+```sh
+helm uninstall tst-release
+```
+
+- Helm Repository
+    - While you can deploy a Helm chart directly from the filesystem,
+    - it’s recommended to use Helm repositories.
+    - Helm repositories allow versioning, collaboration, and easy distribution of charts
+    - [`LINK`](https://www.kubernet.dev/getting-started-with-helm-simplifying-kubernetes-application-deployments)
+
+
+[↑ Back to top](#)
+<br><br>
+
+
 | <img src="https://imgur.com/YpjRWc6.png" alt="pods" width="700"> |
 |:--:| 
 | *ingress resource* |
@@ -340,6 +514,7 @@ One strategy to achieve this is by utilizing base images that are minimalistic, 
 ## Appendix
 
 - [`Exposing external service`](#exposing-external-service)
+- [`Terraform Reference`](#terraform-reference)
 - [`Binary classification`](#binary-classification)
 - [`Mathematical background`](#mathematical-background)
 - [`Image Classification`](#image-classification)
@@ -356,6 +531,9 @@ One strategy to achieve this is by utilizing base images that are minimalistic, 
 
 - [`LINK`](#https://youtu.be/ePqUq06WoLk?si=jlRgm1oI9RI_d7RF)
 
+### Terraform Reference
+
+- [LINK](#https://antonputra.com/terraform/how-to-create-eks-cluster-using-terraform)
 
 ### Binary classification
 
