@@ -133,14 +133,15 @@ spec:
 docker-compose lacks built-in load balancing capabilities. It requires to set up HAProxy manually to achieve many functionalities that Load balancer provides.
 Kubernetes, on the other hand, provides advanced, native support for load balancing and traffic routing through `Ingress`, `Ingress Controller`, and `AWS Load Balancer Controller`.
 
-1. Layer 4 implementation
-2. Layer 7 inplementation
-
+1. AWS Load Balancer Controller (Layer 4/ Layer4 implementation)
 
 
 | <img src="https://imgur.com/UUP6HFU.png" alt="simpledl architecture" width="500"> |
 | :--: |
 |  *docker-compose vs. Kubernetes* |
+
+2. Ingress Controller (3rd Party implementation)
+
 
 ### Cloud-Native Integration
 
@@ -384,11 +385,9 @@ and Ingress resources within an AWS EKS cluster.
 
 
 
-
-
-
 ## Appendix
 
+- [`Exposing external service`](#exposing-external-service)
 - [`Binary classification`](#binary-classification)
 - [`Mathematical background`](#mathematical-background)
 - [`Image Classification`](#image-classification)
@@ -399,6 +398,12 @@ and Ingress resources within an AWS EKS cluster.
 - [`Minikube implementation`](#minikube-implementation)
 - [`Microk8s implemntation`](#microk8s-implemntation)
 - [`Golang ini setting`](#golang-ini-setting)
+
+
+### Exposing external service
+
+- [`LINK`](#https://youtu.be/ePqUq06WoLk?si=jlRgm1oI9RI_d7RF)
+
 
 ### Binary classification
 

@@ -1,0 +1,131 @@
+# for `AWS` environment
+
+services: 
+  - name: fe-nginx
+    replicaCount: 1
+    autoscaling:
+      enabled: true
+      # minReplicas: 1
+      # maxReplicas: 1
+      # targetCPUUtilizationPercentage: 80
+      # targetMemoryUtilizationPercentage: 70
+    revisionHistoryLimit: 3
+    image:
+      repository: jnuho/fe-nginx
+      tag: "latest"
+      #pullPolicy: IfNotPresent
+      pullPolicy: Always
+    service:
+      type: LoadBalancer
+      port: 8080
+      targetPort: 80
+      annotations:
+        service.beta.kubernetes.io/aws-load-balancer-type: external
+        service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: ip
+        service.beta.kubernetes.io/aws-load-balancer-scheme: internet-facing
+    containerPort: 80
+    resources:
+      requests:
+        memory: 256Mi
+        cpu: 100m
+      limits:
+        memory: 256Mi
+        cpu: 100m
+    volumes:
+      - name: config-volume
+        configMap:
+          name: application-settings
+    # Additional volumeMounts on the output Deployment definition.
+    volumeMounts:
+      - name: config-volume
+        mountPath: /config
+
+  - name: be-go
+    replicaCount: 1
+    revisionHistoryLimit: 3
+    image:
+      repository: jnuho/be-go
+      tag: "latest"
+      #pullPolicy: IfNotPresent
+      pullPolicy: Always
+    service:
+      type: ClusterIP
+      port: 3001
+      targetPort: 3001
+    containerPort: 3001
+
+  - name: be-py
+    replicaCount: 1
+    revisionHistoryLimit: 3
+    image:
+      repository: jnuho/be-py
+      tag: "latest"
+      #pullPolicy: IfNotPresent
+      pullPolicy: Always
+    service:
+      type: ClusterIP
+      port: 3002
+      targetPort: 3002
+    containerPort: 3002
+
+
+autoscaling:
+  name: fe-nginx-hpa
+  enabled: true
+  minReplicas: 1
+  maxReplicas: 1
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 70
+
+
+ingress:
+  enabled: true
+  name: fe-nginx-ingress
+  className: "alb"
+  annotations:
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/tags: Environment=prd,Team=devops
+    # Default listen-ports:
+    # alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
+    # Default health check: / or /AWS.ALB/healthcheck
+    # alb.ingress.kubernetes.io/healthcheck-path: /health
+    #alb.ingress.kubernetes.io/security-groups: sg-02c6500ca5cf9bba6 # Add this annotation
+  hosts:
+    - http:
+        paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: fe-nginx-service
+              port:
+                number: 8080
+        - path: /web/cat
+          pathType: Prefix
+          backend:
+            service:
+              name: be-go-service
+              port:
+                number: 3001
+        - path: /weather
+          pathType: Prefix
+          backend:
+            service:
+              name: be-go-service
+              port:
+                number: 3001
+        - path: /healthz
+          pathType: Prefix
+          backend:
+            service:
+              name: be-go-service
+              port:
+                number: 3001
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+config:
+  backend_go_url: http://k8s-default-fenginxi-ab0a71e16a-424716363.ap-northeast-2.elb.amazonaws.com

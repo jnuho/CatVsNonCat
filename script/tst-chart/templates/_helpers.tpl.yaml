@@ -144,6 +144,11 @@ metadata:
   name: {{ .Values.name }}-service
   labels:
     app: {{ .Values.name }}
+  {{- if .Values.service.annotations }}
+  annotations:
+    {{- toYaml .Values.service.annotations | nindent 4 }}
+  {{- end }}
+  annotations:
 spec:
   type: {{ .Values.service.type }}
   ports:
