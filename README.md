@@ -136,6 +136,12 @@ Kubernetes, on the other hand, provides advanced, native support for load balanc
 1. Layer 4 implementation
 2. Layer 7 inplementation
 
+
+
+| <img src="https://imgur.com/UUP6HFU.png" alt="simpledl architecture" width="500"> |
+| :--: |
+|  *docker-compose vs. Kubernetes* |
+
 ### Cloud-Native Integration
 
 Kubernetes natively supports cloud environments, enabling seamless integration with services like AWS. It allows for:
