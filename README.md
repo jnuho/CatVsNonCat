@@ -24,7 +24,7 @@ The final architecture of my application, which I will be explaining in the foll
 
 ## Application Demo
 
-| <img src="https://imgur.com/CAgwA5H.gif" alt="pods" width="680"> |
+| <img src="https://imgur.com/CAgwA5H.gif" alt="pods" width="650"> |
 |:--:| 
 | *web application* |
 
@@ -44,16 +44,17 @@ The final architecture of my application, which I will be explaining in the foll
     - [`AWS LoadBalancer Controller`](#aws-loadbalancer-controller)
     - [`Traffic Flow in AWS EKS`](#traffic-flow-in-aws-eks)
     - [`Terraform`](#terraform)
+    - [`Helm`](#helm)
 - [`Appendix`](#appendix)
 
 
 ## Why Kubernetes
 
-docker-compose has many limitations in `Scalability`, `Load balancing`, and `Cloud-native integration`.
+While docker-compose is convenient for local development, it falls short in terms of `scalability`, `load balancing`, and seamless `cloud-native integration`. Kubernetes offers a rich set of APIs to address these challenges.
 
-Even in local development environment, minikube was a better choice due to the aspect of `Kubernetes Consistency`.
 
-Kubernetes provides an extensive set of APIs that effectively address these challenges.
+For local development, I opted for <img src="https://blog.radwell.codes/wp-content/uploads/2021/05/minikube-logo-full.png" alt="simpledl architecture" width="75"> over docker-compose to align with Kuberentes best practices. This `consistency` ensures a smoother transition to production, where I'm using AWS EKS <img src="https://diagrams.mingrammer.com/img/resources/aws/compute/elastic-kubernetes-service.png" alt="simpledl architecture" width="28">.
+
 
 | | docker-compose | Kubernetes
 --|--|--
@@ -150,7 +151,7 @@ Kubernetes, on the other hand, provides advanced, native support for load balanc
 
 
 
-| <img src="https://imgur.com/yw30ipo.png" alt="simpledl architecture" width="500"> |
+| <img src="https://imgur.com/yw30ipo.png" alt="simpledl architecture" width="300"> |
 | :--: |
 |  *Ingress Controller* |
 
@@ -325,60 +326,6 @@ One strategy to achieve this is by utilizing base images that are minimalistic, 
     - it needs `IAM Role` with proper policies attached to use AWS API to create and configure an ALB.
     - The AWS Load Balancer Controller, running as a pod in the `kube-system` namespace,
     - monitors for new or updated Ingress resources with the alb ingress class.
-
-
-### Traffic Flow in AWS EKS
-
-- `Client Request to ALB`
-    - The client (e.g., browser) sends a request to the AWS Application Load Balancer (ALB).
-    - The ALB serves as the entry point into the Kubernetes cluster.
-- `ALB to Ingress Controller`
-    - The ALB forwards the request directly to the Kubernetes cluster based on the rules defined in the ALB's configuration.
-    - The AWS Load Balancer Controller is responsible for creating and configuring the ALB based on the Ingress resource
-    - It is deployed in your cluster and runs in the kube-system namespace.
-    - It watches for Ingress resources that are annotated to use an AWS ALB and automatically creates and configures the ALB based on these resources.
-- `Ingress Controller (e.g., NGINX Ingress)`
-    - The Ingress Controller (e.g., NGINX Ingress Controller) is responsible for implementing the rules defined in the Ingress resource.
-    - It receives requests from the ALB via the AWS Load Balancer Controller and routes them to the appropriate Kubernetes Services(ClusterIP) based on the Ingress rules.
-- `Service to Pods`
-    - Finally, the Service routes the request to one or more Pods that belong to the targeted Kubernetes workload (Deployment, StatefulSet, etc.).
-    - The Pods process the request and generate responses, which flow back through the same path to reach the client.
-    - The Service forwards the request to the appropriate Pods, which are the application instances.
-    - The Pods process the request and generate a response, which is sent back through the same path.
-    - Kubernetes Services, specifically those of type ClusterIP, provide a stable virtual IP address to access a set of Pods.
-    - The Ingress Controller routes traffic to the corresponding Service based on the Ingress rules.
-
-- Recap
-    - **Client** sends requests to the AWS ALB.
-
-    - **AWS ALB**: This is created and managed by the AWS Load Balancer Controller based on the Ingress resource definitions. It handles incoming traffic from clients.
-    - **Ingress Controller**: It interprets the Ingress resource rules and routes the traffic to the appropriate Kubernetes backend services.
-    - **Service (ClusterIP)**: It provides a stable IP address and DNS name to access the Pods and internal load balancing across Pods.
-    - **Pods**: These are the application instances that handle the actual processing of requests.
-
-The AWS Load Balancer Controller's role is to manage the lifecycle and configuration of AWS ALBs/NLBs based on Kubernetes Ingress resources. It does not handle the traffic directly. Instead, it ensures that the ALB is correctly set up to route traffic to the Kubernetes cluster, where the Ingress Controller then takes over to route the traffic within the cluster to the appropriate services and pods.actual instances of your application that handle requests and generate responses.
-
-
-```
-Client (Browser)
-   |
-   v
-AWS ALB (Application Load Balancer)  <-- Created and managed by AWS Load Balancer Controller
-   |
-   v
-Ingress Controller (e.g., NGINX)     <-- Routes traffic within the cluster based on Ingress rules
-   |
-   v
-Service (ClusterIP)
-   |
-   v
-Pods (Application Instances)
-
-```
-
-Requests from clients are efficiently routed to the appropriate Kubernetes workloads
-based on the defined rules and configurations managed by the AWS Load Balancer Controller
-and Ingress resources within an AWS EKS cluster.
 
 
 [↑ Back to top](#)
