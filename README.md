@@ -50,7 +50,7 @@ The final architecture of my application, which I will be explaining in the foll
 
 ## Why Kubernetes
 
-While docker-compose is convenient for local development, it falls short in terms of `scalability`, `load balancing`, and seamless `cloud-native integration`. Kubernetes offers a rich set of APIs to address these challenges.
+While docker-compose <img src="https://i0.wp.com/codeblog.dotsandbrackets.com/wp-content/uploads/2016/10/compose-logo.jpg?w=28"> is convenient for local development, it falls short in terms of `scalability`, `load balancing`, and seamless `cloud-native integration`. Kubernetes offers a rich set of APIs to address these challenges.
 
 
 For local development, I opted for <img src="https://blog.radwell.codes/wp-content/uploads/2021/05/minikube-logo-full.png" alt="simpledl architecture" width="75"> over docker-compose to align with Kuberentes best practices. This `consistency` ensures a smoother transition to production, where I'm using AWS EKS <img src="https://diagrams.mingrammer.com/img/resources/aws/compute/elastic-kubernetes-service.png" alt="simpledl architecture" width="28">.
@@ -78,26 +78,19 @@ docker-compose is limited to deploying containers on a single host. In contrast,
 |  *docker-compose vs. Kubernetes* |
 
 
-- `HPA` implements control loop with interval set by kube-controller-manager.
-    - based on `CPU` and `Memory` usage
-    - pre-requisite:
-        - metric-server
-        - `deployment.spec.template.spec.containers[i].resources`
-        - `hpa.spec.metrics[i].resouce` CPU and Memory
+- `HPA` implements control loop that checks `CPU` and `Memory` usage via metrics api from api-server
+
+- pre-requisites:
+    - install metric-server on the worker nodes with helm!
+    - hpa.yaml: `spec.metrics[i].resource` on CPU and Memory
+    - deployment.yaml: `spec.template.spec.containers[i].resources`
 
 - hpa.yaml
     - uses `name: fe-nginx` to identify target
     - in order to enable HPA to work on another metrics, you need to define addtional component.
 
 ```yaml
-# ...
-spec:
-  scaleTargetRef:
-    apiVersion: apps/v1
-    kind: Deployment
-    name: fe-nginx
-  minReplicas: 1
-  maxReplicas: 5
+  # ...
   metrics:
   - type: Resource
     resource:
@@ -127,7 +120,6 @@ spec:
 
 
 - metric-server scrapes from kublet and publish metrics to `metrics.k8s.io/v1beta` Kubernetes api.
-    - install metric-server with helm!
 
 ### Load Balancing
 
