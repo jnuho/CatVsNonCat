@@ -64,7 +64,7 @@ Cloud-Native Integration | Minimal cloud integration      | Supports Kubernetes-
 Kubernetes Consistency   | Not applicable                     | Mirrors production Kubernetes environments
 
 
-| <img src="https://imgur.com/j0RI7lF.png" alt="simpledl architecture" width="550"> |
+| <img src="https://imgur.com/qqDsoa2.png" alt="simpledl architecture" width="550"> |
 | :--: |
 |  *docker-compose vs. Kubernetes* |
 
