@@ -475,7 +475,7 @@ I had to construct a virtualbox environment in which my kubernetes cluster and a
 | *kubernetes architecture (Local VirtualBox)* |
 
 
-|<img src="https://d17pwbfgewyq5y.cloudfront.net/virtualbox_NAT.drawio.png" alt="pods" width="520">|
+|<img src="https://imgur.com/tyhjPsG.png" alt="pods" width="520">|
 |:--:| 
 | *NAT network* |
 
@@ -1227,18 +1227,6 @@ vim /var/snap/microk8s/current/var/kubernetes/backend/cluster.yaml
     Role: 0
 ```
 
-|<img src="https://d17pwbfgewyq5y.cloudfront.net/microk8s-add-node.png" alt="add-node" width="700">|
-|:--:| 
-| *Add node to form 3-master-node microk8s cluster* |
-
-|<img src="https://d17pwbfgewyq5y.cloudfront.net/microk8s-3-node.png" alt="3-node" width="450">|
-|:--:| 
-| *result of a cluster* |
-
-|<img src="https://d17pwbfgewyq5y.cloudfront.net/microk8s-pods.png" alt="pods" width="600"> |
-|:--:| 
-| *Kubernetes resources* |
-
 [↑ Back to top](#)
 <br><br>
 
@@ -1252,7 +1240,7 @@ vim /var/snap/microk8s/current/var/kubernetes/backend/cluster.yaml
         - in result, two pods have different images: one from local repository, another from public docker repository.
 
 
-|<img src="https://d17pwbfgewyq5y.cloudfront.net/microk8s-cause.png" alt="pods" width="700">|
+|<img src="https://imgur.com/KAUbhcq.png" alt="pods" width="700">|
 |:--:| 
 | *pod resources* |
 
