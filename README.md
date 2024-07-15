@@ -20,9 +20,9 @@ authors:
 
 <!-- more -->
 
-There are several ways to configure `external access` into the application, which I will be explaining in details.
+There are several ways to configure external access into the application, which I will be explaining in details.
 
-## Application Demo
+## Demo
 
 | <img src="https://imgur.com/VbKBWdO.gif" alt="demo" width="650"> |
 |:--:| 
@@ -33,7 +33,7 @@ There are several ways to configure `external access` into the application, whic
 
 * <a href="https://github.com/jnuho/simpledl" target="_blank">:link: Github Repository</a>
 
-- [`About the App`](#about-the-app)
+- [`How I started?`](#how-i-strated)
 - [`Why Kuberenetes?`](#why-kubernetes)
     - [`Scalability`](#scalability)
     - [`Load Balancing`](#load-balancing)
@@ -55,16 +55,17 @@ There are several ways to configure `external access` into the application, whic
 - [`Appendix`](#appendix)
 
 
-## About the App
+## How I started?
 
-My initial goal was to revisit the [`skills`](#skills-used) by creating a simple web application.
+My initial goal was to revisit the [`skills`](#skills-used) I've acquired by creating a simple web application.
 
-I had to spend some time trouble shooting on constructing the Infrastructure for both:
+**My primary focus was on `Kubernetes` in Cloud environment.**
+I had to spend many hours configuring `external access` into the service in different environments:
 
 1. Cloud - `AWS EKS`
 2. On-premise - CentOS/Ubuntu; `microk8s`, `minikube`, `docker-compose`
 
-The application should analyze images and determines whether they depict Cats or Non-cats using numpy and the deep learning algorithm:
+The application is an image classifier which determines whether the input URL image depicts Cats or Non-cats, using numpy and the deep learning algorithm:
 
 - Binary Classification using a Neural Network with L Layers
     - Activation function: `RELU` for $l=1,...L-1$ and `SIGMOID` for $l=L$
@@ -74,6 +75,16 @@ The application should analyze images and determines whether they depict Cats or
     - Backward Propagation
     - Gradient descent (Update parameters -  $\omega$, $b$)
 
+```python
+def L_layer_model(
+        X: np.ndarray,
+        Y: np.ndarray,
+        layers_dims: List[int],
+        learning_rate: float = 0.0075,
+        num_iterations: int = 2500, print_cost: Optional[bool] = False)
+# Returns Updated Paramters and Costs
+    -> Tuple[dict, List[float]]:
+```
 
 
 | <img src="https://miro.medium.com/v2/resize:fit:640/format:webp/1*iNPHcCxIvcm7RwkRaMTx1g.jpeg" alt="gradient descent" width="300"> |
