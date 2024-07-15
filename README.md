@@ -207,9 +207,10 @@ Kubernetes provides native support for load balancing and traffic routing throug
 
 #### AWS Load Balancer Controller
 
-- The LBC (in `kube-system`) provisions `ALB` when you create an *Ingress*.
-- The LBC provisions `NLB` when you create a *Service* of type *LoadBalancer*.
-- ALB is slower than NLB and more expensive.
+- The controller (in `kube-system` namespace) watches for Kubernetes Ingress or Service resources. In response, it creates the appropriate AWS Elastic Load Balancing resources. 
+    - The LBC provisions `ALB` when you create an *Ingress*.
+    - The LBC provisions `NLB` when you create a *Service* of type *LoadBalancer*.
+    - ALB is slower than NLB and more expensive.
 
 
 | <img src="https://imgur.com/UaF1vHK.png" alt="aws-lbc" width="520"> |
