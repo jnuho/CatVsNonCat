@@ -141,6 +141,8 @@ func SortWeatherResponsesByNames(weatherResponses []WeatherResponse) {
 	sort.Sort(ByName(weatherResponses))
 }
 
+// Concurrency!
+// Fan-Out/Fan-In Pattern
 func GetWeatherInfo() ([]WeatherResponse, error) {
 	log.SetPrefix(time.Now().Format(YYYYMMDD+" "+HHMMSS24h) + ": ")
 	log.SetFlags(log.Lshortfile)

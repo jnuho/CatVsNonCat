@@ -334,7 +334,8 @@ Kubernetes natively supports cloud environments, enabling seamless integration w
    - Additionally, it performs utility functions, such as fetching weather data for three cities using goroutine concurrency (5-worker).
    - [main.go](https://github.com/jnuho/simpledl/blob/main/cmd/backend-web-server/main.go#L50)
    - [weatherapi.go](https://github.com/jnuho/simpledl/blob/main/pkg/weatherapi.go#L160)
-
+     - Implemented with `Fan-out/Fan-in pattern`
+     - Another possible pattern: [`Worker-pool pattern`](https://blogd.org/blog/2024/05/29/golang-worker-pool-pattern/)
 
 - `Backend - Python uvicorn + fast api web-server`
     - The Python backend worker is responsible for image classification.
