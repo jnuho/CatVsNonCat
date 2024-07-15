@@ -20,11 +20,7 @@ authors:
 
 <!-- more -->
 
-| <img src="https://imgur.com/tg4GAzA.png" alt="EKS architecture" width="750"> |
-| :--: |
-| *<b>ALB</b> with AWS Load Balancer Controller* |
-
-Final architecture of my application: I implemented in two different ways for exposing the service, which I will be explaining in details.
+I implemented the external access into the application in several different ways, which I will be explaining in details.
 
 ## Application Demo
 
@@ -42,7 +38,7 @@ Final architecture of my application: I implemented in two different ways for ex
     - [`Load Balancing`](#load-balancing)
         - [`Ingress Controller`](#ingress-controller)
         - [`AWS Load Balancer Controller`](#aws-load-balancer-controller)
-    - [`Cloud-Native Integration`](cloud-native-integration)
+    - [`Cloud-Native Integration`](#cloud-native-integration)
 - [`Skill Sets`](#skill-sets)
 - [`Microservices`](#microservices)
     - [`1.Frontend - Nginx`](#frontend-nginx)
@@ -54,6 +50,7 @@ Final architecture of my application: I implemented in two different ways for ex
     - [`Traffic Flow in AWS EKS`](#traffic-flow-in-aws-eks)
     - [`Terraform`](#terraform)
     - [`Helm`](#helm)
+- [`Kubernetes for MLOps`](#kubernetes-for-mlops)
 - [`Appendix`](#appendix)
 
 
@@ -163,10 +160,9 @@ Kubernetes provides native support for load balancing and traffic routing throug
 
 #### AWS Load Balancer Controller
 
-- The LBC creates an `ALB` when you create an *Ingress*.
-- The LBC creates an `NLB` when you create a *Service* of type *LoadBalancer*.
-- ALB is much slower than NLB and more expensive.
-
+- The LBC (in `kube-system`) provisions `ALB` when you create an *Ingress*.
+- The LBC provisions `NLB` when you create a *Service* of type *LoadBalancer*.
+- ALB is slower than NLB and more expensive.
 
 
 | <img src="https://imgur.com/UaF1vHK.png" alt="aws-lbc" width="520"> |
@@ -579,6 +575,21 @@ helm uninstall tst-release
 [↑ Back to top](#)
 <br><br>
 
+
+## Kubernetes for MLOps
+
+
+| <img src="https://www.determined.ai/assets/images/blogs/kubernetes-bad/kubeflow-unicorns.png" alt="pods" width="480"> |
+|:--:| 
+
+
+- Challenges of Using Kubernetes-Based ML Tools
+    - Containerizing Code (Docker Image Build and Execution):
+    - Writing Kubernetes Manifests (YAML Files):
+
+
+[↑ Back to top](#)
+<br><br>
 
 
 ## Appendix
