@@ -14,17 +14,17 @@ authors:
 
 ## System overview
 
-| <img src="https://imgur.com/DwRBYMd.png" alt="EKS architecture" width="750"> |
+| <img src="https://imgur.com/DwRBYMd.png" alt="EKS architecture" width="480"> |
 | :--: |
 | *<b>NLB</b> with Nginx Ingress Controller* |
 
-| <img src="https://imgur.com/tg4GAzA.png" alt="EKS architecture" width="750"> |
+<!-- more -->
+
+| <img src="https://imgur.com/tg4GAzA.png" alt="EKS architecture" width="480"> |
 | :--: |
 | *<b>ALB</b> with AWS Load Balancer Controller* |
 
 Final architecture of my application: I implemented in two different ways for exposing the service, which I will be explaining in details.
-
-<!-- more -->
 
 ## Application Demo
 
@@ -38,6 +38,11 @@ Final architecture of my application: I implemented in two different ways for ex
 * <a href="https://github.com/jnuho/simpledl" target="_blank">`Github`</a>
 
 - [`Why Kuberenetes`](#why-kubernetes)
+    - [`Scalability`](#scalability)
+    - [`Load Balancing`](#load-balancing)
+        - [`Ingress Controller`](#ingress-controller)
+        - [`AWS Load Balancer Controller`](#aws-load-balancer-controller)
+    - [`Cloud-Native Integration`](cloud-native-integration)
 - [`Skill Sets`](#skill-sets)
 - [`Microservices`](#microservices)
     - [`1.Frontend - Nginx`](#frontend-nginx)
@@ -70,30 +75,42 @@ Cloud-Native Integration | Minimal cloud integration      | Supports Kubernetes-
 | :--: |
 |  *docker-compose vs. Kubernetes* |
 
+[↑ Back to top](#)
+<br><br>
+
 ### Scalability
 
-Kubernetes offers orchestration and management of containerized applications across a cluster of nodes, ensuring high availability and resource efficiency.
+Kubernetes offers orchestration and management of containerized applications across a cluster of nodes, ensuring high availability.
 
 
-| <img src="https://imgur.com/rvtBRlL.png" alt="metric-server" width="500"> |
+| <img src="https://imgur.com/rvtBRlL.png" alt="metric-server" width="550"> |
 | :--: |
 |  *HPA and metric-server* |
 
 
-- `Horizonal Pod Autoscaling` implements control loop that checks `CPU` and `Memory` usage via metrics api from api-server
-- `Vertical Pod Autoscaling`: [LINK](https://kubernetes.io/docs/tasks/configure-pod-container/resize-container-resources)
-
-- pre-requisites for `HPA`:
+- `Horizonal Pod Autoscaling` implements control loop that checks `CPU` and `Memory` usage via metrics api from api-server and scales accordingly.
     - install metric-server on the worker nodes with helm!
+        - it scrapes from kublet and publish metrics to `metrics.k8s.io/v1beta` Kubernetes api, which is consumed by HPA
     - hpa.yaml: `spec.metrics[i].resource` on CPU and Memory
     - deployment.yaml: `spec.template.spec.containers[i].resources`
+
 
 - hpa.yaml
     - uses `name: fe-nginx` to identify target
     - in order to enable HPA to work on another metrics, you need to define addtional component.
 
 ```yaml
-  # ...
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: fe-nginx-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: fe-nginx-deployment
+  minReplicas: 1
+  maxReplicas: 1
   metrics:
   - type: Resource
     resource:
@@ -110,6 +127,7 @@ Kubernetes offers orchestration and management of containerized applications acr
 ```
 
 - deployment.yaml
+    - Omit `spec.replica: xx` in order to use HPA functionality.
 
 ```yaml
           resources:
@@ -121,21 +139,33 @@ Kubernetes offers orchestration and management of containerized applications acr
               memory: 256Mi
 ```
 
+| <img src="https://imgur.com/h8HmnZs.png" alt="hpa" width="720"> |
+| :--: |
+|  *metric-server* |
 
-- metric-server scrapes from kublet and publish metrics to `metrics.k8s.io/v1beta` Kubernetes api.
+
+| <img src="https://imgur.com/1EiedmA.png" alt="hpa" width="720"> |
+| :--: |
+|  *HPA monitoring* |
+
+
+
+- `Vertical Pod Autoscaling`: [LINK](https://kubernetes.io/docs/tasks/configure-pod-container/resize-container-resources)
+
+
+[↑ Back to top](#)
+<br><br>
+
 
 ### Load Balancing
 
-docker-compose lacks built-in load balancing capabilities. It requires to set up HAProxy manually to achieve many functionalities that Load balancer provides.
-Kubernetes, on the other hand, provides advanced, native support for load balancing and traffic routing through `Ingress`, `Ingress Controller`, and `AWS Load Balancer Controller`.
+Kubernetes provides native support for load balancing and traffic routing through `Ingress`, `Ingress Controller`, and `AWS Load Balancer Controller`.
 
 #### AWS Load Balancer Controller
 
-- The LBC creates an ALB when you create a Kubernetes Ingress
-    - Review the annotations you can apply to an Ingress resource. 
-- The LBC creates an NLB when you create a Kubernetes Service of type LoadBalancer.
-    - Review the annotations you can apply to a Service resource.
-- But ALB is much slower than NLB and more expensive.
+- The LBC creates an `ALB` when you create an *Ingress*.
+- The LBC creates an `NLB` when you create a *Service* of type *LoadBalancer*.
+- ALB is much slower than NLB and more expensive.
 
 
 
@@ -143,9 +173,18 @@ Kubernetes, on the other hand, provides advanced, native support for load balanc
 | :--: |
 |  *AWS Load Balancer Controller - L4 or L7* |
 
+
+| <img src="https://imgur.com/tg4GAzA.png" alt="EKS architecture" width="750"> |
+| :--: |
+| *<b>ALB</b> with AWS Load Balancer Controller* |
+
+
+[↑ Back to top](#)
+<br><br>
+
+
 #### Ingress Controller
 
-- 3rd Party [implementation](#https://kubernetes.github.io/ingress-nginx/deploy)
 - Nginx ingress controller listens to Ingress resources created in the Kubernetes cluster.
     - must specify `ingressClassName` as the name of Ingress Nginx controller. (helm installing using Terraform, specify same name as this. default classname is 'nginx-ingress')
     - Traffic reachs AWS NLB ->  Nginx ingress controller ->(Ingres Rule) Service -> Pod
@@ -160,18 +199,37 @@ Kubernetes, on the other hand, provides advanced, native support for load balanc
 | <img src="https://imgur.com/yw30ipo.png" alt="ingress-controller" width="320"> |
 | :--: |
 
-| <img src="https://kubernetes.io/docs/images/ingress.svg" alt="ingress" width="520"> |
+
+| <img src="https://imgur.com/DwRBYMd.png" alt="EKS architecture" width="750"> |
 | :--: |
+| *<b>NLB</b> with Nginx Ingress Controller* |
+
 
 Nginx ingress controller, for example, will convert Ingress into nginx lua configuration. The controller acts as a proxy and redirects traffic into pods.
 
-```sh
-kubectl get ingressclass
-# NAME            CONTROLLER           PARAMETERS  AGE
-# alb             ingress.k8s.aws/alb  <none>      20m
-# external-nginx  ingress.k8s.aws/alb  <none>      20m
 
+| <img src="https://kubernetes.io/docs/images/ingress.svg" alt="ingress" width="520"> |
+| :--: |
+
+```sh
+kubectl get ingressclass -A
+# NAME            CONTROLLER            PARAMETERS  AGE
+# alb             ingress.k8s.aws/alb   <none>      20m
+# external-nginx  k8s.io/ingress-nginx  <none>      20m
 ```
+
+- Baremetal (To-be-tested)
+    - https://kubernetes.github.io/ingress-nginx/deploy/baremetal/
+    - A pure software solution: MetalLB
+    - Over a NodePort Service
+
+| <img src="https://kubernetes.github.io/ingress-nginx/images/baremetal/baremetal_overview.jpg" alt="ingress" width="500"> |
+| :--: |
+    
+
+[↑ Back to top](#)
+<br><br>
+
 
 ### Cloud-Native Integration
 
@@ -180,6 +238,10 @@ Kubernetes natively supports cloud environments, enabling seamless integration w
 - Use of cloud-specific ingress controllers
 - Automatic provisioning of cloud resources (e.g., load balancers)
 - Alignment with cloud-native services for optimized deployment and scalability
+
+
+[↑ Back to top](#)
+<br><br>
 
 
 ## About the App
@@ -193,6 +255,9 @@ The application should analyze images and determines whether they depict Cats or
 I've yet to use pytorch (CNN) to create a model that can recognize Cat vs. Non-cat. For now I only experimented with numpy for binary classification.
 
 
+[↑ Back to top](#)
+<br><br>
+
 
 ## Skill Sets
 
@@ -205,7 +270,7 @@ I've yet to use pytorch (CNN) to create a model that can recognize Cat vs. Non-c
     - IAM Role and policy association with serviceaccount
     - EKS cluster, node group, addons
 - `Helm Chart`
-    - [`LINK`](helm.pdf)
+    - [`LINK`](https://blogd.org/blog/helm.pdf)
 - `Docker` and `Dockerfile` for building images
 - `Github Actions` for CI
     - Github repository -> Dockerhub image repository
@@ -218,7 +283,6 @@ I've yet to use pytorch (CNN) to create a model that can recognize Cat vs. Non-c
 - `Virtualbox` (with cli) to test configure 3 microk8s Kubernetes master nodes (ubuntu) in local environment
 - `Golang Concurrency`
     - used context, channel, goroutine for concurrent programming
-
 
 
 [↑ Back to top](#)
@@ -312,7 +376,6 @@ One strategy to achieve this is by utilizing base images that are minimalistic, 
 ## EKS implementation
 
 
-
 [↑ Back to top](#)
 <br><br>
 
@@ -343,7 +406,6 @@ One strategy to achieve this is by utilizing base images that are minimalistic, 
 
 ## Terraform
 
-
 - VPC, Subnet, igw, nat, route table, 
 - IAM role with assume-role-policy
     - attach the required Amazon EKS IAM managed policy to it.
@@ -353,8 +415,7 @@ One strategy to achieve this is by utilizing base images that are minimalistic, 
 https://developer.hashicorp.com/terraform/install
 
 - Download terraform.exe
-
-시스템변수 > Path에 추가 C:\Program  Files\terraform_1.8.5_windows_amd64
+    - 시스템변수 > Path 추가 C:\Program Files\terraform_1.8.5_windows_amd64
 
 
 ```sh
@@ -383,7 +444,7 @@ TF_LOG=DEBUG terraform apply
 # terraform destroy
 ```
 
-- check ingressClass
+- Check ingressClass
 
 ```sh
 k get ingressClass -A
@@ -1576,6 +1637,10 @@ helm install tst-release ./tst-chart -f ./tst-chart/values.stg.yaml
 helm install tst-release ./tst-chart -f ./tst-chart/values.prd.yaml
 ```
 
+### References
+
+- [ingress-nginx doc 1](https://kubernetes.github.io/ingress-nginx/deploy)
+- [ingress-nginx doc 2](https://docs.nginx.com/nginx-ingress-controller/overview/design/#the-nginx-ingress-controller-pod)
 
 
 [↑ Back to top](#)
