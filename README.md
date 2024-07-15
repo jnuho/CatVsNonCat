@@ -20,7 +20,7 @@ authors:
 
 <!-- more -->
 
-I implemented the external access into the application in several different ways, which I will be explaining in details.
+There are several ways to configure `external access` into the application, which I will be explaining in details.
 
 ## Application Demo
 
@@ -31,15 +31,15 @@ I implemented the external access into the application in several different ways
 [↑ Back to top](#)
 <br><br>
 
-* <a href="https://github.com/jnuho/simpledl" target="_blank">`Github`</a>
+* <a href="https://github.com/jnuho/simpledl" target="_blank">:link: Github Repository</a>
 
-- [`Why Kuberenetes`](#why-kubernetes)
+- [`Why Kuberenetes?`](#why-kubernetes)
     - [`Scalability`](#scalability)
     - [`Load Balancing`](#load-balancing)
         - [`Ingress Controller`](#ingress-controller)
         - [`AWS Load Balancer Controller`](#aws-load-balancer-controller)
     - [`Cloud-Native Integration`](#cloud-native-integration)
-- [`Skill Sets`](#skill-sets)
+- [`Skill Used`](#skill-used)
 - [`Microservices`](#microservices)
     - [`1.Frontend - Nginx`](#frontend-nginx)
     - [`2. Backend - Golang`](#backend-golang-web-server)
@@ -54,7 +54,7 @@ I implemented the external access into the application in several different ways
 - [`Appendix`](#appendix)
 
 
-## Why Kubernetes
+## Why Kubernetes?
 
 - While docker-compose <img src="https://i0.wp.com/codeblog.dotsandbrackets.com/wp-content/uploads/2016/10/compose-logo.jpg?w=28"> is convenient for local development, it falls short in terms of `scalability`, `load balancing`, and seamless `cloud-native integration`.
 - Kubernetes offers a rich set of APIs to address these challenges.
@@ -68,7 +68,7 @@ Load Balancing           | Requires manual setup (e.g., HAProxy)| Built-in Kuber
 Cloud-Native Integration | Minimal cloud integration      | Supports Kubernetes-native cloud integrations
 
 
-| <img src="https://imgur.com/qqDsoa2.png" alt="dc vs k8s" width="550"> |
+| <img src="https://imgur.com/qqDsoa2.png" alt="dc vs k8s" width="650"> |
 | :--: |
 |  *docker-compose vs. Kubernetes* |
 
@@ -80,7 +80,7 @@ Cloud-Native Integration | Minimal cloud integration      | Supports Kubernetes-
 Kubernetes offers orchestration and management of containerized applications across a cluster of nodes, ensuring high availability.
 
 
-| <img src="https://imgur.com/rvtBRlL.png" alt="metric-server" width="550"> |
+| <img src="https://imgur.com/rvtBRlL.png" alt="metric-server" width="650"> |
 | :--: |
 |  *HPA and metric-server* |
 
@@ -136,7 +136,7 @@ spec:
               memory: 256Mi
 ```
 
-| <img src="https://imgur.com/h8HmnZs.png" alt="hpa" width="720"> |
+| <img src="https://imgur.com/7RHqdu8.png" alt="hpa" width="720"> |
 | :--: |
 |  *metric-server* |
 
@@ -255,7 +255,7 @@ I've yet to use pytorch (CNN) to create a model that can recognize Cat vs. Non-c
 <br><br>
 
 
-## Skill Sets
+## Skills used
 
 - `Kubernetes`
     - AWS: EKS cluster with 3 worker nodes. Terraform to deploy EKS and AWS Load Balancer Controller and Ingress for exposing the app.
@@ -287,6 +287,12 @@ I've yet to use pytorch (CNN) to create a model that can recognize Cat vs. Non-c
 
 ## Microservices
 
+- Kubelet configures Pods' DNS so that running containers can lookup Services by name rather than IP.
+
+
+| <img src="https://imgur.com/KxETYaG.png" alt="ingress" width="750"> |
+| :--: |
+    
 - `Frontend - Nginx`
    - Nginx serves as the static content server, handling HTML, CSS, and JavaScript files.
    - It ensures efficient delivery of frontend resources to users' browsers.
