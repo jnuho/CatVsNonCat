@@ -33,7 +33,7 @@ There are several ways to configure external access into the application, which 
 
 * <a href="https://github.com/jnuho/simpledl" target="_blank">:link: Github Repository</a>
 
-- [`How I started?`](#how-i-strated)
+- [`Motivation`](#motivation)
 - [`Why Kuberenetes?`](#why-kubernetes)
     - [`Scalability`](#scalability)
     - [`Load Balancing`](#load-balancing)
@@ -53,12 +53,12 @@ There are several ways to configure external access into the application, which 
 - [`Appendix`](#appendix)
 
 
-## How I started?
+## Motivation
 
 My initial goal was to revisit the [`skills`](#skills-used) I've acquired by creating a simple web application.
 
-**My primary focus was on `Kubernetes` in Cloud environment.**
-I had to spend many hours configuring `external access` into the service in different environments:
+**I specifically focused on `Kubernetes` implementation in Cloud environment.**
+I had to spend many hours configuring `external access` into the application in different environments, and constructing IaC practice (Terraform, Helm)
 
 1. Cloud - `AWS EKS`
 2. On-premise - CentOS/Ubuntu; `microk8s`, `minikube`, `docker-compose`
@@ -85,7 +85,7 @@ def L_layer_model(
 ```
 
 
-| <img src="https://miro.medium.com/v2/resize:fit:640/format:webp/1*iNPHcCxIvcm7RwkRaMTx1g.jpeg" alt="gradient descent" width="300"> |
+| <img src="https://miro.medium.com/v2/resize:fit:640/format:webp/1*iNPHcCxIvcm7RwkRaMTx1g.jpeg" alt="gradient descent" width="400"> |
 | :--: |
 | *gradient descent* |
 
@@ -111,7 +111,7 @@ def L_layer_model(
 --|--|--
 Scalability              | Limited to a single host             | Simulates multi-node scaling
 Load Balancing           | Requires manual setup (e.g., HAProxy)| Built-in Kubernetes Service load balancing
-IaC Support | resticted to docker-compose cli | Terraform, Helm for fast and reliable resource provisioning
+IaC Support | resticted to docker-compose cli | Terraform, Helm for fast and reliable resource provisioning (*< 10-15 minutes*)
 
 
 | <img src="https://imgur.com/qqDsoa2.png" alt="dc vs k8s" width="650"> |
@@ -228,17 +228,19 @@ Kubernetes provides native support for load balancing and traffic routing throug
 
 #### Ingress Controller
 
+Widely used 3rd party implemntation!
+
 - `Nginx Ingress controller` listens to and monitors `Ingress` resources created in the Kubernetes cluster.
     <!-- - Traffic flow: `AWS NLB ->  Nginx ingress controller ->(Ingres Rule) Service -> Pod` -->
     <!-- - All the Ingresses use the same Load Balancer! COST and MAINTENANCE saved! -->
-    - the Nginx Ingress Controller creates its own Service of type LoadBalancer in the `ingress` namespace. This Service creation triggers the provisioning of NLB. (during helm installation using terraform)
+    - the Nginx Ingress Controller (installed with Helm and Terraform) creates its own Service of type LoadBalancer in the `ingress` namespace. This Service creation triggers the provisioning of NLB. (during helm installation using terraform)
     - for each Ingress being created, it is converted to Nignx native `Lua` configuration and routes to the target service!
     - Monitoring tools like `Prometheus` <img src="https://upload.wikimedia.org/wikipedia/commons/3/38/Prometheus_software_logo.svg" width=28> can scrape metrics (traffic, latency, errors for all Ingresses) from the nginx ingress controller (pod) without implementing anything on the Application side!!
     <!-- - must specify `ingressClassName` as the name of Ingress Nginx controller. (helm installing using Terraform, specify same name as this)
     - When you create an Ingress resource with the specified ingressClassName, the NGINX Ingress Controller reads the Ingress rules and updates its configuration accordingly. -->
 
 
-| <img src="https://imgur.com/yw30ipo.png" alt="ingress-controller" width="320"> |
+| <img src="https://imgur.com/QSg6XL4.png" alt="nginx-ingress-controller" width="480"> |
 | :--: |
 
 
