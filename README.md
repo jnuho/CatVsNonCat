@@ -37,7 +37,7 @@ There are several ways to configure external access into the application, which 
 - [`Why Kuberenetes?`](#why-kubernetes)
     - [`Scalability`](#scalability)
     - [`Load Balancing`](#load-balancing)
-        - [`Ingress Controller`](#ingress-controller)
+        - [`Nginx Ingress Controller`](#nginx-ingress-controller)
         - [`AWS Load Balancer Controller`](#aws-load-balancer-controller)
 - [`Skill Used`](#skill-used)
 - [`Microservices`](#microservices)
@@ -45,8 +45,7 @@ There are several ways to configure external access into the application, which 
     - [`2. Backend - Golang`](#backend-golang-web-server)
     - [`3. Backend - Python`](#backend-python-web-server)
 - [`Dockerize`](#dockerize)
-- [`EKS implementation`](#eks-implementation)
-    - [`AWS LoadBalancer Controller`](#aws-loadbalancer-controller)
+- [`IaC`](#iac)
     - [`Terraform`](#terraform)
     - [`Helm`](#helm)
 - [`Kubernetes for MLOps`](#kubernetes-for-mlops)
@@ -58,7 +57,7 @@ There are several ways to configure external access into the application, which 
 My initial goal was to revisit the [`skills`](#skills-used) I've acquired by creating a simple web application.
 
 **I specifically focused on `Kubernetes` implementation in Cloud environment.**
-I had to spend many hours configuring `external access` into the application in different environments, and constructing IaC practice (Terraform, Helm)
+I had to spend many hours writing IaC (Terraform, Helm Chart) and configuring `external access` into the application in different Kubernetes environments:
 
 1. Cloud - `AWS EKS`
 2. On-premise - CentOS/Ubuntu; `microk8s`, `minikube`, `docker-compose`
@@ -101,7 +100,7 @@ def L_layer_model(
 
 ## Why Kubernetes?
 
-- While docker-compose <img src="https://i0.wp.com/codeblog.dotsandbrackets.com/wp-content/uploads/2016/10/compose-logo.jpg?w=28"> is convenient for local development, it falls short in terms of `scalability`, `load balancing`, and seamless `cloud-native integration`.
+- While docker-compose <img src="https://i0.wp.com/codeblog.dotsandbrackets.com/wp-content/uploads/2016/10/compose-logo.jpg?w=28"> is convenient for local development, it falls short in terms of `scalability`, `load balancing`, `IaC support`, and seamless `cloud-native integration`.
 - Kubernetes offers a rich set of APIs to address these challenges.
 - For local development, I chose <img src="https://blog.radwell.codes/wp-content/uploads/2021/05/minikube-logo-full.png" alt="minikube logo" width="75"> over docker-compose to align with Kuberentes best practices. This `consistency` ensures a smoother transition to production, where I'm using AWS EKS <img src="https://diagrams.mingrammer.com/img/resources/aws/compute/elastic-kubernetes-service.png" alt="EKS logo" width="28">.
 - Compatibility with IaC: Terraform, Helm
@@ -204,43 +203,21 @@ spec:
 
 Kubernetes provides native support for load balancing and traffic routing through `Ingress`, `Ingress Controller`, and `AWS Load Balancer Controller`.
 
-#### AWS Load Balancer Controller
 
-- The controller (in `kube-system` namespace) watches for Kubernetes Ingress or Service resources. In response, it creates the appropriate AWS Elastic Load Balancing resources. 
-    - The LBC provisions `ALB` when you create an *Ingress*.
-    - The LBC provisions `NLB` when you create a *Service* of type *LoadBalancer*.
-    - ALB is slower than NLB and more expensive.
+#### Nginx Ingress Controller
 
+Nginx Ingress Controller is a widely used 3rd party implementation of Ingress controller.
 
-| <img src="https://imgur.com/UaF1vHK.png" alt="aws-lbc" width="520"> |
-| :--: |
-|  *AWS Load Balancer Controller - L4 or L7* |
-
-
-| <img src="https://imgur.com/tg4GAzA.png" alt="EKS architecture" width="750"> |
-| :--: |
-| *<b>ALB</b> with AWS Load Balancer Controller* |
-
-
-[↑ Back to top](#)
-<br><br>
-
-
-#### Ingress Controller
-
-Widely used 3rd party implemntation!
-
-- `Nginx Ingress controller` listens to and monitors `Ingress` resources created in the Kubernetes cluster.
-    <!-- - Traffic flow: `AWS NLB ->  Nginx ingress controller ->(Ingres Rule) Service -> Pod` -->
-    <!-- - All the Ingresses use the same Load Balancer! COST and MAINTENANCE saved! -->
-    - the Nginx Ingress Controller (installed with Helm and Terraform) creates its own Service of type LoadBalancer in the `ingress` namespace. This Service creation triggers the provisioning of NLB. (during helm installation using terraform)
-    - for each Ingress being created, it is converted to Nignx native `Lua` configuration and routes to the target service!
-    - Monitoring tools like `Prometheus` <img src="https://upload.wikimedia.org/wikipedia/commons/3/38/Prometheus_software_logo.svg" width=28> can scrape metrics (traffic, latency, errors for all Ingresses) from the nginx ingress controller (pod) without implementing anything on the Application side!!
+- provisions `NLB` upon installation. (the Service of type LoadBalancer in the `ingress` namespace triggers the NLB creation during install)
+- monitors `Ingress` resource:
+    - for each Ingress being created, it is converted to Nignx native `Lua` configuration and routes to the target service! The controller acts as a proxy and redirects traffic into pods.
+- Monitoring tools like `Prometheus` <img src="https://upload.wikimedia.org/wikipedia/commons/3/38/Prometheus_software_logo.svg" width=28> can scrape metrics (traffic, latency, errors for all Ingresses) from the nginx ingress controller (pod) without implementing anything on the Application side!!
     <!-- - must specify `ingressClassName` as the name of Ingress Nginx controller. (helm installing using Terraform, specify same name as this)
     - When you create an Ingress resource with the specified ingressClassName, the NGINX Ingress Controller reads the Ingress rules and updates its configuration accordingly. -->
+    <!-- - Traffic flow: `AWS NLB ->  Nginx ingress controller ->(Ingres Rule) Service -> Pod` -->
+    <!-- - All the Ingresses use the same Load Balancer! COST and MAINTENANCE saved! -->
 
-
-| <img src="https://imgur.com/QSg6XL4.png" alt="nginx-ingress-controller" width="480"> |
+| <img src="https://imgur.com/7QR1Wpn.png" alt="nginx-ingress-controller" width="480"> |
 | :--: |
 
 
@@ -269,6 +246,30 @@ kubectl get ingressclass -A
 
 | <img src="https://kubernetes.github.io/ingress-nginx/images/baremetal/baremetal_overview.jpg" alt="ingress" width="500"> |
 | :--: |
+
+
+#### AWS Load Balancer Controller
+
+- The controller (in `kube-system` namespace) watches for Kubernetes Ingress or Service resources. In response, it creates the appropriate AWS Elastic Load Balancing resources. 
+    - The LBC provisions `ALB` when you create an *Ingress*.
+    - The LBC provisions `NLB` when you create a *Service* of type *LoadBalancer*.
+    - ALB is slower than NLB and more expensive.
+
+
+| <img src="https://imgur.com/UaF1vHK.png" alt="aws-lbc" width="520"> |
+| :--: |
+|  *AWS Load Balancer Controller - L4 or L7* |
+
+
+| <img src="https://imgur.com/tg4GAzA.png" alt="EKS architecture" width="750"> |
+| :--: |
+| *<b>ALB</b> with AWS Load Balancer Controller* |
+
+
+[↑ Back to top](#)
+<br><br>
+
+
     
 
 [↑ Back to top](#)
@@ -412,38 +413,11 @@ One strategy to achieve this is by utilizing base images that are minimalistic, 
 <br><br>
 
 
-## EKS implementation
 
 
-[↑ Back to top](#)
-<br><br>
+## IaC
 
-### AWS LoadBalancer Controller
-
-- [`AWS document`](https://docs.aws.amazon.com/eks/latest/userguide/aws-load-balancer-controller.html)
-- [`AWS LoadBalancer Controller`](https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.8/how-it-works/)
-
-
-- Controller 
-    - In Kubernetes, controllers are control loops that watch the state of your cluster, then make or request changes where needed.
-    - Each controller tries to move the current cluster state closer to the desired state.
-    - The Load Balancer Controller watches for Kubernetes Ingress or Service resources.
- 
-- The `AWS Load Balancer Controller` (pods in kube-system namespace) watches for changes in Kubernetes `Ingress` resources.
-    - When an Ingress resource is created or updated, the controller translates the Ingress resource into configurations for AWS ALBs or NLBs.
-    - It ensures that the ALB/NLB is configured correctly to route traffic based on the rules specified in the Ingress resource.
-
-- In order for this Kubernetes pod to be able to create AWS resources like ALBs(based on Kubernetes Ingress), and NLBs(based on Service resources),
-    - it needs `IAM Role` with proper policies attached to use AWS API to create and configure an ALB.
-    - The AWS Load Balancer Controller, running as a pod in the `kube-system` namespace,
-    - monitors for new or updated Ingress resources with the alb ingress class.
-
-
-[↑ Back to top](#)
-<br><br>
-
-
-## Terraform
+### Terraform
 
 - VPC, Subnet, igw, nat, route table, etc.
 - IAM role with assume-role-policy
@@ -491,7 +465,7 @@ kubectl get ingressclass -A
 ```
 
 
-## Helm Chart
+### Helm Chart
 
 - Configure `kubectl`
     - Check context : `kubectl config current-context`
@@ -653,6 +627,7 @@ helm uninstall tst-release
 - [`Minikube implementation`](#minikube-implementation)
 - [`Microk8s implemntation`](#microk8s-implemntation)
 - [`Golang ini setting`](#golang-ini-setting)
+- [`AWS LoadBalancer Controller`](#aws-loadbalancer-controller)
 
 
 ### Exposing external service
@@ -1694,6 +1669,32 @@ helm install tst-release ./tst-chart -f ./tst-chart/values.stg.yaml
 # 3. Production envionment
 helm install tst-release ./tst-chart -f ./tst-chart/values.prd.yaml
 ```
+
+
+### AWS LoadBalancer Controller
+
+- [`AWS document`](https://docs.aws.amazon.com/eks/latest/userguide/aws-load-balancer-controller.html)
+- [`AWS LoadBalancer Controller`](https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.8/how-it-works/)
+
+
+- Controller 
+    - In Kubernetes, controllers are control loops that watch the state of your cluster, then make or request changes where needed.
+    - Each controller tries to move the current cluster state closer to the desired state.
+    - The Load Balancer Controller watches for Kubernetes Ingress or Service resources.
+ 
+- The `AWS Load Balancer Controller` (pods in kube-system namespace) watches for changes in Kubernetes `Ingress` resources.
+    - When an Ingress resource is created or updated, the controller translates the Ingress resource into configurations for AWS ALBs or NLBs.
+    - It ensures that the ALB/NLB is configured correctly to route traffic based on the rules specified in the Ingress resource.
+
+- In order for this Kubernetes pod to be able to create AWS resources like ALBs(based on Kubernetes Ingress), and NLBs(based on Service resources),
+    - it needs `IAM Role` with proper policies attached to use AWS API to create and configure an ALB.
+    - The AWS Load Balancer Controller, running as a pod in the `kube-system` namespace,
+    - monitors for new or updated Ingress resources with the alb ingress class.
+
+
+[↑ Back to top](#)
+<br><br>
+
 
 ### References
 
