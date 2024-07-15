@@ -47,7 +47,6 @@ There are several ways to configure external access into the application, which 
 - [`Dockerize`](#dockerize)
 - [`EKS implementation`](#eks-implementation)
     - [`AWS LoadBalancer Controller`](#aws-loadbalancer-controller)
-    - [`Traffic Flow in AWS EKS`](#traffic-flow-in-aws-eks)
     - [`Terraform`](#terraform)
     - [`Helm`](#helm)
 - [`Kubernetes for MLOps`](#kubernetes-for-mlops)
@@ -444,16 +443,14 @@ One strategy to achieve this is by utilizing base images that are minimalistic, 
 
 ## Terraform
 
-- VPC, Subnet, igw, nat, route table, 
+- VPC, Subnet, igw, nat, route table, etc.
 - IAM role with assume-role-policy
     - attach the required Amazon EKS IAM managed policy to it.
 - Attach AmazonEKSClusterPolicy policy to IAM role: `6-eks.tf`
-- TODO: Add-Ons
 
-https://developer.hashicorp.com/terraform/install
 
 - Download terraform.exe
-    - 시스템변수 > Path 추가 C:\Program Files\terraform_1.8.5_windows_amd64
+    - Environment variable > Add Path: C:\Program Files\terraform_1.8.5_windows_amd64
 
 
 ```sh
@@ -485,7 +482,10 @@ TF_LOG=DEBUG terraform apply
 - Check ingressClass
 
 ```sh
-k get ingressClass -A
+kubectl get ingressclass -A
+# NAME            CONTROLLER            PARAMETERS  AGE
+# alb             ingress.k8s.aws/alb   <none>      20m
+# external-nginx  k8s.io/ingress-nginx  <none>      20m
 ```
 
 
@@ -534,7 +534,10 @@ tree
        │   ├── ingress.yaml
        │   └── service.yaml
        ├── values.dev.yaml
-       └── values.prd.yaml
+       ├── values.prd.AWS.L4.lbc.yaml
+       ├── values.prd.AWS.L7.lbc.yaml
+       └── values.prd.AWS.L4.ingress.controller.yaml
+
 helm lint tst-chart
 helm template tst-chart --debug
 # check results without installation
