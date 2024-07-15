@@ -14,13 +14,13 @@ authors:
 
 ## System overview
 
-| <img src="https://imgur.com/DwRBYMd.png" alt="EKS architecture" width="480"> |
+| <img src="https://imgur.com/DwRBYMd.png" alt="EKS architecture" width="750"> |
 | :--: |
 | *<b>NLB</b> with Nginx Ingress Controller* |
 
 <!-- more -->
 
-| <img src="https://imgur.com/tg4GAzA.png" alt="EKS architecture" width="480"> |
+| <img src="https://imgur.com/tg4GAzA.png" alt="EKS architecture" width="750"> |
 | :--: |
 | *<b>ALB</b> with AWS Load Balancer Controller* |
 
