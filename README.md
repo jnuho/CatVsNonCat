@@ -39,7 +39,6 @@ There are several ways to configure external access into the application, which 
     - [`Load Balancing`](#load-balancing)
         - [`Ingress Controller`](#ingress-controller)
         - [`AWS Load Balancer Controller`](#aws-load-balancer-controller)
-    - [`Cloud-Native Integration`](#cloud-native-integration)
 - [`Skill Used`](#skill-used)
 - [`Microservices`](#microservices)
     - [`1.Frontend - Nginx`](#frontend-nginx)
@@ -106,13 +105,14 @@ def L_layer_model(
 - While docker-compose <img src="https://i0.wp.com/codeblog.dotsandbrackets.com/wp-content/uploads/2016/10/compose-logo.jpg?w=28"> is convenient for local development, it falls short in terms of `scalability`, `load balancing`, and seamless `cloud-native integration`.
 - Kubernetes offers a rich set of APIs to address these challenges.
 - For local development, I chose <img src="https://blog.radwell.codes/wp-content/uploads/2021/05/minikube-logo-full.png" alt="minikube logo" width="75"> over docker-compose to align with Kuberentes best practices. This `consistency` ensures a smoother transition to production, where I'm using AWS EKS <img src="https://diagrams.mingrammer.com/img/resources/aws/compute/elastic-kubernetes-service.png" alt="EKS logo" width="28">.
+- Compatibility with IaC: Terraform, Helm
 
 
 | | docker-compose | Kubernetes
 --|--|--
 Scalability              | Limited to a single host             | Simulates multi-node scaling
 Load Balancing           | Requires manual setup (e.g., HAProxy)| Built-in Kubernetes Service load balancing
-Cloud-Native Integration | Minimal cloud integration      | Supports Kubernetes-native cloud integrations
+IaC Support | resticted to docker-compose cli | Terraform, Helm for fast and reliable resource provisioning
 
 
 | <img src="https://imgur.com/qqDsoa2.png" alt="dc vs k8s" width="650"> |
@@ -274,7 +274,7 @@ kubectl get ingressclass -A
 <br><br>
 
 
-### Cloud-Native Integration
+<!-- ### Cloud-Native Integration
 
 Kubernetes natively supports cloud environments, enabling seamless integration with services like AWS. It allows for:
 
@@ -283,7 +283,7 @@ Kubernetes natively supports cloud environments, enabling seamless integration w
 
 
 [↑ Back to top](#)
-<br><br>
+<br><br> -->
 
 
 ## Skills used
@@ -327,10 +327,14 @@ Kubernetes natively supports cloud environments, enabling seamless integration w
 - `Frontend - Nginx`
    - Nginx serves as the static content server, handling HTML, CSS, and JavaScript files.
    - It ensures efficient delivery of frontend resources to users' browsers.
+
 - `Backend - Go-Gin web-server`
    - The Go-Gin server acts as an intermediary between the frontend and backend services.
    - It receives requests from the frontend, including requests for cat-related information.
-   - Additionally, it performs utility functions, such as fetching weather data for three cities using goroutine concurrency (3-worker).
+   - Additionally, it performs utility functions, such as fetching weather data for three cities using goroutine concurrency (5-worker).
+   - [main.go](https://github.com/jnuho/simpledl/blob/main/cmd/backend-web-server/main.go#L50)
+   - [weatherapi.go](https://github.com/jnuho/simpledl/blob/main/pkg/weatherapi.go#L160)
+
 
 - `Backend - Python uvicorn + fast api web-server`
     - The Python backend worker is responsible for image classification.
