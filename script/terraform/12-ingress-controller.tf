@@ -30,6 +30,6 @@ resource "helm_release" "external_nginx" {
     value = "internet-facing"
   }
 
-  # depends_on = [helm_release.aws_load_balancer_controller]
-  depends_on = [helm_release.aws_lbc]
+  # depends_on = [helm_release.aws_lbc]
+  depends_on = [helm_release.metric_server]
 }

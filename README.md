@@ -14,17 +14,21 @@ authors:
 
 ## System overview
 
+| <img src="https://imgur.com/9kBBbdP.png" alt="EKS architecture" width="750"> |
+| :--: |
+| *<b>NLB</b> with Nginx Ingress Controller* |
+
 | <img src="https://imgur.com/REm69w9.png" alt="EKS architecture" width="750"> |
 | :--: |
-| *Kubernetes architecture (EKS)* |
+| *<b>ALB</b> with AWS Load Balancer Controller* |
 
-The final architecture of my application, which I will be explaining in the following post.
+Final architecture of my application: I implemented in two different ways for exposing the service, which I will be explaining in details.
 
 <!-- more -->
 
 ## Application Demo
 
-| <img src="https://imgur.com/CAgwA5H.gif" alt="demo" width="650"> |
+| <img src="https://imgur.com/VbKBWdO.gif" alt="demo" width="650"> |
 |:--:| 
 | *web application* |
 
@@ -340,8 +344,7 @@ One strategy to achieve this is by utilizing base images that are minimalistic, 
 ## Terraform
 
 
-
-- VPC, Subnet, igw, nat, route table
+- VPC, Subnet, igw, nat, route table, 
 - IAM role with assume-role-policy
     - attach the required Amazon EKS IAM managed policy to it.
 - Attach AmazonEKSClusterPolicy policy to IAM role: `6-eks.tf`
@@ -380,18 +383,14 @@ TF_LOG=DEBUG terraform apply
 # terraform destroy
 ```
 
+- check ingressClass
+
+```sh
+k get ingressClass -A
+```
 
 
 ## Helm Chart
-
-- Install `helm`
-    - on the same client PC as `kubectl`
-
-```sh
-curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
-chmod 700 get_helm.sh
-./get_helm.sh
-```
 
 - Configure `kubectl`
     - Check context : `kubectl config current-context`
@@ -405,13 +404,23 @@ kubectl config use-context minikube
 aws eks update-kubeconfig --region ap-northeast-2 --name my-cluster --profile terraform
 ```
 
-- Create helm chart
+- Install `helm` on the same client PC as `kubectl`
 
 ```sh
+curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+chmod 700 get_helm.sh
+./get_helm.sh
+```
+
+- Create
+
+```sh
+# Create helm chart
 helm create tst-chart
 ```
 
-- Check validity
+
+- Validate
 
 ```sh
 cd simpledl/script
@@ -427,10 +436,8 @@ tree
        │   └── service.yaml
        ├── values.dev.yaml
        └── values.prd.yaml
-
 helm lint tst-chart
 helm template tst-chart --debug
-
 # check results without installation
 # helm install --dry-run tst-chart --generate-name
 helm install --dry-run tst-release ./tst-chart -f ./tst-chart/values.prd.AWS.L4.ingress.controller.yaml
@@ -449,6 +456,8 @@ helm install tst-release ./tst-chart -f ./tst-chart/values.prd.AWS.L4.ingress.co
     - Edit `values.dev.yaml` and apply `helm upgrade` command
 
 ```yaml
+kubectl patch deployment my-app --type='json' -p='[{"op":"replace","path":"/spec/replicas","value":5}]'
+
 services: 
   - name: fe-nginx
     replicaCount: 3
