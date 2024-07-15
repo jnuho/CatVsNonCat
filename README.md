@@ -33,6 +33,7 @@ There are several ways to configure `external access` into the application, whic
 
 * <a href="https://github.com/jnuho/simpledl" target="_blank">:link: Github Repository</a>
 
+- [`About the App`](#about-the-app)
 - [`Why Kuberenetes?`](#why-kubernetes)
     - [`Scalability`](#scalability)
     - [`Load Balancing`](#load-balancing)
@@ -52,6 +53,41 @@ There are several ways to configure `external access` into the application, whic
     - [`Helm`](#helm)
 - [`Kubernetes for MLOps`](#kubernetes-for-mlops)
 - [`Appendix`](#appendix)
+
+
+## About the App
+
+My initial goal was to revisit the [`skills`](#skills-used) by creating a simple web application.
+
+I had to spend some time trouble shooting on constructing the Infrastructure for both:
+
+1. Cloud - `AWS EKS`
+2. On-premise - CentOS/Ubuntu; `microk8s`, `minikube`, `docker-compose`
+
+The application should analyze images and determines whether they depict Cats or Non-cats using numpy and the deep learning algorithm:
+
+- Binary Classification using a Neural Network with L Layers
+    - Activation function: `RELU` for $l=1,...L-1$ and `SIGMOID` for $l=L$
+- Steps:
+    - Forward Propagation
+    - Compute cost
+    - Backward Propagation
+    - Gradient descent (Update parameters -  $\omega$, $b$)
+
+
+
+| <img src="https://miro.medium.com/v2/resize:fit:640/format:webp/1*iNPHcCxIvcm7RwkRaMTx1g.jpeg" alt="gradient descent" width="300"> |
+| :--: |
+| *gradient descent* |
+
+
+- TODO: 
+    - I've yet to use pytorch (CNN) to create a model that can recognize Cat vs. Non-cat. For now I only experimented with numpy for binary classification.
+
+
+[↑ Back to top](#)
+<br><br>
+
 
 
 ## Why Kubernetes?
@@ -181,15 +217,14 @@ Kubernetes provides native support for load balancing and traffic routing throug
 
 #### Ingress Controller
 
-- Nginx ingress controller listens to Ingress resources created in the Kubernetes cluster.
-    - must specify `ingressClassName` as the name of Ingress Nginx controller. (helm installing using Terraform, specify same name as this. default classname is 'nginx-ingress')
-    - Traffic reachs AWS NLB ->  Nginx ingress controller ->(Ingres Rule) Service -> Pod
+- `Nginx Ingress controller` listens to and monitors `Ingress` resources created in the Kubernetes cluster.
+    <!-- - Traffic flow: `AWS NLB ->  Nginx ingress controller ->(Ingres Rule) Service -> Pod` -->
+    <!-- - All the Ingresses use the same Load Balancer! COST and MAINTENANCE saved! -->
+    - the Nginx Ingress Controller creates its own Service of type LoadBalancer in the `ingress` namespace. This Service creation triggers the provisioning of NLB. (during helm installation using terraform)
+    - for each Ingress being created, it is converted to Nignx native `Lua` configuration and routes to the target service!
     - Monitoring tools like `Prometheus` <img src="https://upload.wikimedia.org/wikipedia/commons/3/38/Prometheus_software_logo.svg" width=28> can scrape metrics (traffic, latency, errors for all Ingresses) from the nginx ingress controller (pod) without implementing anything on the Application side!!
-    - ALSO, for each Ingress being created, it is converted to Nignx native `Lua` configuration and routes to the target service!
-    - All the Ingresses use the same Load Balancer! COST and MAINTENANCE saved!
-    - the Ingress Controller creates its own Service of type LoadBalancer, which triggers the NLB creation. (during helm isntall process)
-    - This is the point where the NLB is created by the AWS cloud provider.
-    - When you create an Ingress resource with the specified ingressClassName, the NGINX Ingress Controller reads the Ingress rules and updates its configuration accordingly.
+    <!-- - must specify `ingressClassName` as the name of Ingress Nginx controller. (helm installing using Terraform, specify same name as this)
+    - When you create an Ingress resource with the specified ingressClassName, the NGINX Ingress Controller reads the Ingress rules and updates its configuration accordingly. -->
 
 
 | <img src="https://imgur.com/yw30ipo.png" alt="ingress-controller" width="320"> |
@@ -233,22 +268,6 @@ Kubernetes natively supports cloud environments, enabling seamless integration w
 
 - Use of cloud-specific ingress controllers
 - Automatic provisioning of cloud resources (e.g., load balancers)
-- Alignment with cloud-native services for optimized deployment and scalability
-
-
-[↑ Back to top](#)
-<br><br>
-
-
-## About the App
-
-My initial goal was to revisit the [`skills`](#skill-sets) by creating a simple web application which uses above skill sets.
-
-I had to spend some time trouble shooting on constructing the Infrastructure for both On-premise and AWS cloud envionment.
-
-The application should analyze images and determines whether they depict Cats or Non-cats, although the project is not finished yet.
-
-I've yet to use pytorch (CNN) to create a model that can recognize Cat vs. Non-cat. For now I only experimented with numpy for binary classification.
 
 
 [↑ Back to top](#)
