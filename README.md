@@ -74,9 +74,7 @@ I have a **great interest** in deep learning. So I decided to implement a Cat vs
 | :--: |
 | *gradient descent* |
 
-
-I tried to focus on **`Kubernetes` implementation**, which I consider myself to be more competent, especially configuring `external access` into the application in different Kubernetes environments - Cloud(EKS), On-premise (microk8s, minikube, docker-compoise)
-
+- jupyter [notebook](https://blogd.org/blog/2024/05/31/deeplearningai/)
 
 ```python
 def L_layer_model(
@@ -92,6 +90,10 @@ def L_layer_model(
 
 - `TODO`: 
     - I've yet to explore Pytorch implementation to classify Cat vs. Non-cat.
+
+
+I tried to focus on **`Kubernetes` implementation**, which I consider myself to be more competent, especially configuring `external access` into the application in different Kubernetes environments - Cloud(EKS), On-premise (microk8s, minikube, docker-compoise)
+
 
 
 [↑ Back to top](#)
