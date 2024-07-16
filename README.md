@@ -26,7 +26,12 @@ There are several ways to configure external access into the application, which 
 
 | <img src="https://imgur.com/VbKBWdO.gif" alt="demo" width="650"> |
 |:--:| 
-| *web application* |
+| *application demo* |
+
+| <img src="https://imgur.com/tbG85hA.png" alt="demo" width="600"> |
+|:--:| 
+| *applications diagram* |
+
 
 [↑ Back to top](#)
 <br><br>
@@ -56,22 +61,21 @@ There are several ways to configure external access into the application, which 
 
 My initial goal was to revisit the [`skills`](#skills-used) I've acquired by creating a simple web application.
 
-**I focused on `Kubernetes` implementation.**
-I had to spend many hours writing IaC (Terraform, Helm Chart) and configuring `external access` into the application in different Kubernetes environments:
+**I focused on `Kubernetes` implementation.** especially configuring `external access` into the application in different Kubernetes environments - Cloud(EKS), On-premise (microk8s, minikube, docker-compoise)
 
-1. Cloud - `AWS EKS`
-2. On-premise - CentOS/Ubuntu; `microk8s`, `minikube`, `docker-compose`
+The web application is a Cat vs. Non-cat image classifier for an input URL image, and it uses numpy to train a Neural Network:
 
-The application is a Cat vs. Non-cat image classifier for an input URL image, and it uses numpy to train a Neural Network:
+- Forward Propagation
+    - $a^{[l]}  = ReLU(z^{[l]})$ for $l=1,...L-1$
+    - $a^{[l]}  = \sigma(z^{[l]})$ for $l=L$
+- Compute cost
+- Backward Propagation
+- Gradient descent (Update parameters -  $\omega$, $b$)
 
-- Binary Classification using a Neural Network with L Layers
-- Steps:
-    - Forward Propagation
-        - $a^{[l]}  = ReLU(z^{[l]})$ for $l=1,...L-1$
-        - $a^{[l]}  = \sigma(z^{[l]})$ for $l=L$
-    - Compute cost
-    - Backward Propagation
-    - Gradient descent (Update parameters -  $\omega$, $b$)
+
+| <img src="https://miro.medium.com/v2/resize:fit:640/format:webp/1*iNPHcCxIvcm7RwkRaMTx1g.jpeg" alt="gradient descent" width="400"> |
+| :--: |
+| *gradient descent* |
 
 ```python
 def L_layer_model(
@@ -85,19 +89,12 @@ def L_layer_model(
     -> Tuple[dict, List[float]]:
 ```
 
-
-| <img src="https://miro.medium.com/v2/resize:fit:640/format:webp/1*iNPHcCxIvcm7RwkRaMTx1g.jpeg" alt="gradient descent" width="400"> |
-| :--: |
-| *gradient descent* |
-
-
 - `TODO`: 
     - I've yet to explore Pytorch implementation to classify Cat vs. Non-cat.
 
 
 [↑ Back to top](#)
 <br><br>
-
 
 
 ## Why Kubernetes?
@@ -319,6 +316,10 @@ Kubernetes natively supports cloud environments, enabling seamless integration w
 
 - Kubelet configures Pods' DNS so that running containers can lookup Services by name rather than IP.
 
+
+| <img src="https://imgur.com/tbG85hA.png" alt="demo" width="600"> |
+|:--:| 
+| *applications diagram* |
 
 | <img src="https://imgur.com/KxETYaG.png" alt="ingress" width="750"> |
 | :--: |
@@ -595,6 +596,10 @@ helm uninstall tst-release
 
 
 ## Kubernetes for MLOps
+
+
+| <img src="https://coffeewhale.com/assets/images/mlops/hidden-model.png" alt="pods" width="580"> |
+|:--:| 
 
 
 | <img src="https://www.determined.ai/assets/images/blogs/kubernetes-bad/kubeflow-unicorns.png" alt="pods" width="480"> |
