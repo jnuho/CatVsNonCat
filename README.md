@@ -56,30 +56,32 @@ There are several ways to configure external access into the application, which 
 
 My initial goal was to revisit the [`skills`](#skills-used) I've acquired by creating a simple web application.
 
-**I specifically focused on `Kubernetes` implementation in Cloud environment.**
+**I focused on `Kubernetes` implementation.**
 I had to spend many hours writing IaC (Terraform, Helm Chart) and configuring `external access` into the application in different Kubernetes environments:
 
 1. Cloud - `AWS EKS`
 2. On-premise - CentOS/Ubuntu; `microk8s`, `minikube`, `docker-compose`
 
-The application is an image classifier which determines whether the input URL image depicts Cats or Non-cats, using numpy and the deep learning algorithm:
+The application is a Cat vs. Non-cat image classifier for an input URL image, and it uses numpy to train a Neural Network:
 
 - Binary Classification using a Neural Network with L Layers
-    - Activation function: `RELU` for $l=1,...L-1$ and `SIGMOID` for $l=L$
 - Steps:
     - Forward Propagation
+        - $a^{[l]}  = ReLU(z^{[l]})$ for $l=1,...L-1$
+        - $a^{[l]}  = \sigma(z^{[l]})$ for $l=L$
     - Compute cost
     - Backward Propagation
     - Gradient descent (Update parameters -  $\omega$, $b$)
 
 ```python
 def L_layer_model(
+        parameters = init_params(layers_dims: List[int]),
         X: np.ndarray,
         Y: np.ndarray,
         layers_dims: List[int],
         learning_rate: float = 0.0075,
-        num_iterations: int = 2500, print_cost: Optional[bool] = False)
-# Returns Updated Paramters and Costs
+        num_iterations: int = 2500)
+    # RETURNS Updated `parameters` and `costs`
     -> Tuple[dict, List[float]]:
 ```
 
@@ -89,8 +91,8 @@ def L_layer_model(
 | *gradient descent* |
 
 
-- TODO: 
-    - I've yet to use pytorch (CNN) to create a model that can recognize Cat vs. Non-cat. For now I only experimented with numpy for binary classification.
+- `TODO`: 
+    - I've yet to explore Pytorch implementation to classify Cat vs. Non-cat.
 
 
 [↑ Back to top](#)
@@ -100,17 +102,16 @@ def L_layer_model(
 
 ## Why Kubernetes?
 
-- While docker-compose <img src="https://i0.wp.com/codeblog.dotsandbrackets.com/wp-content/uploads/2016/10/compose-logo.jpg?w=28"> is convenient for local development, it falls short in terms of `scalability`, `load balancing`, `IaC support`, and seamless `cloud-native integration`.
+- While docker-compose <img src="https://i0.wp.com/codeblog.dotsandbrackets.com/wp-content/uploads/2016/10/compose-logo.jpg?w=28"> can be a reasonable choice for local development, it falls short in terms of `scalability`, `load balancing`, `IaC support`(Terraform, Helm), and seamless `cloud-native integration`.
 - Kubernetes offers a rich set of APIs to address these challenges.
-- For local development, I chose <img src="https://blog.radwell.codes/wp-content/uploads/2021/05/minikube-logo-full.png" alt="minikube logo" width="75"> over docker-compose to align with Kuberentes best practices. This `consistency` ensures a smoother transition to production, where I'm using AWS EKS <img src="https://diagrams.mingrammer.com/img/resources/aws/compute/elastic-kubernetes-service.png" alt="EKS logo" width="28">.
-- Compatibility with IaC: Terraform, Helm
+- For local development, I chose <img src="https://blog.radwell.codes/wp-content/uploads/2021/05/minikube-logo-full.png" alt="minikube logo" width="75"> over docker-compose to align with Kuberentes best practices. This `consistency` ensures a smoother transition to <img src="https://diagrams.mingrammer.com/img/resources/aws/compute/elastic-kubernetes-service.png" alt="EKS logo" width="28"> EKS production.
 
 
 | | docker-compose | Kubernetes
 --|--|--
-Scalability              | Limited to a single host             | Simulates multi-node scaling
-Load Balancing           | Requires manual setup (e.g., HAProxy)| Built-in Kubernetes Service load balancing
-IaC Support | resticted to docker-compose cli | Terraform, Helm for fast and reliable resource provisioning (*< 10-15 minutes*)
+Scalability              | Limited to a Single host             | Multi-node scaling
+Load Balancing           | Requires manual setup (e.g., HAProxy)| Support [Load Balancing](#load-balancing) in various ways
+IaC Support | Resticted to docker compose cli | Terraform, Helm for fast and reliable resource provisioning (*< ~15 minutes*)
 
 
 | <img src="https://imgur.com/qqDsoa2.png" alt="dc vs k8s" width="650"> |
@@ -122,23 +123,28 @@ IaC Support | resticted to docker-compose cli | Terraform, Helm for fast and rel
 
 ### Scalability
 
-Kubernetes offers orchestration and management of containerized applications across a cluster of nodes, ensuring high availability.
+Kubernetes offers orchestration of containerized applications across a cluster of nodes, ensuring scalability and high availability.
 
+
+| <img src="https://imgur.com/KxETYaG.png" alt="ingress" width="750"> |
+| :--: |
 
 | <img src="https://imgur.com/rvtBRlL.png" alt="metric-server" width="650"> |
 | :--: |
 |  *HPA and metric-server* |
 
 
-- `Horizonal Pod Autoscaling` implements control loop that checks `CPU` and `Memory` usage via metrics api from api-server and scales accordingly.
-    - install metric-server on the worker nodes with helm!
-        - it scrapes from kublet and publish metrics to `metrics.k8s.io/v1beta` Kubernetes api, which is consumed by HPA
-    - hpa.yaml: `spec.metrics[i].resource` on CPU and Memory
-    - deployment.yaml: `spec.template.spec.containers[i].resources`
+- `Horizonal Pod Autoscaling` control loop checks `CPU` and `Memory` usage via api-server's metric api  and scales accordingly.
+    - Install `metric-server` on the worker nodes (kube-system namespace) with helm!
+        - scrapes metrics from kublet and publish to `metrics.k8s.io/v1beta` Kubernetes api → consumed by HPA!
+    - deployment.yaml: `spec.template.spec.containers[i].resources` must be specified.
+    - deployment.yaml: `spec.replicas` is to be omitted.
 
+<!-- - `Vertical Pod Autoscaling`: [LINK](https://kubernetes.io/docs/tasks/configure-pod-container/resize-container-resources) -->
 
 - hpa.yaml
-    - uses `name: fe-nginx` to identify target
+    - `spec.metrics[i].resource` to specify CPU and Memory threshold
+    - `spec.scaleTargetRef.name` to identify the target
     - in order to enable HPA to work on another metrics, you need to define addtional component.
 
 ```yaml
@@ -192,26 +198,27 @@ spec:
 
 
 
-- `Vertical Pod Autoscaling`: [LINK](https://kubernetes.io/docs/tasks/configure-pod-container/resize-container-resources)
-
-
 [↑ Back to top](#)
 <br><br>
 
 
 ### Load Balancing
 
-Kubernetes provides native support for load balancing and traffic routing through `Ingress`, `Ingress Controller`, and `AWS Load Balancer Controller`.
+Kubernetes provides native support for load balancing and traffic routing through `Ingress`, `Ingress Controller`, and `AWS Load Balancer Controller`. I will be exploring two ways for exposing the Kuberentes application to the outside world:
 
+- [`Nginx Ingress Controller`](#nginx-ingress-controller)
+- [`AWS Load Balancer Controller`](#aws-load-balancer-controller)
 
 #### Nginx Ingress Controller
 
-Nginx Ingress Controller is a widely used 3rd party implementation of Ingress controller.
+Nginx Ingress Controller is a 3rd party implementation of Ingress controller.
 
-- provisions `NLB` upon installation. (the Service of type LoadBalancer in the `ingress` namespace triggers the NLB creation during install)
-- monitors `Ingress` resource:
-    - for each Ingress being created, it is converted to Nignx native `Lua` configuration and routes to the target service! The controller acts as a proxy and redirects traffic into pods.
-- Monitoring tools like `Prometheus` <img src="https://upload.wikimedia.org/wikipedia/commons/3/38/Prometheus_software_logo.svg" width=28> can scrape metrics (traffic, latency, errors for all Ingresses) from the nginx ingress controller (pod) without implementing anything on the Application side!!
+- Install with Helm or kubectl. (in `ingress` namespace)
+- it provisions `NLB` upon installation.
+    - the Service of type LoadBalancer triggers the NLB creation during installation
+- it monitors `Ingress` resource:
+    - for each Ingress being created, it is converted to Nignx native `Lua` configuration and routes to the target service! The controller acts as a proxy and redirects traffic into services.
+- Monitoring tools like `Prometheus` <img src="https://upload.wikimedia.org/wikipedia/commons/3/38/Prometheus_software_logo.svg" width=28> can scrape metrics (traffic, latency, errors for all Ingresses) from the nginx ingress controller pod without implementing anything on the Application side!
     <!-- - must specify `ingressClassName` as the name of Ingress Nginx controller. (helm installing using Terraform, specify same name as this)
     - When you create an Ingress resource with the specified ingressClassName, the NGINX Ingress Controller reads the Ingress rules and updates its configuration accordingly. -->
     <!-- - Traffic flow: `AWS NLB ->  Nginx ingress controller ->(Ingres Rule) Service -> Pod` -->
@@ -224,9 +231,6 @@ Nginx Ingress Controller is a widely used 3rd party implementation of Ingress co
 | <img src="https://imgur.com/DwRBYMd.png" alt="EKS architecture" width="750"> |
 | :--: |
 | *<b>NLB</b> with Nginx Ingress Controller* |
-
-
-Nginx ingress controller, for example, will convert Ingress into nginx lua configuration. The controller acts as a proxy and redirects traffic into pods.
 
 
 | <img src="https://kubernetes.io/docs/images/ingress.svg" alt="ingress" width="520"> |
@@ -266,11 +270,6 @@ kubectl get ingressclass -A
 | *<b>ALB</b> with AWS Load Balancer Controller* |
 
 
-[↑ Back to top](#)
-<br><br>
-
-
-    
 
 [↑ Back to top](#)
 <br><br>
@@ -295,20 +294,18 @@ Kubernetes natively supports cloud environments, enabling seamless integration w
     - Local: 3-node cluster w/ [microk8s](https://microk8s.io/docs/getting-started).
 - `Terraform` iac to create:
     - [`LINK`](https://blogd.org/blog/2024/07/01/eks-with-terraform-and-helm)
-    - AWS network resources
     - IAM Role and policy association with serviceaccount
-    - EKS cluster, node group, addons
+    - Networks, EKS cluster, node group, addons
 - `Helm Chart`
+    - deploy application using templates
     - [`LINK`](https://blogd.org/blog/helm.pdf)
 - `Docker` and `Dockerfile` for building images
 - `Github Actions` for CI
     - Github repository -> Dockerhub image repository
 - `Microservices Architecture`
-    - Frontend : Nginx (with html, css, js) as a reverse proxy server
-    - Backend : Python (uvicorn), Golang (go-gin) as backend web server
-- `Deep learning` algorithm for binary classification using `numpy` and `pytorch`
-    - Forward/[backward propagation](https://en.wikipedia.org/wiki/Backpropagation) and Gradient Descent for parameter tuning.
-    - TODO: `pytorch` for cat/non-cat recognizer (In progress)
+    - Frontend : Nginx (with html, css, js)
+    - Backend : Golang (go-gin), Python (uvicorn) as backend web server
+- `Deep learning` algorithm for training and predicting Cat images using `numpy` and `pytorch` (in-progress)
 - `Virtualbox` (with cli) to test configure 3 microk8s Kubernetes master nodes (ubuntu) in local environment
 - `Golang Concurrency`
     - used context, channel, goroutine for concurrent programming
