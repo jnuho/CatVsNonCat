@@ -103,6 +103,7 @@ I tried to focus on **`Kubernetes` implementation**, which I consider myself to 
 ## Why Kubernetes?
 
 - While docker-compose <img src="https://i0.wp.com/codeblog.dotsandbrackets.com/wp-content/uploads/2016/10/compose-logo.jpg?w=28"> can be a reasonable choice for local development, it falls short in terms of `scalability`, `load balancing`, `IaC support`(Terraform, Helm), and seamless `cloud-native integration`.
+- docker-compose docker processes can be affected by its operating system it is running. Restart policy didn't work in case of OOM of the OS. Kuberentes as the new OS.
 - Kubernetes offers a rich set of APIs to address these challenges.
 - For local development, I chose <img src="https://blog.radwell.codes/wp-content/uploads/2021/05/minikube-logo-full.png" alt="minikube logo" width="75"> over docker-compose to align with Kuberentes best practices. This `consistency` ensures a smoother transition to <img src="https://diagrams.mingrammer.com/img/resources/aws/compute/elastic-kubernetes-service.png" alt="EKS logo" width="28"> EKS production.
 
@@ -136,7 +137,9 @@ Kubernetes offers orchestration of containerized applications across a cluster o
 
 - `Horizonal Pod Autoscaling` control loop checks `CPU` and `Memory` usage via api-server's metric api  and scales accordingly.
     - Install `metric-server` on the worker nodes (kube-system namespace) with helm!
-        - scrapes metrics from kublet and publish to `metrics.k8s.io/v1beta` Kubernetes api → consumed by HPA!
+        - → scrapes metrics from kublet
+        - → publish to `metrics.k8s.io/v1beta` Kuberentes API
+        - → consumed by HPA!
     - deployment.yaml: `spec.template.spec.containers[i].resources` must be specified.
     - deployment.yaml: `spec.replicas` is to be omitted.
 
