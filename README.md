@@ -241,6 +241,11 @@ kubectl get ingressclass -A
 # external-nginx  k8s.io/ingress-nginx  <none>      20m
 ```
 
+
+| <img src="https://imgur.com/pSGCLP9.png" alt="ingress" width="720"> |
+| :--: |
+
+
 - Baremetal (To-be-tested)
     - https://kubernetes.github.io/ingress-nginx/deploy/baremetal/
     - A pure software solution: MetalLB
