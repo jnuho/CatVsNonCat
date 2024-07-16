@@ -59,11 +59,9 @@ There are several ways to configure external access into the application, which 
 
 ## Motivation
 
-My initial goal was to revisit the [`skills`](#skills-used) I've acquired by creating a simple web application.
+My initial goal was to **revisit** the [`skills`](#skills-used) I've acquired during my work experiences.
 
-**I focused on `Kubernetes` implementation.** especially configuring `external access` into the application in different Kubernetes environments - Cloud(EKS), On-premise (microk8s, minikube, docker-compoise)
-
-The web application is a Cat vs. Non-cat image classifier for an input URL image, and it uses numpy to train a Neural Network:
+I have a **great interest** in deep learning. So I decided to implement a Cat vs. Non-cat image classifier for URL images from user inputs. The prediction model uses the following steps to train a Neural Network:
 
 - Forward Propagation
     - $a^{[l]}  = ReLU(z^{[l]})$ for $l=1,...L-1$
@@ -72,10 +70,13 @@ The web application is a Cat vs. Non-cat image classifier for an input URL image
 - Backward Propagation
 - Gradient descent (Update parameters -  $\omega$, $b$)
 
-
 | <img src="https://miro.medium.com/v2/resize:fit:640/format:webp/1*iNPHcCxIvcm7RwkRaMTx1g.jpeg" alt="gradient descent" width="400"> |
 | :--: |
 | *gradient descent* |
+
+
+I tried to focus on **`Kubernetes` implementation**, which I consider myself to be more competent, especially configuring `external access` into the application in different Kubernetes environments - Cloud(EKS), On-premise (microk8s, minikube, docker-compoise)
+
 
 ```python
 def L_layer_model(
@@ -397,13 +398,58 @@ uvicorn main:app --port 3002
 
 ## Dockerize
 
-**NOTE**: It is crucial to optimize Docker images to be as compact as possible.
-One strategy to achieve this is by utilizing base images that are minimalistic, such as the Alpine image.
+**NOTE**: It is crucial to optimize Docker images to be as compact as possible. To achieve this is by utilizing base images that are minimalistic, such as the Alpine image and using [Multi-stage builds](#multi-stage-builds).
 
-- [NOTE on defining backend endpoint in frontend](https://stackoverflow.com/a/56375180/23876187)
-    - frontend app is not in any container, but the javascript is served from container as a js script file to <b>your browser</b>!
+<!-- - [NOTE on defining backend endpoint in frontend](https://stackoverflow.com/a/56375180/23876187)
+    - frontend app is not in any container, but the javascript is served from container as a js script file to <b>your browser</b>! -->
 
-- frontend nginx service
+###  Multi-stage builds
+
+- Reference [LINK](https://docs.docker.com/build/building/multi-stage)
+
+```Dockerfile
+# Use an golang alpine as the base image
+FROM golang:1.22.3-alpine as build
+
+# Set the temporary working directory in the container in the first stage
+WORKDIR /
+
+# # Copy package.json and package-lock.json into the working directory
+COPY go.mod go.sum ./
+COPY backend/web ./backend/web
+COPY cmd/backend-web-server/main.go ./cmd/backend-web-server/main.go
+COPY pkg ./pkg
+
+# Copy the .env file into the working directory
+COPY .env .env
+
+# # Install the app dependencies inside the docker image
+RUN go mod download && go mod verify
+
+# Set GOARCH and GOOS for the build target
+ENV CGO_ENABLED=0 GOOS=linux GOARCH=amd64
+
+# # Define the command to run your app using CMD which defines your runtime
+RUN go build -o backend-web-server ./cmd/backend-web-server
+
+RUN rm -rf /var/cache/apk/* /tmp/*
+
+# Use a smaller base image for the final image
+FROM alpine:latest
+
+# Copy the binary from the build stage
+COPY --from=build /backend-web-server /usr/local/bin/backend-web-server
+
+# Copy the .env file from the build stage
+# put in root directory / becasuse running CMD "backend-web-server" is ru
+COPY --from=build /.env /.env
+
+EXPOSE 3001
+
+# When you specify CMD ["go-app"], Docker looks for an executable named go-app in the system’s $PATH.
+# The $PATH includes common directories where executables are stored, such as /usr/local/bin, /usr/bin, and others.
+CMD ["backend-web-server", "-web-host=:3001"]
+```
 
 
 
@@ -417,6 +463,7 @@ One strategy to achieve this is by utilizing base images that are minimalistic, 
 
 ### Terraform
 
+- [terraform scripts in repository](https://github.com/jnuho/simpledl/tree/main/script/terraform)
 - VPC, Subnet, igw, nat, route table, etc.
 - IAM role with assume-role-policy
     - attach the required Amazon EKS IAM managed policy to it.
@@ -429,7 +476,8 @@ One strategy to achieve this is by utilizing base images that are minimalistic, 
 
 ```sh
 # Navigate to your Terraform configuration directory
-cd path/to/your/terraform/configuration
+# cd path/to/your/terraform/configuration
+cd terraform
 
 # Initialize Terraform
 terraform init
@@ -464,6 +512,9 @@ kubectl get ingressclass -A
 
 
 ### Helm Chart
+
+
+- [helm chart scripts in repository](https://github.com/jnuho/simpledl/tree/main/script/tst-chart)
 
 - Configure `kubectl`
     - Check context : `kubectl config current-context`
