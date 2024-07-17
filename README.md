@@ -36,7 +36,7 @@ There are several ways to configure external access into the application, which 
 [↑ Back to top](#)
 <br><br>
 
-* <a href="https://github.com/jnuho/simpledl" target="_blank">:link: Github Repository</a>
+* <a href="https://github.com/jnuho/CatVsNonCat" target="_blank">:link: Github Repository</a>
 
 - [`Motivation`](#motivation)
 - [`Why Kuberenetes?`](#why-kubernetes)
@@ -343,8 +343,8 @@ Kubernetes natively supports cloud environments, enabling seamless integration w
    - The Go-Gin server acts as an intermediary between the frontend and backend services.
    - It receives requests from the frontend, including requests for cat-related information.
    - Additionally, it performs utility functions, such as fetching weather data for three cities using goroutine concurrency (5-worker).
-   - [main.go](https://github.com/jnuho/simpledl/blob/main/cmd/backend-web-server/main.go#L50)
-   - [weatherapi.go](https://github.com/jnuho/simpledl/blob/main/pkg/weatherapi.go#L160)
+   - [main.go](https://github.com/jnuho/CatVsNonCat/blob/main/cmd/backend-web-server/main.go#L50)
+   - [weatherapi.go](https://github.com/jnuho/CatVsNonCat/blob/main/pkg/weatherapi.go#L160)
      - Implemented with `Fan-out/Fan-in pattern`
      - Another possible pattern: [`Worker-pool pattern`](https://blogd.org/blog/2024/05/29/golang-worker-pool-pattern/)
 
@@ -473,7 +473,7 @@ CMD ["backend-web-server", "-web-host=:3001"]
 
 ### Terraform
 
-- [terraform scripts in repository](https://github.com/jnuho/simpledl/tree/main/script/terraform)
+- [terraform scripts in repository](https://github.com/jnuho/CatVsNonCat/tree/main/script/terraform)
 - VPC, Subnet, igw, nat, route table, etc.
 - IAM role with assume-role-policy
     - attach the required Amazon EKS IAM managed policy to it.
@@ -524,7 +524,7 @@ kubectl get ingressclass -A
 ### Helm Chart
 
 
-- [helm chart scripts in repository](https://github.com/jnuho/simpledl/tree/main/script/tst-chart)
+- [helm chart scripts in repository](https://github.com/jnuho/CatVsNonCat/tree/main/script/tst-chart)
 
 - Configure `kubectl`
     - Check context : `kubectl config current-context`
@@ -557,7 +557,7 @@ helm create tst-chart
 - Validate
 
 ```sh
-cd simpledl/script
+cd CatVsNonCat/script
 tree
     tst-chart
        ├── Chart.yaml
@@ -844,8 +844,8 @@ npm run dev
     - `backend/pkg/weatherapi.go`
 
 ```sh
-cd simpledl
-go mod init github.com/jnuho/simpledl
+cd CatVsNonCat
+go mod init github.com/jnuho/CatVsNonCat
 go mod tidy
 ```
 
@@ -855,7 +855,7 @@ go mod tidy
 I had to construct a virtualbox environment in which my kubernetes cluster and application will be deployed. 🔥
 
 
-|<img src="https://i.imgur.com/w8PxxXk.png" alt="simpledl architecture" width="400">|
+|<img src="https://i.imgur.com/w8PxxXk.png" alt="CatVsNonCat architecture" width="400">|
 |:--:| 
 | *kubernetes architecture (Local VirtualBox)* |
 
@@ -1654,9 +1654,9 @@ k describe pod fe-nginx-deployment-7b9c5bb8f8-q6d6m
     - https://microk8s.io/docs/registry-images
 
 ```sh
-git clone https://github.com/jnuho/simpledl.git
+git clone https://github.com/jnuho/CatVsNonCat.git
 
-cd simpledl/script
+cd CatVsNonCat/script
 ./1.build-image.sh
 ./1-1.import-microk8s.sh
 
