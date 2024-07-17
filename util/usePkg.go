@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/jnuho/simpledl/pkg"
+	"github.com/jnuho/CatVsNonCat/pkg"
 )
 
 func main() {

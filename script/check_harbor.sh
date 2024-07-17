@@ -11,7 +11,7 @@ harbor_cnt=$(docker ps | grep harbor | grep Up | wc -l)
 
 if [ $harbor_cnt \< $CNT ];
 then
-  cd /data/simpledl/registry/harbor
+  cd /data/CatVsNonCat/registry/harbor
   docker-compose down
   sleep 5s
   docker-compose up -d

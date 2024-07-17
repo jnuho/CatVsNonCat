@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/golang/glog"
-	"github.com/jnuho/simpledl/backend/web"
+	"github.com/jnuho/CatVsNonCat/backend/web"
 	"github.com/joho/godotenv"
 )
 

@@ -1,4 +1,4 @@
-module github.com/jnuho/simpledl
+module github.com/jnuho/CatVsNonCat
 
 go 1.22.3
 

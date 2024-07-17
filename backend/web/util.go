@@ -9,7 +9,7 @@ import (
 	"os"
 
 	"github.com/gin-gonic/gin"
-	"github.com/jnuho/simpledl/pkg"
+	"github.com/jnuho/CatVsNonCat/pkg"
 )
 
 type requestParam struct {

@@ -288,7 +288,7 @@ export PATH="$PATH:JRE_HOME"
 
 source ~/.bashrc
 
-# Backup file: /data/simpledl/TeamCity/backup/TeamCity_Backup_20231102_152200.zip
+# Backup file: /data/CatVsNonCat/TeamCity/backup/TeamCity_Backup_20231102_152200.zip
 ./maintainDB.sh backup -C -D -L -P -U \
   --timestamp-suffix
 ```
