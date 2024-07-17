@@ -14,7 +14,7 @@ authors:
 
 ## System overview
 
-| <img src="https://imgur.com/DwRBYMd.png" alt="EKS architecture" width="600"> |
+| <img src="https://imgur.com/DwRBYMd.png" alt="EKS architecture" width="550"> |
 | :--: |
 | *<b>NLB</b> with Nginx Ingress Controller* |
 
@@ -24,11 +24,11 @@ There are several ways to configure external access into the application, which 
 
 ## Demo
 
-| <img src="https://imgur.com/VbKBWdO.gif" alt="demo" width="650"> |
+| <img src="https://imgur.com/VbKBWdO.gif" alt="demo" width="550"> |
 |:--:| 
 | *application demo* |
 
-| <img src="https://imgur.com/tbG85hA.png" alt="demo" width="600"> |
+| <img src="https://imgur.com/tbG85hA.png" alt="demo" width="450"> |
 |:--:| 
 | *applications diagram* |
 
@@ -64,13 +64,13 @@ My initial goal was to **revisit** the [`skills`](#skills-used) I've acquired du
 I have a **great interest** in deep learning. So I decided to implement a Cat vs. Non-cat image classifier for URL images from user inputs. The prediction model uses the following steps to train a Neural Network:
 
 - Forward Propagation
-    - $a^{[l]}  = ReLU(z^{[l]})$ for $l=1,...L-1$
-    - $a^{[l]}  = \sigma(z^{[l]})$ for $l=L$
+    - <small>$a^{[l]}  = ReLU(z^{[l]})$ for $l=1,...L-1$</small>
+    - <small>$a^{[l]}  = \sigma(z^{[l]})$ for $l=L$</small>
 - Compute cost
 - Backward Propagation
 - Gradient descent (Update parameters -  $\omega$, $b$)
 
-| <img src="https://miro.medium.com/v2/resize:fit:640/format:webp/1*iNPHcCxIvcm7RwkRaMTx1g.jpeg" alt="gradient descent" width="400"> |
+| <img src="https://miro.medium.com/v2/resize:fit:640/format:webp/1*iNPHcCxIvcm7RwkRaMTx1g.jpeg" alt="gradient descent" width="300"> |
 | :--: |
 | *gradient descent* |
 
@@ -92,7 +92,7 @@ def L_layer_model(
     - I've yet to explore Pytorch implementation to classify Cat vs. Non-cat.
 
 
-I tried to focus on **`Kubernetes` implementation**, which I consider myself to be more competent, especially configuring `external access` into the application in different Kubernetes environments - Cloud(EKS), On-premise (microk8s, minikube, docker-compoise)
+I tried to focus on **`Kubernetes`** implementation, which I consider myself to be more competent. I configured `external access` into the application in several different ways depending on Kubernetes environments - Cloud(EKS), On-premise (microk8s, minikube, docker-compoise)
 
 
 
@@ -103,7 +103,7 @@ I tried to focus on **`Kubernetes` implementation**, which I consider myself to 
 ## Why Kubernetes?
 
 - While docker-compose <img src="https://i0.wp.com/codeblog.dotsandbrackets.com/wp-content/uploads/2016/10/compose-logo.jpg?w=28"> can be a reasonable choice for local development, it falls short in terms of `scalability`, `load balancing`, `IaC support`(Terraform, Helm), and seamless `cloud-native integration`.
-- docker-compose docker processes can be affected by its operating system it is running. Restart policy didn't work in case of OOM of the OS. Kuberentes as the new OS.
+- docker-compose docker processes can be affected by its operating system it is running. Restart policy didn't work in case of OOM of the OS: Kuberentes as the new OS.
 - Kubernetes offers a rich set of APIs to address these challenges.
 - For local development, I chose <img src="https://blog.radwell.codes/wp-content/uploads/2021/05/minikube-logo-full.png" alt="minikube logo" width="75"> over docker-compose to align with Kuberentes best practices. This `consistency` ensures a smoother transition to <img src="https://diagrams.mingrammer.com/img/resources/aws/compute/elastic-kubernetes-service.png" alt="EKS logo" width="28"> EKS production.
 
@@ -115,7 +115,7 @@ Load Balancing           | Requires manual setup (e.g., HAProxy)| Support [Load 
 IaC Support | Resticted to docker compose cli | Terraform, Helm for fast and reliable resource provisioning (*< ~15 minutes*)
 
 
-| <img src="https://imgur.com/qqDsoa2.png" alt="dc vs k8s" width="650"> |
+| <img src="https://imgur.com/qqDsoa2.png" alt="dc vs k8s" width="600"> |
 | :--: |
 |  *docker-compose vs. Kubernetes* |
 
@@ -130,7 +130,7 @@ Kubernetes offers orchestration of containerized applications across a cluster o
 | <img src="https://imgur.com/KxETYaG.png" alt="ingress" width="750"> |
 | :--: |
 
-| <img src="https://imgur.com/rvtBRlL.png" alt="metric-server" width="650"> |
+| <img src="https://imgur.com/rvtBRlL.png" alt="metric-server" width="600"> |
 | :--: |
 |  *HPA and metric-server* |
 
@@ -725,8 +725,6 @@ The basic operations for forward and backward propagations in deep learning algo
     $A^{[l]} = g^{[l]} (Z^{[l]})$
 
     (for $i=1,\dots,L$ with initial value $A^{[0]} = X$)
-
-<br>
 
 - Backward propagation for layer $l$: $da^{[l]} \rightarrow da^{[l-1]},dW^{[l]}, db^{[l]}$
 
