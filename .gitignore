@@ -74,7 +74,7 @@ terraform.rc
 
 # Helm chart files
 # General files for the project
-pkg/*
+# pkg/*
 *.pyc
 bin/*
 .project
