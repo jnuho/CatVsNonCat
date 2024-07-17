@@ -14,7 +14,7 @@ authors:
 
 ## System overview
 
-| <img src="https://imgur.com/DwRBYMd.png" alt="EKS architecture" width="750"> |
+| <img src="https://imgur.com/DwRBYMd.png" alt="EKS architecture" width="600"> |
 | :--: |
 | *<b>NLB</b> with Nginx Ingress Controller* |
 
@@ -691,6 +691,7 @@ helm uninstall tst-release
 - [`Microk8s implemntation`](#microk8s-implemntation)
 - [`Golang ini setting`](#golang-ini-setting)
 - [`AWS LoadBalancer Controller`](#aws-loadbalancer-controller)
+- [`MariaDB](#mariadb)
 
 
 ### Exposing external service
@@ -1752,6 +1753,128 @@ helm install tst-release ./tst-chart -f ./tst-chart/values.prd.yaml
     - it needs `IAM Role` with proper policies attached to use AWS API to create and configure an ALB.
     - The AWS Load Balancer Controller, running as a pod in the `kube-system` namespace,
     - monitors for new or updated Ingress resources with the alb ingress class.
+
+
+[↑ Back to top](#)
+<br><br>
+
+
+
+### MariaDB
+
+- https://hub.docker.com/_/mariadb
+
+- Define Table
+- Define Indexes for table columns
+    - indices for a table is preferable if there are a number of data rows
+    - index for a column is preferable if the column is NOT NULL
+    - 3-4 indices for a table are ok
+    - updating or deleting performance decreases for tables with many indices
+    - choose index column with High Cardinality
+        - high : uncommon and unique. e.g. autoincrement seq, timestamp
+        - high cardinality means one can opt out large amount of data by using index
+        - low : with few unique values, typically status flags, boolean values.
+    - Multi-column index: second column relies on first, third relies on second, and so on.
+        - Order: Cardinality decreasing (High to Low)
+    - WHERE clause must include first index column in order to use index
+        - e.g. Given 1,2,3, must use (1 and 3) or (1 and 2)
+        - the order in which columns are used in the where clause is trivial
+
+    - `BETWEEN`, `LIKE`, `>`, `<` will skip index use
+    - `=`, `IN`(same is using `=` multiple times) : uses index
+    - `IN` with Subquery will decrease performance
+    - `OR` : FULL table scan
+    - using arithmetic operation on index column will skip index `WHERE SALARY * 10 = 100`
+
+- Define primary, foreign, unique keys for columns
+
+- Optimize query with index columns and row limit
+
+- Make use of EXPLAIN statement to get detailed info about how statements are executed
+
+- docker-compose.yaml
+
+```yaml
+services:
+  mariadb-001:
+    container_name: mariadb-001
+    image: mariadb:10.6.5
+    restart: always
+    environment:
+      MARIADB_ROOT_PASSWORD: 1234
+    volumes:
+      - ./data:/var/lib/mysql:rw
+      - ./mariadb_custom.cnf:/etc/mysql/conf.d/mariadb_custom.cnf
+
+networks:
+  mynetwork:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.16.6.0/24
+```
+
+```sh
+docker exec -it mariadb-001 /bin/bash
+
+# Type passwords in prompt for security instead of `mysql -u root -p1234`
+mysql -u root -p
+grant all on *.* to 'root'@'%' identified by '1234';
+
+# ensures that the changes made to the privileges are recognized
+# and applied by the MySQL server without restarting it.
+flush privileges;
+
+# CREATE database
+show databases;
+
+CREATE USER 'admin'@'%' IDENTIFIED BY '1234';
+GRANT ALL PRIVILEGES ON *.* TO 'admin'@'%' IDENTIFIED BY '1234';
+SELECT user, host FROM mysql.user;
+
+mysql -u admin -p
+
+CREATE database test_db character set utf8mb4 collate utf8mb4_general_ci;
+show databases;
+use test_db;
+
+CREATE TABLE `JOB_APPLICANT` (
+    `SEQ` BIGINT(21) NOT NULL AUTO_INCREMENT COMMENT 'seq',
+    `LOGIN_ID` VARCHAR(50) NOT NULL COMMENT 'login id - for job application site',
+    `JOB_TYPE` CHAR(1) NOT NULL COMMENT 'type 1.engineer 2.marketer',
+    `INTERVIEW_DT` DATETIME NOT NULL COMMENT 'interview date of the job applicant',
+
+    PRIMARY KEY (`SEQ`),
+    -- a user must have exactly 'one' row in the JOB_CANDIDATE table
+    UNIQUE KEY `udx_JOB_CANDIDATE_01` (`login_id`, `job_type`)
+) ENGINE = InnoDB DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci COMMENT 'job candidates';
+
+
+-- Cardinality : LOGIN_ID > JOB_TYPE
+ALTER TABLE JOB_APPLICANT ADD INDEX `idx_job_candidate_01` (`LOGIN_ID`, `JOB_TYPE`);
+
+INSERT INTO `job_applicant` (
+    `LOGIN_ID`,
+    `JOB_TYPE`,
+    `INTERVIEW_DT`
+) VALUES (
+  'user_01',
+  '1',
+  NOW()
+);
+
+SELECT
+    SEQ
+    , LOGIN_ID
+    , JOB_TYPE
+    , INTERVIEW_DT
+from job_applicant
+WHERE
+    1=1
+    AND LOGIN_ID = 'user_01'
+    AND JOB_TYPE = '1';
+```
 
 
 [↑ Back to top](#)
