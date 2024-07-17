@@ -74,7 +74,7 @@ I have a **great interest** in deep learning. So I decided to implement a Cat vs
 | :--: |
 | *gradient descent* |
 
-- jupyter [notebook](https://blogd.org/blog/2024/05/31/deeplearningai/)
+- jupyter [notebook](https://blogd.org/blog/2024/05/31/deep-neural-network-for-image-classification)
 
 ```python
 def L_layer_model(
