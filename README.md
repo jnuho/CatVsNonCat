@@ -703,7 +703,7 @@ helm uninstall tst-release
 
 ### Binary classification
 
-It is a basic deep learning image recognizers, one of which was covered in Andrew Ng's coursera course. I plan to test two simple deep learning models to identify cat images and hand-written digits (0-9), respectively and return the result of identification to the browser.
+It is a basic deep learning image recognizers, one of which was covered in Andrew Ng's coursera course. I plan to test two deep learning models to identify cat images and hand-written digits (0-9), respectively and return the result of identification to the browser.
 
 [↑ Back to top](#)
 <br><br>
@@ -1059,7 +1059,6 @@ apiVersion: v1
 kind: Service
 metadata:
     name: fe-nginx-service
-    namespace: simple
 spec:
     # must match deployment.yaml > spec.template.metadata.labels
     selector:
