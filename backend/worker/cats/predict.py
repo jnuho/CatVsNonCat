@@ -4,8 +4,8 @@ import requests
 from PIL import Image
 from io import BytesIO
 
-from backend.worker.cats.helper import *
-from backend.worker.cats.forward import *
+from worker.cats.helper import *
+from worker.cats.forward import *
 
 # plt.rcParams['figure.figsize'] = (5.0, 4.0) # set default size of plots
 # plt.rcParams['image.interpolation'] = 'nearest'

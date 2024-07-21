@@ -1,7 +1,7 @@
 import os
 from PIL import Image
 
-from backend.worker.cats.load_data import *
+from worker.cats.load_data import *
 
 
 def resize_image():
