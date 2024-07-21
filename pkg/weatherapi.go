@@ -65,12 +65,12 @@ func getGeoloc(ctx context.Context, city, apiKey string) (GeoCityResponse, error
 	// send the HTTP request and receive the response.
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return GeoCityResponse{}, fmt.Errorf("error fetching geolocation for %s: %w", city, err)
+		return GeoCityResponse{}, fmt.Errorf("error fetching geolocation for %s for url[%s] : %w", city, url, err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return GeoCityResponse{}, fmt.Errorf("non-200 response: %s", resp.Status)
+		return GeoCityResponse{}, fmt.Errorf("non-200 response: %s for url[%s]", resp.Status, url)
 	}
 
 	if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
