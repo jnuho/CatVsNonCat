@@ -124,7 +124,8 @@ window.onload = function(){
         figureElement.innerHTML = `<img src="${data.cat_url}" class="figure-img img-fluid rounded" alt="A generic square placeholder image with rounded corners in a figure." style="height: 256px; width: auto;">`;
 
         const figureCaptionElement = document.querySelector('.cat-result');
-        figureCaptionElement.innerHTML = "status: " + data.python_server + " (" + data.elapsed.toFixed(5) + " ⏳)";
+        figureCaptionElement.innerHTML = "status: " + data.python_server + " " + data.python_msg + " (" + data.elapsed.toFixed(5) + " ⏳)";
+        // figureCaptionElement.innerHTML = "status: " + data.python_server + " (" + data.elapsed.toFixed(5) + " ⏳)";
     }
 
     // var pasteBtn = document.querySelector('.paste-cat-url-btn');

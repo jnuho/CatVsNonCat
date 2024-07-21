@@ -6,6 +6,7 @@ WORKDIR /python
 
 # Copy package.json and package-lock.json into the working directory
 COPY ./backend/worker/requirements.txt ./
+COPY ./parameters.npz ./
 
 # Install the app dependencies inside the docker image
 RUN pip install --no-cache-dir -r requirements.txt

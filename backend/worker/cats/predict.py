@@ -1,5 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import requests
+from PIL import Image
+from io import BytesIO
 
 from .helper import *
 from .forward import *
@@ -43,24 +46,60 @@ def predict(X, y, parameters):
         
     return p
 
-def test_image2(img_url, my_label_y, parameters):
-    import requests
-    from PIL import Image
-    from io import BytesIO
-
+def test_image_url(img_url, parameters):
     _, _, _, _, classes = load_data()
 
     response = requests.get(img_url)
-    img = Image.open(BytesIO(response.content))
-    img = img.resize((64, 64))
-    img = np.array(img)
-    img = img.reshape((64*64*3, 1))
-    img = img / 255.
+    X = Image.open(BytesIO(response.content))
+    X = X.resize((64, 64))
+    X = np.array(X)
 
-    my_predicted_image = predict(img, my_label_y, parameters)
+    # Check the number of channels and reshape accordingly
+    # RGB
+    if X.size == 64 * 64 * 3:
+        X = X.reshape((64*64*3, 1))
+    # RGBA
+    elif X.size == 64 * 64 * 4:
+        X = X[:, :, :3]  # Discard the alpha channel (Transparency)
+        X = X.reshape((64*64*3, 1))
+    else:
+        raise ValueError("Unexpected image size: {}".format(X.size))
 
-    plt.imshow(img)
-    print ("y = " + str(np.squeeze(my_predicted_image)) + ", your L-layer model predicts a \"" + classes[int(np.squeeze(my_predicted_image)),].decode("utf-8") +  "\" picture: " + img_url)
+    X = X / 255.
+
+    """
+    This function is used to predict the results of a  L-layer neural network.
+    
+    Arguments:
+    X -- data set of examples you would like to label
+    parameters -- parameters of the trained model
+    
+    Returns:
+    p -- predictions for the given dataset X
+    """
+    
+    m = X.shape[1]
+    # n = len(parameters) // 2 # number of layers in the neural network
+    p = np.zeros((1,m))
+    
+    # Forward propagation
+    probas, caches = L_model_forward(X, parameters)
+    # print(probas)
+    
+    # convert probas to 0/1 predictions
+    for i in range(0, probas.shape[1]):
+        if probas[0,i] > 0.5:
+            p[0,i] = 1
+        else:
+            p[0,i] = 0
+    
+    #print results
+    # print ("predictions: " + str(p))
+    # print ("true labels: " + str(y)
+    # print("Accuracy: "  + str(np.sum((p == y)/m)))
+    # plt.imshow(img)
+
+    return "y = " + str(np.squeeze(p)) + ", your L-layer model predicts a \"" + classes[int(np.squeeze(p)),].decode("utf-8") +  "\" picture: " + img_url.split('/')[-1]
 
 def test_image(img_name, my_label_y, parameters):
     _, _, _, _, classes = load_data()
@@ -85,7 +124,7 @@ def test_image(img_name, my_label_y, parameters):
 
     my_predicted_image = predict(my_image, my_label_y, parameters)
 
-    plt.imshow(image)
+    plt.imshow(img_name)
     print ("y = " + str(np.squeeze(my_predicted_image)) + ", your L-layer model predicts a \"" + classes[int(np.squeeze(my_predicted_image)),].decode("utf-8") +  "\" picture: " + img_name)
 
 
@@ -134,7 +173,10 @@ pred_test = predict(test_x, test_y, parameters)
 # test_image("test/cat/00000001_000.jpg", 1, parameters)
 # test_image("test/noncat/horse-60.jpg", 0, parameters)
 # test_image("train/cat/cat.99.jpg", 1, parameters)
-test_image2("https://cdn.pixabay.com/photo/2024/01/29/20/40/cat-8540772_1280.jpg", 1, parameters)
+test_image_url("https://cdn.pixabay.com/photo/2024/01/29/20/40/cat-8540772_1280.jpg", 1, parameters)
+test_image_url("https://cdn.pixabay.com/photo/2024/02/17/00/18/cat-8578562_1280.jpg", 1, parameters)
+test_image_url("https://cdn.pixabay.com/photo/2023/06/29/10/33/lion-8096155_1280.png", 0, parameters)
+test_image_url("https://cdn.pixabay.com/photo/2016/03/27/21/52/woman-1284411_1280.jpg", 0, parameters)
 
 
 

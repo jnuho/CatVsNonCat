@@ -19,6 +19,7 @@ type requestParam struct {
 type responseParam struct {
 	URL    string `json:"cat_url"`
 	STATUS int    `json:"status"`
+	MSG    string `json:"msg"`
 }
 
 func validateRequest(c *gin.Context) (*requestParam, error) {

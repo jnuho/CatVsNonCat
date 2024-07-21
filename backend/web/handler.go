@@ -38,7 +38,7 @@ func catPostHandler(c *gin.Context) {
 		"go_server":     "ok",
 		"python_server": result.STATUS,
 		"elapsed":       duration,
-		// "python_server": result.STATUS,
+		"python_msg":    result.MSG,
 	})
 }
 
