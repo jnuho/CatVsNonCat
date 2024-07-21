@@ -12,6 +12,41 @@ from .forward import *
 # plt.rcParams['image.cmap'] = 'gray'
 
 
+def predict_v2(X, parameters):
+    """
+    This function is used to predict the results of a  L-layer neural network.
+    
+    Arguments:
+    X -- data set of examples you would like to label
+    parameters -- parameters of the trained model
+    
+    Returns:
+    p -- predictions for the given dataset X
+    """
+    
+    m = X.shape[1]
+    n = len(parameters) // 2 # number of layers in the neural network
+    p = np.zeros((1,m))
+    
+    # Forward propagation
+    probas, caches = L_model_forward(X, parameters)
+    # print(probas)
+    
+    # convert probas to 0/1 predictions
+    for i in range(0, probas.shape[1]):
+        if probas[0,i] > 0.5:
+            p[0,i] = 1
+        else:
+            p[0,i] = 0
+    
+    #print results
+    # print ("predictions: " + str(p))
+    # print ("true labels: " + str(y)
+    # print("Accuracy: "  + str(np.sum((p == y)/m)))
+        
+    return p
+
+
 def predict(X, y, parameters):
     """
     This function is used to predict the results of a  L-layer neural network.
@@ -46,6 +81,7 @@ def predict(X, y, parameters):
         
     return p
 
+
 def test_image_url(img_url, parameters):
     _, _, _, _, classes = load_data()
 
@@ -77,29 +113,11 @@ def test_image_url(img_url, parameters):
     Returns:
     p -- predictions for the given dataset X
     """
-    
-    m = X.shape[1]
-    # n = len(parameters) // 2 # number of layers in the neural network
-    p = np.zeros((1,m))
-    
-    # Forward propagation
-    probas, caches = L_model_forward(X, parameters)
-    # print(probas)
-    
-    # convert probas to 0/1 predictions
-    for i in range(0, probas.shape[1]):
-        if probas[0,i] > 0.5:
-            p[0,i] = 1
-        else:
-            p[0,i] = 0
-    
-    #print results
-    # print ("predictions: " + str(p))
-    # print ("true labels: " + str(y)
-    # print("Accuracy: "  + str(np.sum((p == y)/m)))
-    # plt.imshow(img)
+    p = predict_v2(X, parameters)
 
-    return "L-layer model predicts a \"" + classes[int(np.squeeze(p)),].decode("utf-8") +  "\" image: [" + img_url.split('/')[-1] + "]"
+    L = len(parameters) // 2
+    return L + "-layer model predicts a \"" + classes[int(np.squeeze(p)),].decode("utf-8") +  "\" : " + img_url.split('/')[-1]
+
 
 def test_image(img_name, my_label_y, parameters):
     _, _, _, _, classes = load_data()

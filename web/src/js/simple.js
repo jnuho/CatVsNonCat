@@ -204,7 +204,7 @@ window.onload = function(){
             var iconUrl = "https://openweathermap.org/img/wn/" + icon + ".png";
             
             // Do something with the extracted data
-            // console.log(`City: ${name}, Temperature: ${temp}, Icon: ${iconUrl}`);
+            console.log(`City: ${name}, Temperature: ${temp}, Icon: ${iconUrl}`);
 
             // Select the element with the corresponding class name
             const weatherElement = document.querySelector(`.weather${index + 1}`);

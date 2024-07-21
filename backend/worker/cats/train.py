@@ -1,5 +1,5 @@
 import numpy as np
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 
 from .helper import *
 from .load_data import *
@@ -10,9 +10,9 @@ from .backward import *
 from .update_params import *
 
 
-plt.rcParams['figure.figsize'] = (5.0, 4.0) # set default size of plots
-plt.rcParams['image.interpolation'] = 'nearest'
-plt.rcParams['image.cmap'] = 'gray'
+# plt.rcParams['figure.figsize'] = (5.0, 4.0) # set default size of plots
+# plt.rcParams['image.interpolation'] = 'nearest'
+# plt.rcParams['image.cmap'] = 'gray'
 
 
 def L_layer_model(X, Y, layers_dims, learning_rate = 0.0075, num_iterations = 3000, print_cost=False):
@@ -68,14 +68,13 @@ def L_layer_model(X, Y, layers_dims, learning_rate = 0.0075, num_iterations = 30
             print ("Cost after iteration %i: %f" %(i, cost))
         if print_cost and i % 100 == 0:
             costs.append(cost)
-            
     # plot the cost
-    plt.plot(np.squeeze(costs))
-    plt.ylabel('cost')
-    plt.xlabel('iterations (per tens)')
-    plt.title("Learning rate =" + str(learning_rate))
-    plt.show()
-    
+    # plt.plot(np.squeeze(costs))
+    # plt.ylabel('cost')
+    # plt.xlabel('iterations (per tens)')
+    # plt.title("Learning rate =" + str(learning_rate))
+    # plt.show()
+
     return parameters
 
 
@@ -93,9 +92,6 @@ train_x_orig, train_y, test_x_orig, test_y, classes = load_data()
 
 train_x_flatten = train_x_orig.reshape(train_x_orig.shape[0], -1).T
 train_x = train_x_flatten / 255
-
-# test_x_flatten = test_x_orig.reshape(test_x_orig.shape[0], -1).T
-# test_x = test_x_flatten / 255
 
 # L = 4 excluding the input feature X in layer [0]
 # [12288, 20, 7, 5, 1]
