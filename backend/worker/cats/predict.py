@@ -99,7 +99,7 @@ def test_image_url(img_url, parameters):
     # print("Accuracy: "  + str(np.sum((p == y)/m)))
     # plt.imshow(img)
 
-    return "y = " + str(np.squeeze(p)) + ", your L-layer model predicts a \"" + classes[int(np.squeeze(p)),].decode("utf-8") +  "\" picture: " + img_url.split('/')[-1]
+    return "L-layer model predicts a \"" + classes[int(np.squeeze(p)),].decode("utf-8") +  "\" image: [" + img_url.split('/')[-1] + "]"
 
 def test_image(img_name, my_label_y, parameters):
     _, _, _, _, classes = load_data()
