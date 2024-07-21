@@ -1,13 +1,7 @@
 import os
 from PIL import Image
-import matplotlib.pyplot as plt
 
 from .load_data import *
-
-
-plt.rcParams['figure.figsize'] = (5.0, 4.0) # set default size of plots
-plt.rcParams['image.interpolation'] = 'nearest'
-plt.rcParams['image.cmap'] = 'gray'
 
 
 def resize_image():
@@ -51,5 +45,4 @@ def preprocess_images(x):
     std_dev = x.std(axis=0)
     x = (x - mean) / std_dev
     return x
-
 

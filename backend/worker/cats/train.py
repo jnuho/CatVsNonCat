@@ -15,7 +15,7 @@ plt.rcParams['image.interpolation'] = 'nearest'
 plt.rcParams['image.cmap'] = 'gray'
 
 
-def L_layer_model(X, Y, layers_dims, learning_rate = 0.0075, num_iterations = 2500, print_cost=False):
+def L_layer_model(X, Y, layers_dims, learning_rate = 0.0075, num_iterations = 3000, print_cost=False):
     #lr was 0.009
     """
     Implements a L-layer neural network: [LINEAR->RELU]*(L-1)->LINEAR->SIGMOID.
@@ -90,15 +90,17 @@ def L_layer_model(X, Y, layers_dims, learning_rate = 0.0075, num_iterations = 25
 # print(test_y.shape)
 
 train_x_orig, train_y, test_x_orig, test_y, classes = load_data()
-train_x = train_x_orig.reshape(train_x_orig.shape[0], -1).T
-train_x = train_x / 255
-test_x = test_x_orig.reshape(test_x_orig.shape[0], -1).T
-test_x = test_x / 255
+
+train_x_flatten = train_x_orig.reshape(train_x_orig.shape[0], -1).T
+train_x = train_x_flatten / 255
+
+# test_x_flatten = test_x_orig.reshape(test_x_orig.shape[0], -1).T
+# test_x = test_x_flatten / 255
 
 # L = 4 excluding the input feature X in layer [0]
 # [12288, 20, 7, 5, 1]
 layers_dims = [train_x.shape[0], 20, 7, 5, 1]
-parameters = L_layer_model(train_x, train_y, layers_dims, learning_rate=.0075, num_iterations=2500, print_cost=True)
+parameters = L_layer_model(train_x, train_y, layers_dims, learning_rate=.0075, num_iterations=3000, print_cost=True)
 
 np.savez('parameters.npz', parameters=parameters)
 

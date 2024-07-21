@@ -70,9 +70,13 @@ def linear_backward(dZ, cache):
     A_prev, W, b = cache
     m = A_prev.shape[1]
 
-    dW = 1/m * np.dot(dZ, A_prev.T)
-    db = 1/m * np.sum(dZ, axis=1, keepdims=True)
+    dW = 1./m * np.dot(dZ, A_prev.T)
+    db = 1./m * np.sum(dZ, axis=1, keepdims=True)
     dA_prev = np.dot(W.T, dZ)
+
+    assert (dA_prev.shape == A_prev.shape)
+    assert (dW.shape == W.shape)
+    assert (db.shape == b.shape)
 
     return dA_prev, dW, db
 
