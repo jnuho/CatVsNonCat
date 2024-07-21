@@ -1,13 +1,13 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from worker.cats.helper import *
-from worker.cats.load_data import *
-from worker.cats.init_params import *
-from worker.cats.forward import *
-from worker.cats.compute_cost import *
-from worker.cats.backward import *
-from worker.cats.update_params import *
+from .helper import *
+from .load_data import *
+from .init_params import *
+from .forward import *
+from .compute_cost import *
+from .backward import *
+from .update_params import *
 
 
 plt.rcParams['figure.figsize'] = (5.0, 4.0) # set default size of plots

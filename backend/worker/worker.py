@@ -3,7 +3,7 @@ from pydantic import BaseModel
 from typing import Optional
 import numpy as np
 
-from worker.cats.predict import test_image_url
+from cats.predict import test_image_url
 
 app = FastAPI()
 
