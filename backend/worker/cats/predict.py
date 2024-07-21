@@ -4,8 +4,8 @@ import requests
 from PIL import Image
 from io import BytesIO
 
-from .helper import *
-from .forward import *
+from backend.worker.cats.helper import *
+from backend.worker.cats.forward import *
 
 # plt.rcParams['figure.figsize'] = (5.0, 4.0) # set default size of plots
 # plt.rcParams['image.interpolation'] = 'nearest'
@@ -131,26 +131,18 @@ def test_image(img_name, my_label_y, parameters):
 
 # WITHOUT TRAINING AGAIN, JUST LOAD .pyc
 # Load parameters using np.load with allow_pickle=True
-data = np.load('parameters.npz', allow_pickle=True)
-parameters = {key: data[key].item() for key in data}["parameters"]
+# data = np.load('parameters.npz', allow_pickle=True)
+# parameters = {key: data[key].item() for key in data}["parameters"]
 
+# train_x_orig, train_y, test_x_orig, test_y, classes = load_data()
+
+# train_x_flatten = train_x_orig.reshape(train_x_orig.shape[0], -1).T
+# train_x = train_x_flatten / 255
 # test_x_flatten = test_x_orig.reshape(test_x_orig.shape[0], -1).T
 # test_x = test_x_flatten / 255
-# train_x, train_y = load_train_x_and_y()
-# train_x = preprocess_images(train_x)
 
-# test_x, test_y = load_test_x_and_y()
-# test_x = preprocess_images(test_x)
-
-train_x_orig, train_y, test_x_orig, test_y, classes = load_data()
-
-train_x_flatten = train_x_orig.reshape(train_x_orig.shape[0], -1).T
-train_x = train_x_flatten / 255
-test_x_flatten = test_x_orig.reshape(test_x_orig.shape[0], -1).T
-test_x = test_x_flatten / 255
-
-pred_train = predict(train_x, train_y, parameters)
-pred_test = predict(test_x, test_y, parameters)
+# pred_train = predict(train_x, train_y, parameters)
+# pred_test = predict(test_x, test_y, parameters)
 
 # print("Train predictions: " + str(pred_train))
 # print("Test predictions: " + str(pred_test))
@@ -173,10 +165,10 @@ pred_test = predict(test_x, test_y, parameters)
 # test_image("test/cat/00000001_000.jpg", 1, parameters)
 # test_image("test/noncat/horse-60.jpg", 0, parameters)
 # test_image("train/cat/cat.99.jpg", 1, parameters)
-test_image_url("https://cdn.pixabay.com/photo/2024/01/29/20/40/cat-8540772_1280.jpg", 1, parameters)
-test_image_url("https://cdn.pixabay.com/photo/2024/02/17/00/18/cat-8578562_1280.jpg", 1, parameters)
-test_image_url("https://cdn.pixabay.com/photo/2023/06/29/10/33/lion-8096155_1280.png", 0, parameters)
-test_image_url("https://cdn.pixabay.com/photo/2016/03/27/21/52/woman-1284411_1280.jpg", 0, parameters)
+# print(test_image_url("https://cdn.pixabay.com/photo/2024/01/29/20/40/cat-8540772_1280.jpg", parameters))
+# print(test_image_url("https://cdn.pixabay.com/photo/2024/02/17/00/18/cat-8578562_1280.jpg", parameters))
+# print(test_image_url("https://cdn.pixabay.com/photo/2023/06/29/10/33/lion-8096155_1280.png",parameters))
+# print(test_image_url("https://cdn.pixabay.com/photo/2016/03/27/21/52/woman-1284411_1280.jpg", parameters))
 
 
 

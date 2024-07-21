@@ -1,5 +1,4 @@
 
-
 def update_parameters(parameters, grads, learning_rate):
     L = len(parameters) // 2
 

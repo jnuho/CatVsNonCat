@@ -1,4 +1,4 @@
-from .activation import *
+from backend.worker.cats.activation import *
 
 
 """
