@@ -12,9 +12,7 @@ authors:
     - junho
 ---
 
-<img src="https://imgur.com/DwRBYMd.png" alt="EKS architecture" width="550">
-
-<p style="text-align: center;"><b>NLB</b> with Nginx Ingress Controller</p>
+<img src="https://imgur.com/DwRBYMd.png" alt="EKS architecture" width="600">
 
 # CatVsNonCat
 
@@ -25,14 +23,12 @@ I documented **`Kubernetes`** implementation, in which I configured external acc
 
 <!-- more -->
 
-
-<img src="https://imgur.com/VbKBWdO.gif" alt="demo" width="720"> | <img src="https://imgur.com/b69kvRA.png" alt="demo" width="250">
---|--
+<img src="https://imgur.com/VbKBWdO.gif" alt="demo" width="650">
 
 [↑ Back to top](#)
 <br>
 
-Github Repository : github.com/jnuho/CatVsNonCat
+Github Repository : [CatVsNonCat](https://github.com/jnuho/CatVsNonCat)
 
 - [`Motivation`](#motivation)
 - [`Why Kuberenetes?`](#why-kubernetes)
@@ -218,13 +214,12 @@ Nginx Ingress Controller is a 3rd party implementation of Ingress controller.
     <!-- - Traffic flow: `AWS NLB ->  Nginx ingress controller ->(Ingres Rule) Service -> Pod` -->
     <!-- - All the Ingresses use the same Load Balancer! COST and MAINTENANCE saved! -->
 
-| <img src="https://imgur.com/7QR1Wpn.png" alt="nginx-ingress-controller" width="480"> |
-| :--: |
+<img src="https://imgur.com/7QR1Wpn.png" alt="nginx-ingress-controller" width="480">
 
 
-| <img src="https://imgur.com/DwRBYMd.png" alt="EKS architecture" width="750"> |
-| :--: |
-| *<b>NLB</b> with Nginx Ingress Controller* |
+<img src="https://imgur.com/DwRBYMd.png" alt="EKS architecture" width="750">
+
+<div align="center">*<b>NLB</b> with Nginx Ingress Controller*</div>
 
 
 <img src="https://kubernetes.io/docs/images/ingress.svg" alt="ingress" width="520">
@@ -244,7 +239,7 @@ kubectl get ingressclass -A
 
 
 - Baremetal (To-be-tested)
-    - https://kubernetes.github.io/ingress-nginx/deploy/baremetal/
+    - [Link](https://kubernetes.github.io/ingress-nginx/deploy/baremetal)
     - A pure software solution: MetalLB
     - Over a NodePort Service
 
@@ -292,7 +287,7 @@ Kubernetes natively supports cloud environments, enabling seamless integration w
 
 - `Kubernetes`
     - AWS: EKS cluster with 3 worker nodes. Terraform to deploy EKS and AWS Load Balancer Controller and Ingress for exposing the app.
-    - Local: 3-node cluster w/ [microk8s](https://microk8s.io/docs/getting-started).
+    - Local: 3-node cluster with [microk8s](https://microk8s.io/docs/getting-started).
 - `Terraform` iac to create:
     - [`LINK`](https://blogd.org/blog/2024/07/01/eks-with-terraform-and-helm)
     - IAM Role and policy association with serviceaccount
