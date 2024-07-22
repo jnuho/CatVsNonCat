@@ -7,3 +7,6 @@ if ! minikube status | grep "Running" &> /dev/null; then
 else
     echo "Minikube cluster is already running."
 fi
+
+eval $(minikube -p minikube docker-env)
+

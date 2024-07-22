@@ -187,7 +187,7 @@ window.onload = function(){
     }
 
     const cityMap = {
-        "Los Angeles": "CA",
+        "Los Angeles": "LA",
         "Seattle": "WA",
         "Miami": "FL",
         "Austin": "TX",
@@ -204,7 +204,15 @@ window.onload = function(){
             var iconUrl = "https://openweathermap.org/img/wn/" + icon + ".png";
             
             // Do something with the extracted data
-            console.log(`City: ${name}, Temperature: ${temp}, Icon: ${iconUrl}`);
+            // console.log(`City: ${name}, Temperature: ${temp}, Icon: ${iconUrl}`);
+
+            const weatherContainer = document.querySelector('.weather-container');
+            const newCol = document.createElement('div');
+            newCol.className = `col-md-2`;
+            const newSmall = document.createElement('small');
+            newSmall.className = `weather${index + 1}`;
+            newCol.appendChild(newSmall);
+            weatherContainer.appendChild(newCol);
 
             // Select the element with the corresponding class name
             const weatherElement = document.querySelector(`.weather${index + 1}`);

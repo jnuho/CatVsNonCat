@@ -116,7 +116,7 @@ def test_image_url(img_url, parameters):
     p = predict_v2(X, parameters)
 
     L = len(parameters) // 2
-    return L + "-layer model predicts a \"" + classes[int(np.squeeze(p)),].decode("utf-8") +  "\" : " + img_url.split('/')[-1]
+    return str(L) + "-layer model predicts a \"" + classes[int(np.squeeze(p))].decode("utf-8") +  "\" : " + img_url.split('/')[-1]
 
 
 def test_image(img_name, my_label_y, parameters):
