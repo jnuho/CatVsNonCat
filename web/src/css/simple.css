@@ -1,9 +1,13 @@
+* {
+    font-family: Ubuntu Mono;
+}
 body {
-  background-color: #f9f9fa
+  background-color: #f9f9fa;
+  font-family: Ubuntu Mono;
 }
 
 .links{
-  font-size: .8rem;
+  font-size: .9rem;
 }
 .flex {
 
@@ -464,6 +468,13 @@ input[type="checkbox"] {
   display: flex !important
 }
 
-.weather-panel {
-    font-family: Courier, monospace;
+/* .weather-panel {
+    font-family: Ubuntu Mono;
 }
+
+.first-row, .second-row {
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+    background-color: rgba(86,61,124,.15);
+}
+ */
