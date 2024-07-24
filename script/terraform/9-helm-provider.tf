@@ -1,4 +1,13 @@
 
+
+# FOR MINIKUBE - LOCAL
+# provider "helm" {
+#   kubernetes {
+#     config_path = "~/.kube/config"
+#   }
+# }
+
+# FOR EKS; dynamically obtain a token to athenticate with cluster
 data "aws_eks_cluster" "eks" {
   name = aws_eks_cluster.my-cluster.name
 }
@@ -6,7 +15,6 @@ data "aws_eks_cluster" "eks" {
 data "aws_eks_cluster_auth" "eks" {
   name = aws_eks_cluster.my-cluster.name
 }
-
 
 provider "helm" {
   kubernetes {

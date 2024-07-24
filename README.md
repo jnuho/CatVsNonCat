@@ -46,7 +46,8 @@ Github Repository : [CatVsNonCat](https://github.com/jnuho/CatVsNonCat)
     - [`minikube docker-env`](#minikube-docker-env)
 - [`IaC`](#iac)
     - [`Terraform`](#terraform)
-    - [`Helm`](#helm)
+    - [`Helm Chart`](#helm-chart)
+- [`ArgoCD`](#argocd)
 - [`TLS`](#tls)
 - [`Kubernetes for MLOps`](#kubernetes-for-mlops)
 - [`Appendix`](#appendix)
@@ -530,6 +531,14 @@ kubectl get ingressclass -A
 # external-nginx  k8s.io/ingress-nginx  <none>      20m
 ```
 
+| <img src="https://imgur.com/YpjRWc6.png" alt="pods" width="700"> |
+|:--:| 
+| *ingress resource* |
+
+| <img src="https://imgur.com/Ymkj2PH.png" alt="pods" width="400"> |
+|:--:| 
+| *aws load-balancer controller pod in `kube-system` namespace* |
+
 
 ### Helm Chart
 
@@ -653,23 +662,97 @@ helm uninstall tst-release
 <br><br>
 
 
-| <img src="https://imgur.com/YpjRWc6.png" alt="pods" width="700"> |
-|:--:| 
-| *ingress resource* |
+## ArgoCD
 
-| <img src="https://imgur.com/Ymkj2PH.png" alt="pods" width="400"> |
-|:--:| 
-| *aws load-balancer controller pod in `kube-system` namespace* |
+
+```sh
+helm repo add argo https://argoproj.github.io/argo-helm
+helm repo update
+
+helm search repo argocd
+helm show values argo/argo-cd --version 3.35.4 > argocd-defaults.yaml
+# Edit variables and apply
+vim argocd-defaults.yaml
+kubectl apply -f argocd-defaults.yaml
+```
+
+- You can use Terraform as well.
+
+```sh
+# Use Terraform for equivalent command as the following:
+# helm install argocd -n argocd --create-namespace argo/argo-cd --version 3.35.4 -f terraform/values/argocd.yaml
+terraform apply
+
+helm status argocd -n argocd
+# check for failing install
+helm list  --pending -A
+
+helm list -A
+k get pod -n argocd
+k get secrets -n argocd
+k get secrets argocd-intitial-admin-secret -o yaml -n argocd 
+echo -n "PASSWORKDKDKD" | base64 -d
+
+kubectl port-forward svc/argocd-server -n argocd 8080:80
+    http://localhost:8080
+    login with admin/password
+```
+
+
+- Create Git Repository for `yaml` and `helm` chart templates.
+
+```sh
+git clone new-repo
+```
+
+- Setup Dockerhub Account (and Create Repository only for private repo)
+
+```sh
+docker login --username jnuho
+docker pull nginx:1.23.3
+
+docker tag nginx:1.23.3 jnuho/nginx:v0.1.0
+docker push jnuho/nginx:v0.1.0
+
+# Write yaml/helm and push to repo
+git add .
+git commit -m 'add yaml/helm'
+git push origin main
+```
+
+- Configure argocd to watch for Git Repo (yaml/helm)
+    - Create `Application` CRDs for ArgoCD
+
+```sh
+kubectl apply -f script/argocd/application.yaml
+```
+
+
+- Workflow
+    - docker tag
+    - docker push
+    - Edit deployment.yaml's image tag
+        - git push to `cvn-yaml` Git Repo
+    - Argocd detects in 5 minutes
+        - manually `Sync` or
+        - edit application.yaml to automatically `Sync`
+    - Create `upgrade.sh`
+        - Run: ./upgrade.sh v0.1.3
+
 
 
 [↑ Back to top](#)
 <br><br>
+
 
 ## TLS
 
 Self-signed SSL/TLS Certificate vs. CA Certificate
 
 The difference between a CA certificate and a self-signed certificate is the issuer of the certificate. 
+
+[↑ Back to top](#)
+<br><br>
 
 
 ## Kubernetes for MLOps
@@ -1000,7 +1083,7 @@ docker context use default
     default
     Current context is now "default"
 
-minikube start
+minikube start --kubernetes-version=v1.30.3 --drvier=docker
 ```
 
 
@@ -1445,7 +1528,7 @@ https://stackoverflow.com/a/73735009
 
 ```sh
 # minikube start --cpus 4 --memory 4096
-minikube start
+minikube start --kubernetes-version=v1.30.3 --drvier=docker
 minikube addons enable ingress
 minikube addons enable ingress-dns
 
