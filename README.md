@@ -484,7 +484,9 @@ eval $(minikube -p minikube docker-env --unset)
 
 ### Terraform
 
-- [terraform scripts in repository](https://github.com/jnuho/CatVsNonCat/tree/main/script/terraform)
+- [.gitignore practice](https://developer.hashicorp.com/terraform/language/style#gitignore)
+
+- [terraform scripts](https://github.com/jnuho/CatVsNonCat/tree/main/script/terraform)
 - VPC, Subnet, igw, nat, route table, etc.
 - IAM role with assume-role-policy
     - attach the required Amazon EKS IAM managed policy to it.
@@ -1223,13 +1225,13 @@ k get ClusterRole | grep ingress
     ingress-nginx                                                                                                                    2024-04-30T07:01:05Z
 
 k get all
-    NAME                                                                                     READY     STATUS        RESTARTS     AGE
-    pod/ingress-nginx-controller-cf668668c-zvkd9     1/1         Running     0                    44s
+    NAME                                           READY     STATUS    RESTARTS     AGE
+    pod/ingress-nginx-controller-cf668668c-zvkd9   1/1       Running   0            44s
 
-    NAME                                                                                 TYPE                     CLUSTER-IP             EXTERNAL-IP     PORT(S)                                            AGE
-    service/ingress-nginx-controller                         LoadBalancer     10.100.168.236     <pending>         80:32020/TCP,443:31346/TCP     44s
-    service/ingress-nginx-controller-admission     ClusterIP            10.107.208.79        <none>                443/TCP                                            44s
-    service/kubernetes                                                     ClusterIP            10.96.0.1                <none>                443/TCP                                            4m8s
+    NAME                                                                                 TYPE         CLUSTER-IP             EXTERNAL-IP     PORT(S)                                            AGE
+    service/ingress-nginx-controller               LoadBalancer     10.100.168.236       <pending>    80:32020/TCP,443:31346/TCP     44s
+    service/ingress-nginx-controller-admission     ClusterIP            10.107.208.79    <none>       443/TCP                                            44s
+    service/kubernetes                             ClusterIP            10.96.0.1        <none>       443/TCP                                            4m8s
 
     NAME                                                                             READY     UP-TO-DATE     AVAILABLE     AGE
     deployment.apps/ingress-nginx-controller     1/1         1                        1                     44s

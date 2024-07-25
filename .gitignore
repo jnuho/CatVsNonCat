@@ -69,10 +69,10 @@ override.tf.json
 # Ignore CLI configuration files
 .terraformrc
 terraform.rc
-.terraform.lock.hcl
 
 
-# Helm chart files
+
+# HELM CHART
 # General files for the project
 # pkg/*
 *.pyc
