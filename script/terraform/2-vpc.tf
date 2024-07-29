@@ -1,16 +1,16 @@
 // vpc
 resource "aws_vpc" "main" {
   # CIDR block for the VPC
-  cidr_block = "172.16.0.0/16"
+  cidr_block = var.cidr_block
 
   # Enables DNS hostnames for instances in the VPC
   # instances will receive DNS hostnames that can be resolved to their private IP addresses.
 
   # Required for EKS. Enables DNS support for the VPC
-  enable_dns_support = true
+  enable_dns_support = var.enable_dns_support
 
   # Required for EKS. Enables DNS hostnames for instances in the VPC
-  enable_dns_hostnames = true
+  enable_dns_hostnames = var.enable_dns_hostnames
 
   tags = {
     "Name" = "${var.env}-main"

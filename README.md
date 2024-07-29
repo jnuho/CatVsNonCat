@@ -542,6 +542,15 @@ kubectl get ingressclass -A
 | *aws load-balancer controller pod in `kube-system` namespace* |
 
 
+```sh
+git clone https://github.com/jnuho/terraform-aws-vpc.git
+cd terraform-aws-vpc
+git add .
+git commit -m 'create vpc module'
+git tag 0.1.0
+git push origin main --tags
+```
+
 ### Helm Chart
 
 

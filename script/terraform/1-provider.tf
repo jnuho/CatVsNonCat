@@ -9,6 +9,12 @@ provider "aws" {
 
 # terraform version constraints
 terraform {
+  backend "s3" {
+    bucket = "tfstate-s3-stage"
+    key = "eks/terraform.tfstate"
+    region="ap-northeast-2"
+  }
+
   required_version = ">= 1.0"
 
   required_providers {
