@@ -9,13 +9,13 @@
     images:
       - name: fe-nginx
         tag: latest
-        dockerfile: dockerfiles/Dockerfile-nginx
+        dockerfile: Dockerfile-nginx
       - name: be-go
         tag: latest
-        dockerfile: dockerfiles/Dockerfile-go
+        dockerfile: Dockerfile-go
       - name: be-py
         tag: latest
-        dockerfile: dockerfiles/Dockerfile-py
+        dockerfile: Dockerfile-py
 
 
   # will always run prior to tasks
@@ -49,11 +49,11 @@
       #debug:
         #msg: "Current directory is: {{ current_directory.stdout }}"
 
-    - name: Build image if it's not already built.
+    - name: Build image
       docker_image:
         build:
           path: '{{ current_directory.stdout }}/{{ project_name }}'
-          dockerfile: '{{ item.dockerfile }}'
+          dockerfile: 'dockerfiles/{{ item.dockerfile }}'
           pull: false
         name: '{{ item.name }}'
         tag: '{{ item.tag }}'
