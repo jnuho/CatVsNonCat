@@ -9,7 +9,6 @@ RUN go build -o hello cmd/hello
 # new image
 FROM alpine:latest
 
-WORKDIR /app
 COPY --from=build /app/hello /usr/local/bin/hello
 
 EXPOSE 8080
