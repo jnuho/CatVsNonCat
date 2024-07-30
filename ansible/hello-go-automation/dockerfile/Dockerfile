@@ -4,13 +4,13 @@ WORKDIR /app
 
 COPY cmd cmd
 
-RUN go build -o hello  cmd/hello
+RUN go build -o hello cmd/hello
 
 # new image
 FROM alpine:latest
 
 WORKDIR /app
-COPY --from=build /app/cmd/hello /usr/local/bin/hello
+COPY --from=build /app/hello /usr/local/bin/hello
 
 EXPOSE 8080
 
