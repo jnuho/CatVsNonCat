@@ -1,5 +1,6 @@
 ---
 - hosts: remote
+  # disable storing environment information in variables before it begins running tasks.
   gather_facts: false
 
   # The task also registers the returned value (and some other metadata) into a new variable current_date

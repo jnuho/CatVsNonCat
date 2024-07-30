@@ -1,0 +1,35 @@
+---
+- hosts: k8s-master
+  # disable storing environment information in variables before it begins running tasks.
+  gather_facts: false
+
+  vars:
+    #ansible_python_interpreter: '{{ ansible_playbook_python }}'
+    image_name: hello-go
+
+  # will always run prior to tasks
+  pre_tasks:
+    - name: Check Minikube's status.
+      command: minikube status
+      register: minikube_status
+      changed_when: false
+      ignore_errors: true
+    - name: Start Minikube if it's not running.
+      command: minikube start
+      when: "not minikube_status.stdout or 'Running' not in minikube_status.stdout"
+
+  tasks:
+    # Build the hello-go Docker image inside Minikube's environment
+    - name: Get existing image hash.
+      shell: |
+        eval $(minikube docker-env)
+        docker images -q {{ image_name }}
+      register: image_hash
+      changed_when: false
+    - name: Build image if it's not already built.
+      shell: |
+        eval $(minikube docker-env)
+        docker build -t {{ image_name }} ../hello-go
+      when: not image_hash.stdout
+
+
