@@ -41,7 +41,7 @@
     - name: Build image if it's not already built.
       docker_image:
         build:
-          path: '{{ current_directory.stdout }}/{{ project_name }}/dockerfiles/fe'
+          path: '{{ current_directory.stdout }}/{{ project_name }}/dockerfiles/fe-nginx'
           pull: false
         name: '{{ image_name }}'
         tag: '{{ image_name }}'
