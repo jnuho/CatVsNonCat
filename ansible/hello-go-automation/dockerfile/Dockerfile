@@ -4,7 +4,7 @@ WORKDIR /app
 
 COPY cmd cmd
 
-RUN go build cmd/hello/main.go
+RUN go build -o hello  cmd/hello
 
 # new image
 FROM alpine:latest
