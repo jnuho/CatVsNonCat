@@ -1,0 +1,15 @@
+---
+- hosts: remote
+  gather_facts: false
+
+  # The task also registers the returned value (and some other metadata) into a new variable current_date
+  tasks:
+    - name: Get the current date.
+      command: date
+      register: current_date
+      changed_when: false
+    # For debug, you can either pass a var (variable) or msg (message).
+    - name: Print the current date.
+      debug:
+        msg: "k8s-master {{ current_date.stdout }}"
+
