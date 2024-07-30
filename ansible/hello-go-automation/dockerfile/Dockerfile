@@ -2,7 +2,7 @@ FROM golang:1.22.3-alpine AS build
 
 WORKDIR /app
 
-COPY ../cmd cmd
+COPY ansible/hello-go-automation/cmd cmd
 
 RUN go build cmd/hello/hello.go
 
