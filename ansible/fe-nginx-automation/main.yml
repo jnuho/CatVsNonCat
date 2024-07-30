@@ -24,18 +24,19 @@
     - name: Get existing image hash.
       shell: |
         eval $(minikube docker-env)
-        docker images -q {{ image_name }}
+        docker images -q '{{ image_name }}:{{ image_tag }}'
       register: image_hash
       changed_when: false
 
     - name: Build image if it's not already built.
       docker_image:
         build:
-          path: CatVsNonCat/dockerfiles/Dockerfile-nginx
+          path: ../../dockerfiles/Dockerfile-nginx
           pull: false
         name: '{{ image_name }}'
         tag: '{{ image_name }}'
         source: build
+      when: not image_hash.stdout
 
     #- name: Verify be-go is responding.
         #uri:
