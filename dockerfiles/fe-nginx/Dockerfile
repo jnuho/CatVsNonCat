@@ -26,7 +26,7 @@ RUN rm /etc/nginx/conf.d/default.conf
 
 # Replace it with our custom Nginx configuration file
 # COPY ./web/simple.conf /etc/nginx/conf.d/
-COPY ./web/simple.conf /etc/nginx/conf.d/
+COPY ../../web/simple.conf /etc/nginx/conf.d/
 
 
 # Create /var/log/nginx/ directory and symbolic links for access.log and error.log
@@ -40,11 +40,8 @@ RUN mkdir -p /var/log/nginx/ && \
     ln -sf /dev/stderr /var/log/nginx/error.log
 
 # Copy static files to a different directory in the Nginx server
-COPY ./web/src /usr/share/nginx/html/src
-COPY ./web/index.html /usr/share/nginx/html
-COPY ./web/favicon.ico /usr/share/nginx/html
-#COPY ./web/src /usr/local/openresty/nginx/html/src
-#COPY ./web/index.html /usr/local/openresty/nginx/html
+COPY ../web /usr/share/nginx/html
+#COPY ./web /usr/local/openresty/nginx/html
 
 
 # Expose port 80
