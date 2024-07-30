@@ -5,6 +5,7 @@
 
   vars:
     #ansible_python_interpreter: '{{ ansible_playbook_python }}'
+    project_name: CatVsNonCat
     image_name: fe-nginx
     image_tag: latest
 
@@ -15,6 +16,7 @@
       register: minikube_status
       changed_when: false
       ignore_errors: true
+
     - name: Start Minikube if it's not running.
       command: minikube start
       when: "not minikube_status.stdout or 'Running' not in minikube_status.stdout"
@@ -28,10 +30,18 @@
       register: image_hash
       changed_when: false
 
+    - name: Print current working directory
+      command: pwd
+      register: current_directory
+
+    - name: Print current directory
+      debug:
+        msg: "Current directory is: {{ current_directory.stdout }}"
+
     - name: Build image if it's not already built.
       docker_image:
         build:
-          path: ../../dockerfiles/Dockerfile-nginx
+          path: '{{ current_directory.stdout }}/{{ project_name }}/dockerfiles/fe'
           pull: false
         name: '{{ image_name }}'
         tag: '{{ image_name }}'
