@@ -6,8 +6,17 @@
   vars:
     #ansible_python_interpreter: '{{ ansible_playbook_python }}'
     project_name: CatVsNonCat
-    image_name: fe-nginx
-    image_tag: latest
+    images:
+      - name: fe-nginx
+        tag: latest
+        dockerfile: dockerfiles/Dockerfile-nginx
+      - name: be-go
+        tag: latest
+        dockerfile: dockerfiles/Dockerfile-go
+      - name: be-py
+        tag: latest
+        dockerfile: dockerfiles/Dockerfile-py
+
 
   # will always run prior to tasks
   pre_tasks:
@@ -18,36 +27,38 @@
       ignore_errors: true
 
     - name: Start Minikube if it's not running.
-      command: minikube start
+      command: minikube start --kubernetes-version=v1.30.3 --driver=docker --cpus 4 --memory 4g
       when: "not minikube_status.stdout or 'Running' not in minikube_status.stdout"
 
   tasks:
     # Build the fe-nginx Docker image inside Minikube's environment
-    - name: Get existing image hash.
-      shell: |
-        eval $(minikube docker-env)
-        docker images -q '{{ image_name }}:{{ image_tag }}'
-      register: image_hash
-      changed_when: false
+    #- name: Get existing image hash.
+      #shell: |
+        ##eval $(minikube docker-env)
+        #docker images -q '{{ image_name }}:{{ image_tag }}'
+      #register: image_hash
+      #changed_when: false
+    #- name: Print image hash
+      #debug:
+        #msg: "Image hash: {{ image_hash.stdout }}"
 
-    - name: Print current working directory
+    - name: Register current directory variable
       command: pwd
       register: current_directory
-
-    - name: Print current directory
-      debug:
-        msg: "Current directory is: {{ current_directory.stdout }}"
+    #- name: Print current directory
+      #debug:
+        #msg: "Current directory is: {{ current_directory.stdout }}"
 
     - name: Build image if it's not already built.
       docker_image:
         build:
           path: '{{ current_directory.stdout }}/{{ project_name }}'
-          dockerfile: dockerfiles/Dockerfile-nginx
+          dockerfile: '{{ item.dockerfile }}'
           pull: false
-        name: '{{ image_name }}'
-        tag: '{{ image_name }}'
+        name: '{{ item.name }}'
+        tag: '{{ item.tag }}'
         source: build
-      when: not image_hash.stdout
+      with_items: "{{ images }}"
 
     #- name: Verify be-go is responding.
         #uri:
