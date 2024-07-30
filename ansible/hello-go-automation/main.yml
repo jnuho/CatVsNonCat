@@ -29,7 +29,7 @@
     - name: Build image if it's not already built.
       shell: |
         eval $(minikube docker-env)
-        docker build -t {{ image_name }} CatVsNonCat/ansible/hello-go-automation/dockerfile
+        docker build -t {{ image_name }} -f dockerfile/Dockerfile CatVsNonCat/ansible/hello-go-automation
       when: not image_hash.stdout
 
 

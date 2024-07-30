@@ -2,8 +2,6 @@ FROM golang:1.22.3-alpine AS build
 
 WORKDIR /app
 
-RUN pwd
-RUN echo "LALLA"
 COPY cmd cmd
 
 RUN go build cmd/hello/hello.go
