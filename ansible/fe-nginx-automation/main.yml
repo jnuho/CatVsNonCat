@@ -31,7 +31,7 @@
     - name: Build image if it's not already built.
       docker_image:
         build:
-          path: ../../dockerfiles/Dockerfile-nginx
+          path: CatVsNonCat/dockerfiles/Dockerfile-nginx
           pull: false
         name: '{{ image_name }}'
         tag: '{{ image_name }}'
