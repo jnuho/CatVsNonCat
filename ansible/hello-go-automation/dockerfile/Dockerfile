@@ -10,7 +10,7 @@ RUN go build -o hello  cmd/hello
 FROM alpine:latest
 
 WORKDIR /app
-COPY --from=build /app/hello /app/hello
+COPY --from=build /app/cmd/hello /usr/local/bin/hello
 
 EXPOSE 8080
 
