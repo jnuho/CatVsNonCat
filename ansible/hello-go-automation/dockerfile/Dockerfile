@@ -7,7 +7,7 @@ COPY ../cmd cmd
 RUN go build cmd/hello/hello.go
 
 # new image
-FROM apline:latest
+FROM alpine:latest
 
 WORKDIR /app
 COPY --from=build /app/hello /app/hello
