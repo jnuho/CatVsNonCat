@@ -14,14 +14,12 @@ authors:
 
 <img src="https://imgur.com/DwRBYMd.png" alt="EKS architecture" width="600">
 
-# CatVsNonCat
+The CatVsNonCat image classifier uses a deep learning model with L layers to determine whether an image from a given URL contains a cat or not.
 
-The CatVsNonCat image classifier uses a trained deep learning model and `numpy` to determine whether an image, specified by a requested URL, contains a cat or not. It processes the image and displays the result of the prediction. `pytorch` integration is on progress.
-
-I documented **`Kubernetes`** implementation, in which I configured external access into the application on serveral environments, Cloud and On-premise. I used Nginx Ingress Controller, AWS Load Balancer Controller, NLB, ALB, and Service.
-
+I focused on implementing Kubernetes in an AWS environment. I used Nginx Ingress Controller to configure external access to the application.
 
 <!-- more -->
+
 
 <img src="https://imgur.com/VbKBWdO.gif" alt="demo" width="650">
 
@@ -29,6 +27,8 @@ I documented **`Kubernetes`** implementation, in which I configured external acc
 <br>
 
 Github Repository : [CatVsNonCat](https://github.com/jnuho/CatVsNonCat)
+
+# Table of Content
 
 - [Motivation](#motivation)
 - [Why Kuberenetes?](#why-kubernetes)
@@ -55,9 +55,11 @@ Github Repository : [CatVsNonCat](https://github.com/jnuho/CatVsNonCat)
 
 ## Motivation
 
-My initial goal was to **revisit** the [`skills`](#skills-used) I've acquired during my work experiences.
+My initial goal was to revisit the [`skills`](#skills-used) I've learned.
 
-I have a **great interest** in deep learning. So I decided to implement a Cat vs. Non-cat image classifier. The prediction model uses the following steps to train a Neural Network:
+Due to interest on deep learning, I decided to create a Cat vs. Non-cat image classifying model on Kubernetes environment.
+
+The prediction model uses the following steps to train a Neural Network:
 
 - Forward Propagation
     - <small>$a^{[l]}  = ReLU(z^{[l]})$ for $l=1,...L-1$</small>
@@ -91,8 +93,8 @@ def L_layer_model(
 
 ## Why Kubernetes?
 
-- While docker-compose <img src="https://i0.wp.com/codeblog.dotsandbrackets.com/wp-content/uploads/2016/10/compose-logo.jpg?w=27"> can be a reasonable choice for local development, it falls short in terms of scalability, load balancing, IaC support (Terraform, Helm), and seamless cloud-native integration.
-- Kubernetes offers a rich set of APIs to address these challenges.
+- While some tools such as docker and docker-compose <img src="https://i0.wp.com/codeblog.dotsandbrackets.com/wp-content/uploads/2016/10/compose-logo.jpg?w=27"> are reasonable choices, it falls short in terms of scalability, load balancing, IaC support (Terraform, Helm), and seamless cloud-native integration.
+- Kubernetes offers a rich set of APIs to address above challenges.
 - For local development, I chose <img src="https://blog.radwell.codes/wp-content/uploads/2021/05/minikube-logo-full.png" alt="minikube logo" width="75"> to align with Kuberentes best practices. This `consistency` ensures a smoother transition to <img src="https://diagrams.mingrammer.com/img/resources/aws/compute/elastic-kubernetes-service.png" alt="EKS logo" width="25"> EKS production.
 
 
