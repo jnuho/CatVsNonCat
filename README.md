@@ -14,7 +14,7 @@ authors:
 
 <img src="https://imgur.com/DwRBYMd.png" alt="EKS architecture" width="600">
 
-The CatVsNonCat image classifier uses a deep learning model with L layers to determine whether an image from a given URL contains a cat or not.
+The CatVsNonCat image classifier uses a deep learning model to determine whether an image from a given URL contains a cat or not.
 
 I focused on implementing Kubernetes in an AWS environment. I used Nginx Ingress Controller to configure external access to the application.
 
@@ -57,7 +57,7 @@ Github Repository : [CatVsNonCat](https://github.com/jnuho/CatVsNonCat)
 
 My initial goal was to revisit the [`skills`](#skills-used) I've learned.
 
-Due to interest on deep learning, I decided to create a Cat vs. Non-cat image classifying model on Kubernetes environment.
+With my recent interest on deep learning, I decided to create a Cat image classifying application on Kubernetes environment.
 
 The prediction model uses the following steps to train a Neural Network:
 
@@ -93,8 +93,8 @@ def L_layer_model(
 
 ## Why Kubernetes?
 
-- While some tools such as docker and docker-compose <img src="https://i0.wp.com/codeblog.dotsandbrackets.com/wp-content/uploads/2016/10/compose-logo.jpg?w=27"> are reasonable choices, it falls short in terms of scalability, load balancing, IaC support (Terraform, Helm), and seamless cloud-native integration.
-- Kubernetes offers a rich set of APIs to address above challenges.
+- While docker and docker-compose <img src="https://i0.wp.com/codeblog.dotsandbrackets.com/wp-content/uploads/2016/10/compose-logo.jpg?w=27"> can be used for deploying a web application, it falls short in terms of scalability, load balancing, IaC support (Terraform, Helm), and seamless cloud-native integration.
+- Kubernetes offers a rich set of APIs to address above challenges to manage Microservices.
 - For local development, I chose <img src="https://blog.radwell.codes/wp-content/uploads/2021/05/minikube-logo-full.png" alt="minikube logo" width="75"> to align with Kuberentes best practices. This `consistency` ensures a smoother transition to <img src="https://diagrams.mingrammer.com/img/resources/aws/compute/elastic-kubernetes-service.png" alt="EKS logo" width="25"> EKS production.
 
 
