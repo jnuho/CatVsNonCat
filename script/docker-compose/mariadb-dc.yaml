@@ -1,0 +1,19 @@
+services:
+  mariadb-001:
+    container_name: mariadb-001
+    image: mariadb:10.6.5
+    restart: always
+    environment:
+      MARIADB_ROOT_PASSWORD: 1234
+    volumes:
+      - ./data:/var/lib/mysql:rw
+      - ./mariadb_custom.cnf:/etc/mysql/conf.d/mariadb_custom.cnf
+
+networks:
+  mynetwork:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.16.6.0/24
+

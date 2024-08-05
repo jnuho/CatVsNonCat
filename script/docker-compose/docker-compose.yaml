@@ -1,13 +1,40 @@
 services:
-  mariadb-001:
-    container_name: mariadb-001
-    image: mariadb:10.6.5
+  fe-nginx:
+    build:
+      context: ../../
+      dockerfile: ./dockerfiles/Dockerfile-nginx
+    # hostPort:containerPort
+    ports:
+      - 8080:80
+    depends_on:
+      - be-go
+      - be-py
+    networks:
+      - mynetwork
     restart: always
-    environment:
-      MARIADB_ROOT_PASSWORD: 1234
-    volumes:
-      - ./data:/var/lib/mysql:rw
-      - ./mariadb_custom.cnf:/etc/mysql/conf.d/mariadb_custom.cnf
+
+  be-go:
+    build:
+      context: ../../
+      dockerfile: ./dockerfiles/Dockerfile-go
+    ports:
+      - 3001:3001
+    depends_on:
+      - be-py
+    networks:
+      - mynetwork
+    restart: always
+
+  be-py:
+    build:
+      context: ../../
+      dockerfile: ./dockerfiles/Dockerfile-py
+    ports:
+      - 3002:3002
+    networks:
+      - mynetwork
+    restart: always
+
 
 networks:
   mynetwork:

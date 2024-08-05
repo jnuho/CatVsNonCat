@@ -1,4 +1,0 @@
-{{- range .Values.services }}
-{{- include "tst-chart.deployment" (dict "Values" . "Chart" $.Chart "Release" $.Release) }}
----
-{{- end }}
