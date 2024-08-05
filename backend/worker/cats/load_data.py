@@ -1,12 +1,11 @@
 import numpy as np
-import h5py
 # import scipy
 # from scipy import ndimage
 import os
 import imageio.v3 as iio
 from skimage.transform import resize
 # from dnn_app_utils_v3 import *
-
+import h5py
 
 def load_data():
     # Find the path to the datasets
