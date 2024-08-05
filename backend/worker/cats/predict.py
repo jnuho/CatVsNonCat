@@ -83,7 +83,8 @@ def predict(X, y, parameters):
 
 
 def test_image_url(img_url, parameters):
-    _, _, _, _, classes = load_data()
+    # _, _, _, _, classes = load_data()
+    classes = [b'non-cat', b'cat']
 
     response = requests.get(img_url)
     X = Image.open(BytesIO(response.content))
@@ -120,7 +121,8 @@ def test_image_url(img_url, parameters):
 
 
 def test_image(img_name, my_label_y, parameters):
-    _, _, _, _, classes = load_data()
+    # _, _, _, _, classes = load_data()
+    classes = [b'non-cat', b'cat']
 
     #DeprecationWarning: Starting with ImageIO v3 the behavior of this function will switch to that of iio.v3.imread. To keep the current behavior (and make this warning disappear) use `import imageio.v2 as imageio` or call `imageio.v2.imread` directly.
     num_px = 64
