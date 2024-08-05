@@ -42,6 +42,7 @@ jobs:
         file: ./dockerfiles/Dockerfile-nginx
         push: true
         tags: jnuho/fe-nginx:latest
+        platforms: linux/amd64,linux/arm64
         cache-from: type=registry,ref=jnuho/fe-nginx:latest
         cache-to: type=inline
 
@@ -76,6 +77,7 @@ jobs:
         file: ./dockerfiles/Dockerfile-go
         push: true
         tags: jnuho/be-go:latest
+        platforms: linux/amd64,linux/arm64
         cache-from: type=registry,ref=jnuho/be-go:latest
         cache-to: type=inline
 
@@ -103,5 +105,6 @@ jobs:
         file: ./dockerfiles/Dockerfile-py
         push: true
         tags: jnuho/be-py:latest
+        platforms: linux/amd64,linux/arm64
         cache-from: type=registry,ref=jnuho/be-py:latest
         cache-to: type=inline

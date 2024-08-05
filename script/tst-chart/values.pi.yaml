@@ -11,7 +11,7 @@ services:
       # targetMemoryUtilizationPercentage: 70
     revisionHistoryLimit: 3
     image:
-      repository: jnuho/fe-nginx
+      repository: jnuho/fe-nginx-arm
       # Overrides the image tag whose default is the chart appVersion.
       #tag: ""
       tag: "latest"
@@ -99,7 +99,7 @@ services:
     #   enabled: false
     revisionHistoryLimit: 3
     image:
-      repository: jnuho/be-go
+      repository: jnuho/be-go-arm
       tag: "latest"
       # pullPolicy: IfNotPresent
       pullPolicy: Always
@@ -116,7 +116,7 @@ services:
     #   enabled: false
     revisionHistoryLimit: 3
     image:
-      repository: jnuho/be-py
+      repository: jnuho/be-py-arm
       tag: "latest"
       # pullPolicy: IfNotPresent
       pullPolicy: Always

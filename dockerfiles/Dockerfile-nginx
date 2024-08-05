@@ -1,31 +1,12 @@
-# FROM node:14
+FROM nginx:alpine AS base
 
-# # Create app node
-# WORKDIR /usr/src/app
-
-# # Install app dependencies
-# # A wildcard is used to ensure both package.json AND package-lock.json are copied
-# # where available (npm@5+)
-# # Copying package.json and package-lock.json before running npm install
-# # to ensure that the correct version of npm is used to install dependencies
-# COPY package*.json ./
-# RUN npm install
-
-# # Bundle app source
-# COPY *.js ./
-# EXPOSE 8080
-# CMD [ "node", "server.js" ]
-
-FROM nginx:alpine
-# Use an official OpenResty image as the base image
-#FROM openresty/openresty:alpine
-
+# Use multi-arch image
+#FROM --platform=$TARGETPLATFORM base
 
 # Remove the default Nginx configuration file
 RUN rm /etc/nginx/conf.d/default.conf
 
 # Replace it with our custom Nginx configuration file
-# COPY ./web/simple.conf /etc/nginx/conf.d/
 COPY ./web/simple.conf /etc/nginx/conf.d/
 
 
@@ -43,9 +24,6 @@ RUN mkdir -p /var/log/nginx/ && \
 COPY ./web/src /usr/share/nginx/html/src
 COPY ./web/index.html /usr/share/nginx/html
 COPY ./web/favicon.ico /usr/share/nginx/html
-#COPY ./web/src /usr/local/openresty/nginx/html/src
-#COPY ./web/index.html /usr/local/openresty/nginx/html
-
 
 # Expose port 80
 EXPOSE 80
@@ -53,5 +31,4 @@ EXPOSE 80
 # Start Nginx when the container has provisioned
 # NOTE : 'nginx -t' to check syntax error before deploying!
 CMD ["nginx", "-g", "daemon off;"]
-#CMD ["openresty", "-g", "daemon off;"]
 

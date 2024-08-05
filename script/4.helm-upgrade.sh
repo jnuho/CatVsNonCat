@@ -10,6 +10,6 @@ elif [[ "$current_context" == *"aws:eks"* ]]; then
     aws eks update-kubeconfig --region ap-northeast-2 --name my-cluster --profile terraform
     helm upgrade tst-release ./tst-chart -f ./tst-chart/values.prd.AWS.L4.ingress.controller.yaml
 else
-    #echo "NO KUBERNETES CONTEXT FOUND!"
+    echo "NO KUBERNETES CONTEXT FOUND!"
 fi
 

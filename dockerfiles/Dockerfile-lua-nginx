@@ -1,3 +1,22 @@
+# FROM node:14
+
+# # Create app node
+# WORKDIR /usr/src/app
+
+# # Install app dependencies
+# # A wildcard is used to ensure both package.json AND package-lock.json are copied
+# # where available (npm@5+)
+# # Copying package.json and package-lock.json before running npm install
+# # to ensure that the correct version of npm is used to install dependencies
+# COPY package*.json ./
+# RUN npm install
+
+# # Bundle app source
+# COPY *.js ./
+# EXPOSE 8080
+# CMD [ "node", "server.js" ]
+
+
 # FROM nginx:alpine
 # Use an official OpenResty image as the base image
 FROM openresty/openresty:alpine
