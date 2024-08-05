@@ -12,7 +12,7 @@ authors:
     - junho
 ---
 
-<img src="https://imgur.com/DwRBYMd.png" alt="EKS architecture" width="600">
+<img src="https://imgur.com/DwRBYMd.png" alt="EKS architecture" width="500">
 
 The CatVsNonCat image classifier uses a deep learning model to determine whether an image from a given URL contains a cat or not.
 
@@ -21,7 +21,7 @@ I focused on implementing Kubernetes in an AWS environment. I used Nginx Ingress
 <!-- more -->
 
 
-<img src="https://imgur.com/VbKBWdO.gif" alt="demo" width="650">
+<img src="https://imgur.com/VbKBWdO.gif" alt="demo" width="600">
 
 [↑ Back to top](#)
 <br>
@@ -105,9 +105,7 @@ Load Balancing           | Requires manual setup (e.g., HAProxy)| Support [Load 
 IaC Support | Resticted to docker compose cli | Terraform, Helm for fast and reliable resource provisioning (*< ~15 minutes*)
 
 
-| <img src="https://imgur.com/qqDsoa2.png" alt="dc vs k8s" width="500"> |
-| :--: |
-|  *docker-compose vs. Kubernetes* |
+<img src="https://imgur.com/qqDsoa2.png" alt="dc vs k8s" width="450">
 
 [↑ Back to top](#)
 <br><br>
@@ -117,7 +115,7 @@ IaC Support | Resticted to docker compose cli | Terraform, Helm for fast and rel
 Kubernetes offers orchestration of containerized applications across a cluster of nodes, ensuring scalability and high availability.
 
 
-<img src="https://imgur.com/KxETYaG.png" alt="ingress" width="720">
+<img src="https://imgur.com/KxETYaG.png" alt="ingress" width="700">
 
 #### Horizonal Pod Autoscaling
 
@@ -211,21 +209,23 @@ Nginx Ingress Controller is a 3rd party implementation of Ingress controller.
     - the Service of type LoadBalancer triggers the NLB creation during installation
 - it monitors `Ingress` resource:
     - for each Ingress being created, it is converted to Nignx native `Lua` configuration and routes to the target service! The controller acts as a proxy and redirects traffic into services.
-- Monitoring tools like `Prometheus` <img src="https://upload.wikimedia.org/wikipedia/commons/3/38/Prometheus_software_logo.svg" width=28> can scrape metrics (traffic, latency, errors for all Ingresses) from the nginx ingress controller pod without implementing anything on the Application side!
+
+<img src="https://imgur.com/7QR1Wpn.png" alt="nginx-ingress-controller" width="420">
+
+- Monitoring tools like `Prometheus` <img src="https://upload.wikimedia.org/wikipedia/commons/3/38/Prometheus_software_logo.svg" width=20> can scrape metrics (traffic, latency, errors for all Ingresses) from the nginx ingress controller pod without implementing anything on the Application side!
     <!-- - must specify `ingressClassName` as the name of Ingress Nginx controller. (helm installing using Terraform, specify same name as this)
     - When you create an Ingress resource with the specified ingressClassName, the NGINX Ingress Controller reads the Ingress rules and updates its configuration accordingly. -->
     <!-- - Traffic flow: `AWS NLB ->  Nginx ingress controller ->(Ingres Rule) Service -> Pod` -->
     <!-- - All the Ingresses use the same Load Balancer! COST and MAINTENANCE saved! -->
 
-<img src="https://imgur.com/7QR1Wpn.png" alt="nginx-ingress-controller" width="480">
 
 
 <img src="https://imgur.com/DwRBYMd.png" alt="EKS architecture" width="750">
 
-<div align="center">*<b>NLB</b> with Nginx Ingress Controller*</div>
+<div align="center"><b>NLB</b> with Nginx Ingress Controller</div>
 
 
-<img src="https://kubernetes.io/docs/images/ingress.svg" alt="ingress" width="520">
+<img src="https://kubernetes.io/docs/images/ingress.svg" alt="ingress" width="500">
 
 <sub>Original image credited to kubernetes.io</sub>
 
