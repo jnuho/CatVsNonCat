@@ -11,7 +11,7 @@ services:
       # targetMemoryUtilizationPercentage: 70
     revisionHistoryLimit: 3
     image:
-      #repository: jnuho/fe-nginx-arm
+      #repository: jnuho/fe-nginx-arm64
       repository: jnuho/fe-nginx
       # Overrides the image tag whose default is the chart appVersion.
       #tag: ""
