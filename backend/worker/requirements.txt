@@ -1,5 +1,5 @@
 numpy
-h5py
+h5py==3.11.0
 matplotlib
 scipy
 imageio
