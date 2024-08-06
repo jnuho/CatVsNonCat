@@ -20,7 +20,7 @@ class Response(BaseModel):
     status: Optional[int] = None
     msg: Optional[str] = None
 
-@app.get("/healthz")
+@app.get("/healthz-py")
 async def read_root():
     return {"Hello": "World"}
 

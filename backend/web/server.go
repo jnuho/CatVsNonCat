@@ -37,7 +37,7 @@ func StartServer(ctx context.Context, host string, done chan<- error) {
 	// Apply the CORS middleware to the router
 	r.Use(corsConfig())
 
-	r.GET("/healthz", getMethodHandler)
+	r.GET("/healthz-go", getMethodHandler)
 	r.POST("/web/cat", catPostHandler)
 	r.POST("/weather", weatherPostHandler)
 	// r.POST("/weather", func(c *gin.Context) {
