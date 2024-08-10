@@ -1,9 +1,9 @@
-import numpy as np
+# import numpy as np
 # import scipy
 # from scipy import ndimage
-import os
-import imageio.v3 as iio
-from skimage.transform import resize
+# import os
+# import imageio.v3 as iio
+# from skimage.transform import resize
 # from dnn_app_utils_v3 import *
 # import h5py
 
@@ -30,58 +30,58 @@ from skimage.transform import resize
 #     return train_set_x_orig, train_set_y_orig, test_set_x_orig, test_set_y_orig, classes
 
 
-def convert_to_matrix(x, y, image_dir, num_px, my_label_y, offset):
-    # Get a list of all files in the directory
-    image_files = os.listdir(image_dir)
+# def convert_to_matrix(x, y, image_dir, num_px, my_label_y, offset):
+#     # Get a list of all files in the directory
+#     image_files = os.listdir(image_dir)
 
-    # Filter the list for files ending with '.jpg' and starting with '0000000'
-    image_files = [f for f in image_files if f.endswith('.jpg')]
+#     # Filter the list for files ending with '.jpg' and starting with '0000000'
+#     image_files = [f for f in image_files if f.endswith('.jpg')]
 
-    # Iterate over the image files
-    for i, image_file in enumerate(image_files):
-        # Full path to the image file
-        fname = os.path.join(image_dir, image_file)
+#     # Iterate over the image files
+#     for i, image_file in enumerate(image_files):
+#         # Full path to the image file
+#         fname = os.path.join(image_dir, image_file)
         
-        # Read and preprocess the image
-        image = np.array(iio.imread(fname))
-        my_image = resize(image, (num_px, num_px)).reshape((num_px*num_px*3,1))
-        my_image = my_image/255.
+#         # Read and preprocess the image
+#         image = np.array(iio.imread(fname))
+#         my_image = resize(image, (num_px, num_px)).reshape((num_px*num_px*3,1))
+#         my_image = my_image/255.
 
-        x[:, i+offset] = my_image.flatten()
-        y[:, i+offset] = my_label_y
+#         x[:, i+offset] = my_image.flatten()
+#         y[:, i+offset] = my_label_y
 
-    return x, y
+#     return x, y
 
 
-def load_test_x_and_y():
-    """
-    return
-    'test_x' (12288, 100) where 50 is non-cat
-    'test_y' (1, 100)
-    """
-    num_px = 64
+# def load_test_x_and_y():
+#     """
+#     return
+#     'test_x' (12288, 100) where 50 is non-cat
+#     'test_y' (1, 100)
+#     """
+#     num_px = 64
 
-    test_x = np.zeros((num_px * num_px * 3, 100))
-    test_y = np.zeros((1, 100))
+#     test_x = np.zeros((num_px * num_px * 3, 100))
+#     test_y = np.zeros((1, 100))
 
-    test_x, test_y = convert_to_matrix(test_x, test_y, "backend/worker/cats/images/test/cat/", num_px, my_label_y=1, offset=0)
-    test_x, test_y = convert_to_matrix(test_x, test_y, "backend/worker/cats/images/test/noncat/", num_px, my_label_y=0, offset=50)
+#     test_x, test_y = convert_to_matrix(test_x, test_y, "backend/worker/cats/images/test/cat/", num_px, my_label_y=1, offset=0)
+#     test_x, test_y = convert_to_matrix(test_x, test_y, "backend/worker/cats/images/test/noncat/", num_px, my_label_y=0, offset=50)
 
-    return test_x, test_y
+#     return test_x, test_y
 
-def load_train_x_and_y():
-    """
-    return
-    'train_x' (12288, 400) where 200 is non-cat
-    'train_y' (1, 400)
-    """
-    num_px = 64
+# def load_train_x_and_y():
+#     """
+#     return
+#     'train_x' (12288, 400) where 200 is non-cat
+#     'train_y' (1, 400)
+#     """
+#     num_px = 64
 
-    train_x = np.zeros((num_px * num_px * 3, 400))
-    train_y = np.zeros((1, 400))
+#     train_x = np.zeros((num_px * num_px * 3, 400))
+#     train_y = np.zeros((1, 400))
 
-    train_x, train_y = convert_to_matrix(train_x, train_y, "backend/worker/cats/images/train/cat/", num_px, my_label_y=1, offset=0)
-    train_x, train_y = convert_to_matrix(train_x, train_y, "backend/worker/cats/images/train/noncat/", num_px, my_label_y=0, offset=200)
+#     train_x, train_y = convert_to_matrix(train_x, train_y, "backend/worker/cats/images/train/cat/", num_px, my_label_y=1, offset=0)
+#     train_x, train_y = convert_to_matrix(train_x, train_y, "backend/worker/cats/images/train/noncat/", num_px, my_label_y=0, offset=200)
 
-    return train_x, train_y
+#     return train_x, train_y
 

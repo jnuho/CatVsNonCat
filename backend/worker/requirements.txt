@@ -1,9 +1,9 @@
 numpy
 # h5py==3.11.0
-matplotlib
-scipy
-imageio
-scikit-image
+# matplotlib
+# scipy
+# imageio
+# scikit-image
 
 # NOTE: PyScreeze depends on Pillow
 pillow
@@ -12,9 +12,8 @@ pillow
 # torchvision
 # scikit-learn
 
-requests
-
 fastapi
 pydantic
 pydantic_core
 uvicorn
+requests

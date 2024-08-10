@@ -13,11 +13,10 @@ FROM python:3.12.3-slim AS build
 #     rm -rf /var/lib/apt/lists/*
 
 # Set the working directory in the container to /app
-WORKDIR /python
+WORKDIR /app
 
-# Copy package.json and package-lock.json into the working directory
+# required libraries
 COPY ./backend/worker/requirements.txt ./
-COPY ./parameters.npz ./
 
 # Install the app dependencies inside the docker image
 RUN pip install --no-cache-dir -r requirements.txt
@@ -25,6 +24,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Define the command to run your app using CMD which defines your runtime
 COPY ./backend/worker .
+COPY ./parameters.npz ./
 
 EXPOSE 3002
 

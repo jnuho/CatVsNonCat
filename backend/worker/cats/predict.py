@@ -1,5 +1,5 @@
 import numpy as np
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 import requests
 from PIL import Image
 from io import BytesIO
@@ -144,7 +144,7 @@ def test_image(img_name, my_label_y, parameters):
 
     my_predicted_image = predict(my_image, my_label_y, parameters)
 
-    plt.imshow(img_name)
+    # plt.imshow(img_name)
     print ("y = " + str(np.squeeze(my_predicted_image)) + ", your L-layer model predicts a \"" + classes[int(np.squeeze(my_predicted_image)),].decode("utf-8") +  "\" picture: " + img_name)
 
 
