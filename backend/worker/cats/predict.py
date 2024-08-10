@@ -4,7 +4,6 @@ import requests
 from PIL import Image
 from io import BytesIO
 
-from .helper import *
 from .forward import *
 
 # plt.rcParams['figure.figsize'] = (5.0, 4.0) # set default size of plots
@@ -120,32 +119,32 @@ def test_image_url(img_url, parameters):
     return str(L) + "-layer model predicts a \"" + classes[int(np.squeeze(p))].decode("utf-8") +  "\" : " + img_url.split('/')[-1]
 
 
-def test_image(img_name, my_label_y, parameters):
-    # _, _, _, _, classes = load_data()
-    classes = [b'non-cat', b'cat']
+# def test_image(img_name, my_label_y, parameters):
+#     # _, _, _, _, classes = load_data()
+#     classes = [b'non-cat', b'cat']
 
-    #DeprecationWarning: Starting with ImageIO v3 the behavior of this function will switch to that of iio.v3.imread. To keep the current behavior (and make this warning disappear) use `import imageio.v2 as imageio` or call `imageio.v2.imread` directly.
-    num_px = 64
-    ## START CODE HERE ##
-    # base_path = os.path.dirname(os.path.abspath(__file__))
-    # my_image = os.path.join(base_path, 'cats/cat_body')
-    # my_image = "cats/cat_body.jpg" # change this to the name of your image file
-    # my_image = "my_image.jpg" # change this to the name of your image file
-    my_label_y = [my_label_y] # the true class of your image (1 -> cat, 0 -> non-cat)
-    ## END CODE HERE ##
+#     #DeprecationWarning: Starting with ImageIO v3 the behavior of this function will switch to that of iio.v3.imread. To keep the current behavior (and make this warning disappear) use `import imageio.v2 as imageio` or call `imageio.v2.imread` directly.
+#     num_px = 64
+#     ## START CODE HERE ##
+#     # base_path = os.path.dirname(os.path.abspath(__file__))
+#     # my_image = os.path.join(base_path, 'cats/cat_body')
+#     # my_image = "cats/cat_body.jpg" # change this to the name of your image file
+#     # my_image = "my_image.jpg" # change this to the name of your image file
+#     my_label_y = [my_label_y] # the true class of your image (1 -> cat, 0 -> non-cat)
+#     ## END CODE HERE ##
 
-    fname = "backend/worker/cats/images/" + img_name
-    # image = np.array(ndimage.imread(fname, flatten=False))
-    image = np.array(iio.imread(fname))
-    # my_image = scipy.misc.imresize(image, size=(num_px,num_px)).reshape((num_px*num_px*3,1))
-    my_image = resize(image, (num_px, num_px)).reshape((num_px*num_px*3,1))
-    # my_image = scipy.misc.imresize(image, size=(num_px,num_px)).reshape((num_px*num_px*3,1))
-    my_image = my_image/255.
+#     fname = "backend/worker/cats/images/" + img_name
+#     # image = np.array(ndimage.imread(fname, flatten=False))
+#     image = np.array(iio.imread(fname))
+#     # my_image = scipy.misc.imresize(image, size=(num_px,num_px)).reshape((num_px*num_px*3,1))
+#     my_image = resize(image, (num_px, num_px)).reshape((num_px*num_px*3,1))
+#     # my_image = scipy.misc.imresize(image, size=(num_px,num_px)).reshape((num_px*num_px*3,1))
+#     my_image = my_image/255.
 
-    my_predicted_image = predict(my_image, my_label_y, parameters)
+#     my_predicted_image = predict(my_image, my_label_y, parameters)
 
-    # plt.imshow(img_name)
-    print ("y = " + str(np.squeeze(my_predicted_image)) + ", your L-layer model predicts a \"" + classes[int(np.squeeze(my_predicted_image)),].decode("utf-8") +  "\" picture: " + img_name)
+#     # plt.imshow(img_name)
+#     print ("y = " + str(np.squeeze(my_predicted_image)) + ", your L-layer model predicts a \"" + classes[int(np.squeeze(my_predicted_image)),].decode("utf-8") +  "\" picture: " + img_name)
 
 
 
