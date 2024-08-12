@@ -1,89 +1,189 @@
 ---
 draft: false
-date: 2024-07-11
+date: 2024-08-01
 categories:
-    - Kubernetes
-    - Deep Learning
-    - Project
-    - EKS
-    - Terraform
-    - Helm
+  - Linux
 authors:
-    - junho
+  - junho
 ---
 
-<img src="https://imgur.com/DwRBYMd.png" alt="EKS architecture" width="500">
+I configured a Kubernetes cluster with `kubeadm` using 3 Raspberry pis.
 
-The CatVsNonCat image classifier uses a deep learning model to determine whether an image from a given URL contains a cat or not.
+<img src="https://upload.wikimedia.org/wikipedia/commons/3/39/Kubernetes_logo_without_workmark.svg" alt="k8s" width="50">
+<img src="https://kubernetes.io/images/kubeadm-stacked-color.png" alt="kubeadm" width="45">
+<img src="https://raw.githubusercontent.com/cncf/artwork/master/projects/containerd/horizontal/color/containerd-horizontal-color.png" alt="containerd" width="100">
+<img src="https://www.f5.com/content/dam/www/global-assets/partner-logos/ce-partner-logo/NGINX-Part-of-F5-horiz-black-type-525x208@2x.png" alt="nginx" width="110">
+<img src="https://imagej.net/media/icons/pi.svg" alt="pi" width="30">
+<img src="https://www.tigera.io/app/uploads/2020/03/Calico-logo.svg" alt="calico" width="110">      
 
-I focused on implementing Kubernetes in an AWS environment. I used Nginx Ingress Controller to configure external access to the application.
+<img src="https://i.imgur.com/Av7PzuR.jpg" alt="pi-cluster" width="500">
 
 <!-- more -->
 
+Kubernetes is a complex distributed system. By setting it up in home network, I explore inner workings of Kubernetes.
 
-<img src="https://imgur.com/VbKBWdO.gif" alt="demo" width="600">
-
-[↑ Back to top](#)
 <br>
 
-Github Repository : [CatVsNonCat](https://github.com/jnuho/CatVsNonCat)
+# Table of Contents
 
-# Table of Content
-
-- [Motivation](#motivation)
-- [Why Kuberenetes?](#why-kubernetes)
-    - [Scalability](#scalability)
-    - [Load Balancing](#load-balancing)
-        - [Nginx Ingress Controller](#nginx-ingress-controller)
-        - [AWS Load Balancer Controller](#aws-load-balancer-controller)
-- [Skill Used](#skill-used)
-- [Microservices](#microservices)
-    - [1.Frontend - Nginx](#frontend-nginx)
-    - [2. Backend - Golang](#backend-golang-web-server)
-    - [3. Backend - Python](#backend-python-web-server)
-- [Dockerize](#dockerize)
-    - [Multi-stage builds](multi-stage-builds)
-    - [minikube docker-env](#minikube-docker-env)
-- [IaC](#iac)
-    - [Terraform](#terraform)
-    - [Helm Chart](#helm-chart)
-- [ArgoCD](#argocd)
-- [TLS](#tls)
-- [Kubernetes for MLOps](#kubernetes-for-mlops)
-- [Appendix](#appendix)
+- [Raspberry Pi Setup](#raspberry-pi-setup)
+    - [Enable the external PCI Express port](#enable-the-external-pci-express-port)
+    - [Set NVMe early in the boot order](#set-nvme-early-in-the-boot-order)
+    - [Network settings](#network-settings)
+- [Kubernetes](#kubernetes)
+    - [Prerequisite](#prerequisite)
+    - [Container runtime](#container-runtime)
+        - [CRI-O](#cri-o)
+        - [containerd](#containerd)
+    - [Installing kubeadm, kubelet and kubectl](#installing-kubeadm-kubelet-and-kubectl)
+    - [Creating a cluster with kubeadm](#creating-a-cluster-with-kubeadm)
+    - [Troubleshooting kubeadm](#troubleshooting-kubeadm)
+    - [CNI: Calico](#cni-calico)
+    - [Control your cluster from other machines](#controlling-your-cluster-from-other-machines)
+- [Metrics server](#metrics-server)
+- [Nginx Ingress Controller](#nginx-ingress-controller)
+- [Metallb](#metallb)
+- [Docker Registry](#docker-registry)
+- [Argo CD](#argo-cd)
+- [Reference](#reference)
 
 
-## Motivation
+## Raspberry Pi Setup <a class="headerlink" href="#raspberry-pi-setup" title="Permanent link"> ¶</a>
 
-My initial goal was to revisit the [`skills`](#skills-used) I've learned.
 
-With my recent interest on deep learning, I decided to create a Cat image classifying application on Kubernetes environment.
+You need to have minimum 1 master node and 1 worker node. To make the cluster highly available, odd number of master node (1, 3, 5 ...) and more than 2 worker nodes are ideal. I chose SSD over microSD card which seemed to have poor performance and lack durability. Installing NVME SSD requires M.2 HAT+ and additional configuration in Linux.
 
-The prediction model uses the following steps to train a Neural Network:
+- Hardware
+    - 3 x Raspberry pi 5 (1 master, 2 workers)
+        - 8GB Memory, 4-core CPU
+    - 3 x Raspberry Pi M.2 HAT+  (1 master, 2 workers)
+    - 3 x Raspberry Pi Active Cooler
+    - 3 x SSD: SK Hynix BC901 256GB
+    - 3 x Ethernet cable
+    - 3 x Usb-C cable (power adapter ideally >= 25W = 5A x 5V)
+    - 1 x TP LINK Switch Hub TL-SG105
 
-- Forward Propagation
-    - <small>$a^{[l]}  = ReLU(z^{[l]})$ for $l=1,...L-1$</small>
-    - <small>$a^{[l]}  = \sigma(z^{[l]})$ for $l=L$</small>
-- Compute cost
-- Backward Propagation
-- Gradient descent (Update parameters -  $\omega$, $b$)
+Now, configure NVMD SSD Boot! [LINK](https://www.jeffgeerling.com/blog/2023/nvme-ssd-boot-raspberry-pi-5).
 
-<img src="https://miro.medium.com/v2/resize:fit:640/format:webp/1*iNPHcCxIvcm7RwkRaMTx1g.jpeg" alt="gradient descent" width="300">
+### Enable the external PCI Express port
 
-<sub>Original image credited to towardsdatascience.com</sub>
 
-- jupyter [notebook](https://blogd.org/blog/2024/05/31/deep-neural-network-for-image-classification)
+```sh
+sudo vim /boot/firmware/config.txt
 
-```python
-def L_layer_model(
-        parameters = init_params(layers_dims: List[int]),
-        X: np.ndarray,
-        Y: np.ndarray,
-        layers_dims: List[int],
-        learning_rate: float = 0.0075,
-        num_iterations: int = 3000)
-    # RETURNS Updated `parameters` and `costs`
-    -> Tuple[dict, List[float]]:
+# Add to bottom of /boot/firmware/config.txt
+dtparam=pciex1
+
+# Note: You could also just add the following (it is an alias to the above line)
+# dtparam=nvme
+
+# Optionally, you can control the PCIe lane speed using this parameter
+# dtparam=pciex1_gen=3
+```
+
+### Set NVMe early in the boot order
+
+```sh
+# Edit the EEPROM on the Raspberry Pi 5.
+sudo EDITOR=vim rpi-eeprom-config --edit
+
+# Change the BOOT_ORDER line to the following:
+BOOT_ORDER=0xf416
+
+# Add the following line if using a non-HAT+ adapter:
+PCIE_PROBE=1
+
+# Press Ctrl-O, then enter, to write the change to the file.
+# Press Ctrl-X to exit nano (the editor).
+```
+
+### Network settings
+
+Check [linux set-up](https://blogd.org/blog/2024/07/01/linux/#time-sync)
+
+- Time sync
+- Change Hostname
+- SSH access
+
+
+[↑ Back to top](#)
+<br><br>
+
+
+## Kubernetes <a class="headerlink" href="#kubernetes" title="Permanent link"> ¶</a>
+
+We will configure Kubernetes v1.30.3.
+
+- [Prerequisite](#prerequisite)
+- [Container runtime](#container-runtime)
+- [Installing kubeadm, kubelet and kubectl](#installing-kubeadm-kubelet-and-kubectl)
+- [Creating a cluster with kubeadm](#creating-a-cluster-with-kubeadm)
+
+### Prerequisite
+
+- Swap memory off
+  - The default behavior of a kubelet was to fail to start if swap memory was detected on a node. 
+  - You MUST disable swap if the kubelet is not properly configured to use swap.
+
+```sh
+# disable swapping temporarily.
+sudo swapoff -a
+# To make this change persistent across reboots, make sure swap is disabled in config files. Comment out swap
+
+# Disable swap permanently
+# vim /etc/fstab
+sudo sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
+
+# check Swap is disabled
+free -h
+                   total        used        free      shared  buff/cache   available
+    Mem:           7.8Gi       900Mi       2.1Gi       5.2Mi       5.0Gi       6.9Gi
+->  Swap:             0B          0B          0B
+```
+
+- Required ports
+  - Check required ports for both control plane and worker nodes
+  - https://kubernetes.io/docs/reference/networking/ports-and-protocols/
+
+```sh
+nc 127.0.0.1 6443 -v
+```
+
+- Configuring a cgroup driver
+  - https://kubernetes.io/docs/tasks/administer-cluster/kubeadm/configure-cgroup-driver/
+
+```sh
+#   On Linux, control groups are used to constrain resources that are allocated to processes.
+#   Both the `KUBELET` and the underlying `CONTAINER RUNTIME` need to interface with control groups
+#   to enforce resource management for pods and containers and set resources such as cpu/memory requests and limits.
+#   There are two cgroup drivers available: cgroupfs-default cgroup driver in the kubelet, systemd.
+#   The Container runtimes page explains that the systemd driver is recommended for kubeadm based setups
+#   instead of the kubelet's default cgroupfs driver, because kubeadm manages the kubelet as a systemd service.
+
+cat << EOF > kubeadm-config.yaml
+kind: ClusterConfiguration
+apiVersion: kubeadm.k8s.io/v1beta3
+kubernetesVersion: v1.30.3
+---
+kind: KubeletConfiguration
+apiVersion: kubelet.config.k8s.io/v1beta1
+cgroupDriver: systemd
+EOF
+```
+
+[↑ Back to top](#)
+<br><br>
+
+
+### Container runtime
+
+Kubernetes 1.30 requires that you use a runtime that conforms with the Container Runtime Interface (CRI); containerd, CRI-O, Docker Engine. You need to install a container runtime into each node in the cluster so that Pods can run there. (kubelet deprecated Docker support since Kubernetes>=1.24)
+
+#### CRI-O
+
+- [instruction](https://github.com/cri-o/packaging/blob/main/README.md#usage)
+
+```sh
 ```
 
 
@@ -91,303 +191,558 @@ def L_layer_model(
 <br><br>
 
 
-## Why Kubernetes?
+#### containerd
 
-- While docker and docker-compose <img src="https://i0.wp.com/codeblog.dotsandbrackets.com/wp-content/uploads/2016/10/compose-logo.jpg?w=27"> can be used for deploying a web application, it falls short in terms of scalability, load balancing, IaC support (Terraform, Helm), and seamless cloud-native integration.
-- Kubernetes offers a rich set of APIs to address above challenges to manage Microservices.
-- For local development, I chose <img src="https://blog.radwell.codes/wp-content/uploads/2021/05/minikube-logo-full.png" alt="minikube logo" width="75"> to align with Kuberentes best practices. This `consistency` ensures a smoother transition to <img src="https://diagrams.mingrammer.com/img/resources/aws/compute/elastic-kubernetes-service.png" alt="EKS logo" width="25"> EKS production.
+- Getting started with [containerd](https://github.com/containerd/containerd/blob/main/docs/getting-started.md)
 
-
-| | docker-compose | Kubernetes
---|--|--
-Scalability              | Limited to a Single host             | Multi-node scaling
-Load Balancing           | Requires manual setup (e.g., HAProxy)| Support [Load Balancing](#load-balancing) in various ways
-IaC Support | Resticted to docker compose cli | Terraform, Helm for fast and reliable resource provisioning (*< ~15 minutes*)
+- Install and configure prerequisites
+  - 1. Enable IPv4 packet forwarding
+  - 2. cgroup drivers: systemd
+  - 3. container runtime - containerd
 
 
-<img src="https://imgur.com/qqDsoa2.png" alt="dc vs k8s" width="450">
+```sh
+# 1. Enable IPv4 packet forwarding
+#   By default, the Linux kernel does not allow IPv4 packets to be routed between interfaces.
+#   sysctl params required by setup, params persist across reboots
+cat << EOF | sudo tee /etc/sysctl.d/k8s.conf
+net.ipv4.ip_forward = 1
+EOF
+
+# Apply sysctl params without reboot
+sudo sysctl --system
+
+# Verify that net.ipv4.ip_forward is set to 1 with:
+sysctl net.ipv4.ip_forward
+
+# 2. cgroup drivers
+#   On Linux, control groups are used to constrain resources that are allocated to processes.
+
+# 3. container runtime - containerd
+# https://github.com/containerd/containerd/blob/main/docs/getting-started.md
+# Step 3-1: Installing containerd
+wget https://github.com/containerd/containerd/releases/download/v1.7.20/containerd-1.7.20-linux-arm64.tar.gz
+sudo tar Cxzvf /usr/local containerd-1.7.20-linux-arm64.tar.gz
+
+# If you intend to start containerd via systemd, you should also download
+#   the containerd.service unit file into /usr/local/lib/systemd/system/containerd.service
+sudo mkdir -p /usr/local/lib/systemd/system/
+sudo wget -O /usr/local/lib/systemd/system/containerd.service https://raw.githubusercontent.com/containerd/containerd/main/containerd.service
+
+sudo systemctl daemon-reload
+sudo systemctl enable --now containerd
+sudo systemctl status containerd
+
+# Step 3-2: Installing runc
+wget https://github.com/opencontainers/runc/releases/download/v1.1.13/runc.arm64
+sudo install -m 755 runc.arm64 /usr/local/sbin/runc
+
+# Step 3-3: Installing CNI plugins
+wget https://github.com/containernetworking/plugins/releases/download/v1.5.1/cni-plugins-linux-arm64-v1.5.1.tgz
+sudo mkdir -p /opt/cni/bin
+sudo tar Cxzvf /opt/cni/bin cni-plugins-linux-arm64-v1.5.1.tgz
+
+# 4. You can find this file under the path /etc/containerd/config.toml.
+# generate default config
+sudo mkdir -p /etc/containerd
+sudo su -
+sudo containerd config default > /etc/containerd/config.toml
+sudo cat /etc/containerd/config.toml
+
+# 5. Configuring the systemd cgroup driver
+#   To use the systemd cgroup driver in /etc/containerd/config.toml with runc, set
+sudo sed -i 's/SystemdCgroup \= false/SystemdCgroup = true/g' /etc/containerd/config.toml
+
+cat /etc/containerd/config.toml
+[plugins]
+  # ...
+  [plugins."io.containerd.grpc.v1.cri"]
+        [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc]
+          [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc.options]
+            SystemdCgroup = true
+
+sudo systemctl restart containerd
+sudo systemctl status containerd
+```
+
+### nerdctl
+
+"`nerdctl` is a Docker-compatible CLI for `containerd`"
+
+[Why nerdctl?](https://blog.devgenius.io/k8s-why-use-nerdctl-for-containerd-f4ea49bcf900)
+
+- Pre-requisite
+  - containerd is installed, enabled, and running
+  - cni plugins is installed (previously `cni-plugins-linux-arm64-v1.5.1.tgz`)
+  - Configure [rootlesskit](https://rootlesscontaine.rs/getting-started/containerd/)
+  - [Install Guide](https://www.techrepublic.com/article/deploy-container-nerdctl/)
+
+```sh
+# uidmap
+sudo apt-get install uidmap -y
+
+# RootlessKit
+sudo apt-get install rootlesskit -y
+
+wget https://github.com/containerd/nerdctl/releases/download/v2.0.0-rc.0/nerdctl-2.0.0-rc.0-linux-arm64.tar.gz
+sudo tar Cxzvvf /usr/local/bin nerdctl-2.0.0-rc.0-linux-arm64.tar.gz
+
+which nerdctl
+  /usr/local/bin/nerdctl
+
+#sudo sh -c "echo 1 > /proc/sys/kernel/unprivileged_userns_clone"
+sudo vim /etc/sysctl.d/99-rootless.conf
+kernel.unprivileged_userns_clone=1
+
+# apply in 99-rootless.conf to system
+sudo sysctl --system
+# check if it is applied to system
+sudo sysctl kernel.unprivileged_userns_clone
+
+# DO NOT RUN AS `root` !!!
+containerd-rootless-setuptool.sh install
+
+# Now, you can run without root privilege!
+nerdctl version
+nerdctl
+```
+
 
 [↑ Back to top](#)
 <br><br>
 
-### Scalability
 
-Kubernetes offers orchestration of containerized applications across a cluster of nodes, ensuring scalability and high availability.
+### Installing kubeadm, kubelet and kubectl
+
+- For Kubernetes v1.30, you will install these packages on <b>ALL OF YOUR MACHINES</b>:
+  - `kubeadm`: the command to bootstrap the cluster.
+  - `kubelet`: the component that runs on all of the machines in your cluster and does things like starting pods and containers.
+  - [`kubectl`](https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/)
+  <!-- - [`helm`](https://helm.sh/docs/intro/install/) -->
+
+```sh
+# 1. Update the apt package index and install packages needed to use the Kubernetes apt repository:
+sudo apt-get update
+# apt-transport-https may be a dummy package; if so, you can skip that package
+sudo apt-get install -y apt-transport-https ca-certificates curl gpg
+
+# 2. Download the public signing key for the Kubernetes package repositories. The same signing key is used for all repositories so you can disregard the version in the URL:
+# If the directory `/etc/apt/keyrings` does not exist, it should be created before the curl command, read the note below.
+# sudo mkdir -p -m 755 /etc/apt/keyrings
+curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.30/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+
+# 3. Add the appropriate Kubernetes apt repository. 
+# This overwrites any existing configuration in /etc/apt/sources.list.d/kubernetes.list
+echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.30/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list
+
+# 4. Update the apt package index, install kubelet, kubeadm and kubectl, and pin their version:
+sudo apt-get update
+sudo apt-get install -y kubelet kubeadm kubectl
+sudo apt-mark hold kubelet kubeadm kubectl
+
+# kublet : set node ip
+sudo su -
+local_ip="$(ip --json addr show eth0 | jq -r '.[0].addr_info[] | select(.family == "inet") | .local')"
+echo $local_ip
+cat > /etc/default/kubelet << EOF
+KUBELET_EXTRA_ARGS=--node-ip=$local_ip
+EOF
+cat /etc/default/kubelet
+exit
+
+# 5. (Optional) Enable the kubelet service before running kubeadm:
+sudo systemctl enable --now kubelet
+```
+
+[↑ Back to top](#)
+<br><br>
 
 
-<img src="https://imgur.com/KxETYaG.png" alt="ingress" width="700">
+### Creating a cluster with kubeadm
 
-#### Horizonal Pod Autoscaling
+- Initializing your `control-plane node` (master node)
 
-HPA control loop checks `CPU` and `Memory` usage via api-server's metric api  and scales accordingly.
+```sh
+# --pod-network-cidr
+# your Pod network must not overlap with any of the host networks (192.168.0.0/24)
 
-<img src="https://imgur.com/rvtBRlL.png" alt="metric-server" width="500">
+# on master node:
+
+POD_CIDR="10.100.0.0/16"
+NODENAME=$(hostname -s)
+MASTER_PRIVATE_IP=$(ip addr show eth0 | awk '/inet / {print $2}' | cut -d/ -f1)
+
+sudo kubeadm init \
+    --apiserver-advertise-address="$MASTER_PRIVATE_IP" \
+    --apiserver-cert-extra-sans="$MASTER_PRIVATE_IP" \
+    --pod-network-cidr="$POD_CIDR" \
+    --controller-manager-extra-args "allocate-node-cidrs=false" \
+    --node-name "$NODENAME" \
+    -v=5
+
+# NOTE: --controller-manager-extra-args "allocate-node-cidrs=false"
+# prevent `kube-controller-manager-master` from trying to allocate podCidr.
+# Calico will do it instead :)
+
+# [addons] Applied essential addon: CoreDNS
+# [addons] Applied essential addon: kube-proxy
+# Your Kubernetes control-plane has initialized successfully!
+# To start using your cluster, you need to run the following as a regular user:
+
+mkdir -p $HOME/.kube
+sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+# Alternatively, if you are the root user, you can run:
+#   export KUBECONFIG=/etc/kubernetes/admin.conf
+# You should now deploy a pod network to the cluster.
+# Run "kubectl apply -f [podnetwork].yaml" with one of the options listed at:
+#   https://kubernetes.io/docs/concepts/cluster-administration/addons/
+# Then you can join any number of worker nodes by running the following on each as root:
+
+sudo kubeadm join 192.168.0.10:6443 --token mjgw9s.d29kh7dtjqig5owf \
+        --discovery-token-ca-cert-hash sha256:f3516dba4e89b3530a044ed531ab07ed00fea6a44104aae1d0ec1ab87357e14a
+```
+
+- Worker nodes
+
+```sh
+# set `node-role`
+kubectl label node worker1 node-role.kubernetes.io/worker=worker
+kubectl label node worker2 node-role.kubernetes.io/worker=worker
 
 
-- Pre-requisite to implement HPA:
-    - Install `metric-server` on the worker nodes (kube-system namespace) with helm!
-        - → scrapes metrics from kublet
-        - → publish to `metrics.k8s.io/v1beta` Kuberentes API
-        - → consumed by HPA!
-    - deployment.yaml: `spec.template.spec.containers[i].resources` must be specified.
-    - deployment.yaml: `spec.replicas` is to be omitted.
+kubectl get no -o wide
+NAME      STATUS     ROLES           AGE   VERSION   INTERNAL-IP    EXTERNAL-IP   OS-IMAGE           KERNEL-VERSION     CONTAINER-RUNTIME
+master    NotReady   control-plane   58s   v1.30.3   192.168.0.10   <none>        Ubuntu 24.04 LTS   6.8.0-1008-raspi   containerd://1.7.20
+worker1   NotReady   worker          19s   v1.30.3   192.168.0.11   <none>        Ubuntu 24.04 LTS   6.8.0-1008-raspi   containerd://1.7.20
+worker2   NotReady   worker          25s   v1.30.3   192.168.0.12   <none>        Ubuntu 24.04 LTS   6.8.0-1008-raspi   containerd://1.7.20
+```
 
-<!-- - `Vertical Pod Autoscaling`: [LINK](https://kubernetes.io/docs/tasks/configure-pod-container/resize-container-resources) -->
 
-- hpa.yaml
-    - `spec.metrics[i].resource` to specify CPU and Memory threshold
-    - `spec.scaleTargetRef.name` to identify the target
-    - in order to enable HPA to work on another metrics, you need to define addtional component.
+### Troubleshooting kubeadm
 
-```yaml
-apiVersion: autoscaling/v2
-kind: HorizontalPodAutoscaler
+- `coredns` is stuck in the Pending state. This is expected and part of the design. 
+    - [troubleshooting-kubeadm](https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/troubleshooting-kubeadm/)
+
+```sh
+k get pod -n kube-system
+  NAME                             READY   STATUS    RESTARTS        AGE
+  coredns-7db6d8ff4d-sv6bv         0/1     Pending   0               4h54m
+  coredns-7db6d8ff4d-vtc4p         0/1     Pending   0               4h54m
+
+k describe pod coredns-7db6d8ff4d-sv6bv -n kube-system
+    # Warning  FailedScheduling  7m50s (x6 over 4h45m)  default-scheduler  0/3 nodes are available: 3 node(s) had untolerated taint {node.kubernetes.io/not-ready: }. preemption: 0/3 nodes are available: 3 Preemption is not helpful for scheduling.
+
+```
+
+- CIDR allocation failed
+
+```sh
+k logs kube-controller-manager-master -nkube-system
+    E0807 07:33:10.824783       1 controller_utils.go:262]
+    Error while processing Node Add/Delete: failed to allocate cidr from cluster cidr at idx:0:
+    CIDR allocation failed; there are no remaining CIDRs left to allocate in the accepted range
+
+kubectl describe pod kube-controller-manager-master -n kube-system | grep cluster-cidr
+kubectl describe pod kube-controller-manager-master -n kube-system | grep allocate-node-cidrs
+
+# The --cluster-cidr=10.100.0.0/16 should match the pod network CIDR
+# and is used by the controller manager to allocate pod CIDRs to nodes.
+# So this seems to be a correct set-up of cidr
+sudo cat /etc/kubernetes/manifests/kube-controller-manager.yaml | grep cidr
+    - --allocate-node-cidrs=true
+    - --cluster-cidr=10.100.0.0/16
+sudo vim /etc/kubernetes/manifests/kube-controller-manager.yaml
+    - --allocate-node-cidrs=false
+
+# Error message is resolved!
+kubectl describe nodes
+    Events:
+      Type    Reason            Age                   From             Message
+      ----    ------            ----                  ----             -------
+      Normal  CIDRNotAvailable  7m53s (x17 over 14h)  cidrAllocator    Node worker1 status is now: CIDRNotAvailable
+ ->   Normal  RegisteredNode    4m1s                  node-controller  Node worker1 event: Registered Node worker1 in Controller
+
+
+# https://devops.stackexchange.com/questions/17032/what-is-the-meaning-of-the-podcidr-field-in-the-node-spec-in-kubenretes
+# https://github.com/kubernetes/kubernetes/issues/76761
+# When using Calico, the podCIDR field on the node objects is not used or required.
+# Calico handles IP allocation without needing this field to be set.
+kubectl get nodes -o custom-columns=NAME:.metadata.name,CIDR:.spec.podCIDR
+    NAME      CIDR
+    master    <none>
+    worker1   <none>
+    worker2   <none>
+# Instead of using podCIDR, Calico uses its own IPPool resource to manage the available IP ranges. You can view this with:
+kubectl get ippool -o yaml
+
+kubectl get blockaffinities -A
+    NAME                        AGE
+    master-10-100-219-64-26     20h
+    worker1-10-100-235-128-26   20h
+    worker2-10-100-189-64-26    20h
+kubectl get ipamblocks -A
+    NAME                AGE
+    10-100-189-64-26    20h
+    10-100-219-64-26    20h
+    10-100-235-128-26   20h
+k get pod -A -o wide | grep -v 192.168. | grep -v Completed | grep worker2
+        10.100.189.xx
+k get pod -A -o wide | grep -v 192.168. | grep -v Completed | grep master
+        10.100.219.xx
+k get pod -A -o wide | grep -v 192.168. | grep -v Completed | grep worker1
+        10.100.235.xx
+
+kubectl get ippool default-ipv4-ippool -o yaml
+    apiVersion: crd.projectcalico.org/v1
+    kind: IPPool
+    metadata:
+      annotations:
+        projectcalico.org/metadata: '{"creationTimestamp":"2024-08-07T03:17:23Z"}'
+      creationTimestamp: "2024-08-07T03:17:23Z"
+      generation: 1
+      name: default-ipv4-ippool
+      resourceVersion: "935"
+      uid: 04c9c442-e0a4-4a42-b481-2609ccde7bda
+    spec:
+      allowedUses:
+      - Workload
+      - Tunnel
+      blockSize: 26
+      cidr: 10.100.0.0/16
+      ipipMode: Always
+
+➜  ~ k get pod -A -o wide
+NAMESPACE        NAME                                       READY   STATUS      RESTARTS   AGE   IP               NODE      NOMINATED NODE   READINESS GATES
+default          be-go-6b6f5fc88d-mxxbg                     1/1     Running     0          13m   10.100.235.131   worker1   <none>           <none>
+default          be-py-6bc85fcb56-cn8cc                     1/1     Running     0          13m   10.100.235.132   worker1   <none>           <none>
+default          be-py-6bc85fcb56-lb4rk                     1/1     Running     0          13m   10.100.189.68    worker2   <none>           <none>
+default          fe-nginx-d7f6d6449-rzmll                   1/1     Running     0          13m   10.100.189.67    worker2   <none>           <none>
+ingress-nginx    ingress-nginx-admission-create-g4qqd       0/1     Completed   0          14m   10.100.235.129   worker1   <none>           <none>
+ingress-nginx    ingress-nginx-admission-patch-znfw5        0/1     Completed   0          14m   10.100.189.66    worker2   <none>           <none>
+ingress-nginx    ingress-nginx-controller-666487-z5td9      1/1     Running     0          14m   10.100.235.130   worker1   <none>           <none>
+kube-system      calico-kube-controllers-77d59654f4-ctfst   1/1     Running     0          17m   10.100.219.66    master    <none>           <none>
+kube-system      calico-node-d9nj8                          1/1     Running     0          17m   192.168.0.10     master    <none>           <none>
+kube-system      calico-node-mslzt                          1/1     Running     0          17m   192.168.0.12     worker2   <none>           <none>
+kube-system      calico-node-vzlk5                          1/1     Running     0          17m   192.168.0.11     worker1   <none>           <none>
+kube-system      coredns-7db6d8ff4d-pm4v9                   1/1     Running     0          19m   10.100.219.65    master    <none>           <none>
+kube-system      coredns-7db6d8ff4d-zz9h5                   1/1     Running     0          19m   10.100.219.67    master    <none>           <none>
+kube-system      etcd-master                                1/1     Running     0          19m   192.168.0.10     master    <none>           <none>
+kube-system      kube-apiserver-master                      1/1     Running     0          19m   192.168.0.10     master    <none>           <none>
+kube-system      kube-controller-manager-master             1/1     Running     0          19m   192.168.0.10     master    <none>           <none>
+kube-system      kube-proxy-6rlhv                           1/1     Running     0          19m   192.168.0.12     worker2   <none>           <none>
+kube-system      kube-proxy-6zrf8                           1/1     Running     0          19m   192.168.0.10     master    <none>           <none>
+kube-system      kube-proxy-mz96w                           1/1     Running     0          19m   192.168.0.11     worker1   <none>           <none>
+kube-system      kube-scheduler-master                      1/1     Running     0          19m   192.168.0.10     master    <none>           <none>
+kube-system      metrics-server-5df54c66b8-pzj84            1/1     Running     0          15m   10.100.189.65    worker2   <none>           <none>
+metallb-system   controller-6dd967fdc7-2c8fg                1/1     Running     0          11m   10.100.189.69    worker2   <none>           <none>
+metallb-system   speaker-4bm8l                              1/1     Running     0          11m   192.168.0.10     master    <none>           <none>
+metallb-system   speaker-9kmcf                              1/1     Running     0          11m   192.168.0.12     worker2   <none>           <none>
+metallb-system   speaker-qnw8v                              1/1     Running     0          11m   192.168.0.11     worker1   <none>           <none>
+
+ps aux | grep cluster-cidr
+    --cluster-cidr=10.100.0.0/16
+
+helm install --dry-run cat-release ./cat-chart -f ./cat-chart/values.pi.yaml
+# change CIDR blocks 
+```
+
+
+- [Force delete](https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/)
+
+```sh
+k delete --grace-period=0 --force -nkube-system pod/coredns-7db6d8ff4d-5dv6d
+```
+
+
+### CNI: Calico
+
+Install Calico CNI (Container Network Interface) plugin to enable Pod networking!
+
+You must deploy a `Container Network Interface` (CNI) based Pod network add-on such as `Calico`, `flannel`, `weavenet` so that your Pods can communicate with each other. Cluster DNS (CoreDNS) will not start up before a network is installed. Without CNI, the coredns pods are `pending` and `podSubnet` is not specified in the cluster configuration.
+
+
+- 1-1. Install with manifest
+
+```sh
+# Check Pod Subnet is missing
+kubectl get configmap -n kube-system kubeadm-config -o yaml
+    ...
+    networking:
+      dnsDomain: cluster.local
+      #podSubnet: 10.100.0.0/16
+      serviceSubnet: 10.96.0.0/12
+    scheduler: {}
+    ...
+```
+
+```sh
+curl -O https://raw.githubusercontent.com/projectcalico/calico/v3.28.1/manifests/calico.yaml
+vim calico.yaml
+# Match POD_CIDR and CALICO_IPV4POOL_CIDR
+
+kind: DaemonSet
+apiVersion: apps/v1
 metadata:
-  name: fe-nginx-hpa
+  name: calico-node
+  namespace: kube-system
+  labels:
+    k8s-app: calico-node
 spec:
-  scaleTargetRef:
-    apiVersion: apps/v1
-    kind: Deployment
-    name: fe-nginx-deployment
-  minReplicas: 1
-  maxReplicas: 1
-  metrics:
-  - type: Resource
-    resource:
-      name: cpu
-      target:
-        type: Utilization
-        averageUtilization: 80
-  - type: Resource
-    resource:
-      name: memory
-      target:
-        type: Utilization
-        averageUtilization: 70
+  template:
+    spec:
+      containers:
+        - name: calico-node
+          env:
+            # The default IPv4 pool to create on startup if none exists. Pod IPs will be
+            # chosen from this range. Changing this value after installation will have
+            # no effect. This should fall within `--cluster-cidr`.
+            - name: CALICO_IPV4POOL_CIDR
+              value: "10.100.0.0/16"
+---
+
+kubectl apply -f calico.yaml
+
+# Verify Calico installation in your cluster.
+kubectl get pods -nkube-system
+
+    NAME                                       READY   STATUS     RESTARTS   AGE
+    calico-kube-controllers-77d59654f4-59qlx   1/1     Running    0          21s
+    calico-node-mn2kl                          1/1     Running   0          21s
+    calico-node-sndg4                          1/1     Running   0          21s
+    calico-node-wmwpm                          1/1     Running   0          21s
 ```
 
-- deployment.yaml
-    - Omit `spec.replica: xx` in order to use HPA functionality.
+
+- 1-2. Install with Calico Operator - tigera-operator
+
+```sh
+# Install the operator on your cluster.
+kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.28.1/manifests/tigera-operator.yaml
+
+```
+
+- `custom-resources.yaml`
 
 ```yaml
-          resources:
-            requests:
-              cpu: 100m
-              memory: 256Mi
-            limits:
-              cpu: 100m
-              memory: 256Mi
+# This section includes base Calico installation configuration.
+# For more information, see: https://docs.tigera.io/calico/latest/reference/installation/api#operator.tigera.io/v1.Installation
+apiVersion: operator.tigera.io/v1
+kind: Installation
+metadata:
+  name: default
+spec:
+  # Configures Calico networking.
+  calicoNetwork:
+    ipPools:
+    - name: default-ipv4-ippool
+      blockSize: 26
+      cidr: 10.100.0.0/16
+      encapsulation: VXLANCrossSubnet
+      natOutgoing: Enabled
+      nodeSelector: all()
+
+---
+
+# This section configures the Calico API server.
+# For more information, see: https://docs.tigera.io/calico/latest/reference/installation/api#operator.tigera.io/v1.APIServer
+apiVersion: operator.tigera.io/v1
+kind: APIServer
+metadata:
+  name: default
+spec: {}
 ```
 
-#### Metric server
-
-<img src="https://imgur.com/7RHqdu8.png" alt="hpa" width="720">
-
-#### HPA monitoring
-
-<img src="https://imgur.com/1EiedmA.png" alt="hpa" width="720">
-
-
-
-[↑ Back to top](#)
-<br><br>
-
-
-### Load Balancing
-
-Kubernetes provides native support for load balancing and traffic routing through `Ingress`, `Ingress Controller`, and `AWS Load Balancer Controller`. I will be exploring two ways for exposing the Kuberentes application to the outside world:
-
-- [`Nginx Ingress Controller`](#nginx-ingress-controller)
-- [`AWS Load Balancer Controller`](#aws-load-balancer-controller)
-
-#### Nginx Ingress Controller
-
-Nginx Ingress Controller is a 3rd party implementation of Ingress controller.
-
-- Install with Helm or kubectl. (in `ingress` namespace)
-- it provisions `NLB` upon installation.
-    - the Service of type LoadBalancer triggers the NLB creation during installation
-- it monitors `Ingress` resource:
-    - for each Ingress being created, it is converted to Nignx native `Lua` configuration and routes to the target service! The controller acts as a proxy and redirects traffic into services.
-
-<img src="https://imgur.com/7QR1Wpn.png" alt="nginx-ingress-controller" width="420">
-
-- Monitoring tools like `Prometheus` <img src="https://upload.wikimedia.org/wikipedia/commons/3/38/Prometheus_software_logo.svg" width=20> can scrape metrics (traffic, latency, errors for all Ingresses) from the nginx ingress controller pod without implementing anything on the Application side!
-    <!-- - must specify `ingressClassName` as the name of Ingress Nginx controller. (helm installing using Terraform, specify same name as this)
-    - When you create an Ingress resource with the specified ingressClassName, the NGINX Ingress Controller reads the Ingress rules and updates its configuration accordingly. -->
-    <!-- - Traffic flow: `AWS NLB ->  Nginx ingress controller ->(Ingres Rule) Service -> Pod` -->
-    <!-- - All the Ingresses use the same Load Balancer! COST and MAINTENANCE saved! -->
-
-
-
-<img src="https://imgur.com/DwRBYMd.png" alt="EKS architecture" width="750">
-
-<div align="center"><b>NLB</b> with Nginx Ingress Controller</div>
-
-
-<img src="https://kubernetes.io/docs/images/ingress.svg" alt="ingress" width="500">
-
-<sub>Original image credited to kubernetes.io</sub>
+- Custom Resource
 
 ```sh
-kubectl get ingressclass -A
-# NAME            CONTROLLER            PARAMETERS  AGE
-# alb             ingress.k8s.aws/alb   <none>      20m
-# external-nginx  k8s.io/ingress-nginx  <none>      20m
+curl https://raw.githubusercontent.com/projectcalico/calico/v3.28.1/manifests/custom-resources.yaml -O
+kubectl create -f custom-resources.yaml
+
+# Verify Calico installation in your cluster.
+watch kubectl get pods -n calico-system
+
+NAME                                       READY   STATUS    RESTARTS   AGE
+calico-kube-controllers-5857c9dccf-f6bh2   1/1     Running   0          6m43s
+calico-node-l65nq                          1/1     Running   0          6m43s
+calico-node-wtftp                          1/1     Running   0          6m43s
+calico-node-xj2kn                          1/1     Running   0          6m43s
+calico-typha-68cbb57dc7-752ch              1/1     Running   0          6m43s
+calico-typha-68cbb57dc7-b49rn              1/1     Running   0          6m40s
+csi-node-driver-5pt8r                      2/2     Running   0          6m43s
+csi-node-driver-gqps8                      2/2     Running   0          6m43s
+csi-node-driver-lkthq                      2/2     Running   0          6m43s
 ```
 
-
-| <img src="https://imgur.com/pSGCLP9.png" alt="ingress" width="720"> |
-| :--: |
-
-
-- Baremetal (To-be-tested)
-    - [Link](https://kubernetes.github.io/ingress-nginx/deploy/baremetal)
-    - A pure software solution: MetalLB
-    - Over a NodePort Service
-
-<img src="https://kubernetes.github.io/ingress-nginx/images/baremetal/baremetal_overview.jpg" alt="ingress" width="500">
-
-<sub>Original image credited to kubernetes.github.io</sub>
-
-
-#### AWS Load Balancer Controller
-
-- The controller (in `kube-system` namespace) watches for Kubernetes Ingress or Service resources. In response, it creates the appropriate AWS Elastic Load Balancing resources. 
-    - The LBC provisions `ALB` when you create an *Ingress*.
-    - The LBC provisions `NLB` when you create a *Service* of type *LoadBalancer*.
-    - ALB is slower than NLB and more expensive.
-
-
-| <img src="https://imgur.com/UaF1vHK.png" alt="aws-lbc" width="520"> |
-| :--: |
-|  *AWS Load Balancer Controller - L4 or L7* |
-
-
-| <img src="https://imgur.com/tg4GAzA.png" alt="EKS architecture" width="750"> |
-| :--: |
-| *<b>ALB</b> with AWS Load Balancer Controller* |
-
-
-
-[↑ Back to top](#)
-<br><br>
-
-
-<!-- ### Cloud-Native Integration
-
-Kubernetes natively supports cloud environments, enabling seamless integration with services like AWS. It allows for:
-
-- Use of cloud-specific ingress controllers
-- Automatic provisioning of cloud resources (e.g., load balancers)
-
-
-[↑ Back to top](#)
-<br><br> -->
-
-
-## Skills used
-
-- `Kubernetes`
-    - AWS: EKS cluster with 3 worker nodes. Terraform to deploy EKS and AWS Load Balancer Controller and Ingress for exposing the app.
-    - Local: 3-node cluster with [microk8s](https://microk8s.io/docs/getting-started).
-- `Terraform` iac to create:
-    - [`LINK`](https://blogd.org/blog/2024/07/01/eks-with-terraform-and-helm)
-    - IAM Role and policy association with serviceaccount
-    - Networks, EKS cluster, node group, addons
-- `Helm Chart`
-    - deploy application using templates
-    - [`LINK`](https://blogd.org/blog/helm.pdf)
-- `Docker` and `Dockerfile` for building images
-- `Github Actions` for CI
-    - Github repository -> Dockerhub image repository
-- `Microservices Architecture`
-    - Frontend : Nginx (with html, css, js)
-    - Backend : Golang (go-gin), Python (uvicorn) as backend web server
-- `Deep learning` algorithm for training and predicting Cat images using `numpy` and `pytorch` (in-progress)
-- `Virtualbox` (with cli) to test configure 3 microk8s Kubernetes master nodes (ubuntu) in local environment
-- `Golang Concurrency`
-    - used context, channel, goroutine for concurrent programming
-
-
-[↑ Back to top](#)
-<br><br>
-
-
-## Microservices
-
-- Kubelet configures Pods' DNS so that running containers can lookup Services by name rather than IP.
-
-
-
-| <img src="https://imgur.com/KxETYaG.png" alt="ingress" width="680"> |<img src="https://imgur.com/b69kvRA.png" alt="demo" width="300"> |
-|--| --
-| *applications diagram* |
-    
-- `Frontend - Nginx`
-   - Nginx serves as the static content server, handling HTML, CSS, and JavaScript files.
-   - It ensures efficient delivery of frontend resources to users' browsers.
-
-- `Backend - Go-Gin web-server`
-   - The Go-Gin server acts as an intermediary between the frontend and backend services.
-   - It receives requests from the frontend, including requests for cat-related information.
-   - Additionally, it performs utility functions, such as fetching weather data for three cities using goroutine concurrency (5-worker).
-   - [main.go](https://github.com/jnuho/CatVsNonCat/blob/main/cmd/backend-web-server/main.go#L50)
-   - [weatherapi.go](https://github.com/jnuho/CatVsNonCat/blob/main/pkg/weatherapi.go#L160)
-     - Implemented with `Fan-out/Fan-in pattern`
-     - Another possible pattern: [`Worker-pool pattern`](https://blogd.org/blog/2024/05/29/golang-worker-pool-pattern/)
-
-- `Backend - Python uvicorn + fast api web-server`
-    - The Python backend worker is responsible for image classification.
-    - TODO (not complete):
-    - Given an image URL, it uses PyTorch (and possibly NumPy) to perform binary classification (cat vs. non-cat).
-    - The result of the classification is then relayed back to the Go-Gin server.
-
-- `How it works?`
-    - When a user submits an image URL via the frontend(browser), the Go-Gin server receives the request.
-    - It forwards the request to the Python backend.
-    - The Python backend processes the image using the deep learning algorithm.
-    - Finally, the result (whether the image contains a cat or not) is sent back to the frontend.
-
-- `Next Goal`
-    - Enhance the Python backend by incorporating a deep learning algorithm using pytorch.
-    - I initially did a Numpy implementation with 5-Layer and 2,500 iterations for training parameters.
-    - Now, I'm exploring the use of PyTorch for training the model and performing predictions
-
-
-
-[↑ Back to top](#)
-<br><br>
-
-
-
-## Frontend nginx
-
-- Vanilla Javascript
-- HTML/CSS - bootstrap
-- Nginx server that serves static files: /usr/share/nginx/html
-- Dockerized with `nginx:alpine` Image
-
-
-[↑ Back to top](#)
-<br><br>
-
-
-
-## Backend Python web server
-
-- Use FastAPI + Unicorn
-    - FastAPI is an ASGI (<b>Asynchronous</b> Server Gateway Interface) framework which requires an ASGI server to run.
-    - Unicorn is a lightning-fast ASGI server implementation
-
-- install python (download .exe from python.org)
-    - check Add to PATH option (required)
-
-
-- Run the python web server
+- To determine the pod network CIDR, you can inspect the configuration of the CNI plugin installed in your cluster.
+- Here’s how you can check for some common CNI plugins:
 
 ```sh
-uvicorn main:app --port 3002
+# 1. `calico` CNI plugin
+kubectl get ippools.crd.projectcalico.org -o yaml
+
+    apiVersion: v1
+    items:
+    - apiVersion: crd.projectcalico.org/v1
+      kind: IPPool
+      spec:
+        blockSize: 26
+        cidr: 10.100.0.0/16
+```
+
+[↑ Back to top](#)
+<br><br>
+
+
+### Control your cluster from other machines
+
+```sh
+scp root@<control-plane-host>:/etc/kubernetes/admin.conf .
+scp mobb@192.168.0.10:/home/mobb/.kube/config .
+
+# `cluster` `context` `user` -> add this to existing `~/.kube/config`
+# change names to 'pi' which can be identified by you...
+kubectl --kubeconfig ./config get nodes
+  clusters:
+  - cluster: ...
+  contexts:
+  - context: ...
+  users:
+  - name: ...
+
+kubectl config get-contexts
+kubectl config use-context pi
+
+
+kubectl get no
+    NAME      STATUS   ROLES           AGE   VERSION
+    master    Ready    control-plane   36m   v1.30.3
+    worker1   Ready    worker          33m   v1.30.3
+    worker2   Ready    worker          33m   v1.30.3
+
+kubectl top no
+    NAME      CPU(cores)   CPU%   MEMORY(bytes)   MEMORY%
+    master    137m         3%     846Mi           10%
+    worker1   56m          1%     528Mi           6%
+    worker2   68m          1%     501Mi           6%
+
+kubectl top pod -nkube-system
+    NAME                                       CPU(cores)   MEMORY(bytes)
+    calico-kube-controllers-77d59654f4-59qlx   2m           12Mi
+    calico-node-mn2kl                          25m          117Mi
+    calico-node-sndg4                          27m          117Mi
+    calico-node-wmwpm                          24m          117Mi
+    coredns-7db6d8ff4d-kvzq2                   2m           13Mi
+    coredns-7db6d8ff4d-mqmj9                   2m           13Mi
+    etcd-master                                20m          44Mi
+    kube-apiserver-master                      48m          261Mi
+    kube-controller-manager-master             12m          56Mi
+    kube-proxy-7st54                           1m           13Mi
+    kube-proxy-gcb6c                           1m           12Mi
+    kube-proxy-wt555                           1m           13Mi
+    kube-scheduler-master                      3m           18Mi
+    metrics-server-5df54c66b8-zhr7h            4m           18Mi
 ```
 
 
@@ -395,182 +750,41 @@ uvicorn main:app --port 3002
 <br><br>
 
 
-## Dockerize
+## Metrics server <a class="headerlink" href="#metrics-server" title="Permanent link"> ¶</a>
 
-**NOTE**: It is crucial to optimize Docker images to be as compact as possible. To achieve this is by utilizing base images that are minimalistic, such as the Alpine image and using [Multi-stage builds](#multi-stage-builds).
+```sh
+curl -L https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml -o metrics-server.yaml
 
-<!-- - [NOTE on defining backend endpoint in frontend](https://stackoverflow.com/a/56375180/23876187)
-    - frontend app is not in any container, but the javascript is served from container as a js script file to <b>your browser</b>! -->
+vim metrics-server.yaml
+      - args:
+        - --kubelet-insecure-tls=true
 
-###  Multi-stage builds
+kubectl apply -f metrics-server.yaml 
 
-- Reference [LINK](https://docs.docker.com/build/building/multi-stage)
+k get pod -nkube-system
 
-```Dockerfile
-# Use an golang alpine as the base image
-FROM golang:1.22.3-alpine as build
-
-# Set the temporary working directory in the container in the first stage
-WORKDIR /
-
-# # Copy package.json and package-lock.json into the working directory
-COPY go.mod go.sum ./
-COPY backend/web ./backend/web
-COPY cmd/backend-web-server/main.go ./cmd/backend-web-server/main.go
-COPY pkg ./pkg
-
-# Copy the .env file into the working directory
-COPY .env .env
-
-# # Install the app dependencies inside the docker image
-RUN go mod download && go mod verify
-
-# Set GOARCH and GOOS for the build target
-ENV CGO_ENABLED=0 GOOS=linux GOARCH=amd64
-
-# # Define the command to run your app using CMD which defines your runtime
-RUN go build -o backend-web-server ./cmd/backend-web-server
-
-RUN rm -rf /var/cache/apk/* /tmp/*
-
-# Use a smaller base image for the final image
-FROM alpine:latest
-
-# Copy the binary from the build stage
-COPY --from=build /backend-web-server /usr/local/bin/backend-web-server
-
-# Copy the .env file from the build stage
-# put in root directory / becasuse running CMD "backend-web-server" is ru
-COPY --from=build /.env /.env
-
-EXPOSE 3001
-
-# When you specify CMD ["go-app"], Docker looks for an executable named go-app in the system’s $PATH.
-# The $PATH includes common directories where executables are stored, such as /usr/local/bin, /usr/bin, and others.
-CMD ["backend-web-server", "-web-host=:3001"]
+    NAME                                       READY   STATUS    RESTARTS   AGE
+    ...
+    metrics-server-5df54c66b8-zhr7h            1/1     Running   0          35s
 ```
+
 
 [↑ Back to top](#)
 <br><br>
 
+## Nginx Ingress Controller <a class="headerlink" href="#nginx-ingress-controller" title="Permanent link"> ¶</a>
 
-### minikube docker-env
-
-- To point your shell to minikube's docker-daemon, run:
-- Build docker images in local and minikube Pods can refer to it
+- Method 1. Install with yaml manifest
 
 ```sh
-eval $(minikube -p minikube docker-env)
+curl -L https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.11.1/deploy/static/provider/cloud/deploy.yaml -o ingress-nginx.yaml
+
+kubectl apply -f ingress-nginx.yaml
 ```
 
-- To Unset
-
-```sh
-# unset DOCKER_TLS_VERIFY
-# unset DOCKER_HOST
-# unset DOCKER_CERT_PATH
-# unset MINIKUBE_ACTIVE_DOCKERD
-eval $(minikube -p minikube docker-env --unset)
-```
-
-- Apply changes in local development
-1. Edit file
-2. build image - `./build-nginx.sh`
-3. restart pod - `./rstart-nginx.sh`
-
-[↑ Back to top](#)
-<br><br>
 
 
-## IaC
-
-### Terraform
-
-- [.gitignore practice](https://developer.hashicorp.com/terraform/language/style#gitignore)
-
-- [terraform scripts](https://github.com/jnuho/CatVsNonCat/tree/main/script/terraform)
-- VPC, Subnet, igw, nat, route table, etc.
-- IAM role with assume-role-policy
-    - attach the required Amazon EKS IAM managed policy to it.
-- Attach AmazonEKSClusterPolicy policy to IAM role: `6-eks.tf`
-
-
-- Download terraform.exe
-    - Environment variable > Add Path: C:\Program Files\terraform_1.8.5_windows_amd64
-
-
-```sh
-# Navigate to your Terraform configuration directory
-# cd path/to/your/terraform/configuration
-cd terraform
-
-# Initialize Terraform
-terraform init
-
-# Validate the configuration
-terraform validate
-
-# Format the Configuration
-terraform fmt
-
-# Plan the deployment
-terraform plan
-
-# Apply the configuration
-terraform apply
-
-# With DEBUGGING enabled
-TF_LOG=DEBUG terraform apply
-
-# Destroy
-# terraform destroy
-```
-
-- Check ingressClass
-
-```sh
-kubectl get ingressclass -A
-# NAME            CONTROLLER            PARAMETERS  AGE
-# alb             ingress.k8s.aws/alb   <none>      20m
-# external-nginx  k8s.io/ingress-nginx  <none>      20m
-```
-
-| <img src="https://imgur.com/YpjRWc6.png" alt="pods" width="700"> |
-|:--:| 
-| *ingress resource* |
-
-| <img src="https://imgur.com/Ymkj2PH.png" alt="pods" width="400"> |
-|:--:| 
-| *aws load-balancer controller pod in `kube-system` namespace* |
-
-
-```sh
-git clone https://github.com/jnuho/terraform-aws-vpc.git
-cd terraform-aws-vpc
-git add .
-git commit -m 'create vpc module'
-git tag 0.1.0
-git push origin main --tags
-```
-
-### Helm Chart
-
-
-- [helm chart scripts in repository](https://github.com/jnuho/CatVsNonCat/tree/main/script/tst-chart)
-
-- Configure `kubectl`
-    - Check context : `kubectl config current-context`
-    - Update `.kube/config`
-
-```sh
-# TO LOCAL
-kubectl config use-context minikube
-
-# TO EKS
-aws eks update-kubeconfig --region ap-northeast-2 --name my-cluster --profile terraform
-```
-
-- Install `helm` on the same client PC as `kubectl`
+- Method 2. Install `helm`
 
 ```sh
 curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
@@ -578,226 +792,528 @@ chmod 700 get_helm.sh
 ./get_helm.sh
 ```
 
-- Create
+- Install `Nginx Ingress Controller`
+    - [quick start](https://kubernetes.github.io/ingress-nginx/deploy/#quick-start)
+    - [Guide](#https://medium.com/@tonylixu/devops-in-k8s-nginx-ingress-controller-0a09f48458e2)
+
 
 ```sh
-# Create helm chart
-helm create tst-chart
+helm upgrade --install ingress-nginx ingress-nginx \
+    --repo https://kubernetes.github.io/ingress-nginx \
+    --namespace ingress-nginx --create-namespace
+
+kubectl get pods -ningress-nginx
+
+kubectl get svc -ningress-nginx
+    NAME                                 TYPE           CLUSTER-IP       EXTERNAL-IP   PORT(S)                      AGE
+    ingress-nginx-controller             LoadBalancer   10.102.120.211   <pending>     80:31362/TCP,443:32684/TCP   52s
+    ingress-nginx-controller-admission   ClusterIP      10.99.130.218    <none>        443/TCP                      52s
 ```
 
 
-- Validate
+## Metallb <a class="headerlink" href="#metallb" title="Permanent link"> ¶</a>
+
+<img src="https://kubernetes.github.io/ingress-nginx/images/baremetal/baremetal_overview.jpg" alt="A pure software solution: MetalLB" width="400">
+
+- [A pure software solution for Nginx ingress controller: MetalLB](https://kubernetes.github.io/ingress-nginx/deploy/baremetal/)
+- [installation](https://metallb.universe.tf/installation/)
+
+- Preparation
+    - If you’re using kube-proxy in IPVS mode, since Kubernetes v1.14.2 you have to enable strict ARP mode.
 
 ```sh
-cd CatVsNonCat/script
-tree
-    tst-chart
-       ├── Chart.yaml
-       ├── charts
-       ├── templates
-       │   ├── _helpers.tpl
-       │   ├── deployment.yaml
-       │   ├── hpa.yaml
-       │   ├── ingress.yaml
-       │   └── service.yaml
-       ├── values.dev.yaml
-       ├── values.prd.AWS.L4.lbc.yaml
-       ├── values.prd.AWS.L7.lbc.yaml
-       └── values.prd.AWS.L4.ingress.controller.yaml
+# kubectl edit configmap -n kube-system kube-proxy
+# OR
+# see what changes would be made, returns nonzero returncode if different
+kubectl get configmap kube-proxy -n kube-system -o yaml | \
+    sed -e "s/strictARP: false/strictARP: true/" | \
+    kubectl diff -f - -n kube-system
 
-helm lint tst-chart
-helm template tst-chart --debug
-# check results without installation
-# helm install --dry-run tst-chart --generate-name
-helm install --dry-run tst-release ./tst-chart -f ./tst-chart/values.prd.AWS.L4.ingress.controller.yaml
+# actually apply the changes, returns nonzero returncode on errors only
+kubectl get configmap kube-proxy -n kube-system -o yaml | \
+    sed -e "s/strictARP: false/strictARP: true/" | \
+    kubectl apply -f - -n kube-system
 ```
 
-- Install
+- Installation by manifest
 
 ```sh
-helm install tst-release ./tst-chart -f ./tst-chart/values.prd.AWS.L4.ingress.controller.yaml
+kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.14.8/config/manifests/metallb-native.yaml
+
+kubectl get pod -nmetallb-system
+    NAME                          READY   STATUS    RESTARTS   AGE
+    controller-6dd967fdc7-xwmnn   1/1     Running   0          40s
+    speaker-876fv                 1/1     Running   0          40s
+    speaker-s6xzp                 1/1     Running   0          40s
+    speaker-wwtrm                 1/1     Running   0          40s
+
 ```
 
-- Upgrade
-    - Helm will perform a rolling update for the affected resources (e.g., Deployments, StatefulSets).
-    - Pods are replaced one by one, ensuring zero-downtime during the update.
-    - Helm manages this process transparently.
-    - Edit `values.dev.yaml` and apply `helm upgrade` command
 
-```yaml
-kubectl patch deployment my-app --type='json' -p='[{"op":"replace","path":"/spec/replicas","value":5}]'
-
-services: 
-  - name: fe-nginx
-    replicaCount: 3
-```
+- Configuration
+    - https://metallb.universe.tf/configuration/
 
 ```sh
-helm list
-    NAME            NAMESPACE       REVISION        UPDATED                                 STATUS          CHART              APP VERSION
-    tst-release     default         1               2024-07-09 14:25:50.410043621 +0900 KST deployed        tst-chart-0.1.0    1.16.0
+k get no
 
-helm upgrade tst-release ./tst-chart -f ./tst-chart/values.prd.AWS.L4.ingress.controller.yaml
-    Release "tst-release" has been upgraded. Happy Helming!
-    NAME: tst-release
-    LAST DEPLOYED: Tue Jul  9 14:35:35 2024
-    NAMESPACE: default
-    STATUS: deployed
-    REVISION: 2
-    TEST SUITE: None
+NAME      STATUS   ROLES           AGE   VERSION
+master    Ready    control-plane   41m   v1.30.3
+worker1   Ready    worker          38m   v1.30.3
+worker2   Ready    worker          38m   v1.30.3
 
-helm list
-    NAME            NAMESPACE       REVISION        UPDATED                                 STATUS          CHART              APP VERSION
-    tst-release     default         2               2024-07-09 14:35:35.404055879 +0900 KST deployed        tst-chart-0.1.0    1.16.0
+k get svc -ningress-nginx
+    NAME                                 TYPE           CLUSTER-IP       EXTERNAL-IP   PORT(S)                      AGE
+    ingress-nginx-controller             LoadBalancer   10.102.120.211   <pending>     80:31362/TCP,443:32684/TCP   26m
+    ingress-nginx-controller-admission   ClusterIP      10.99.130.218    <none>        443/TCP                      26m
+
+k get ingress
+    NAME               CLASS   HOSTS       ADDRESS   PORTS   AGE
+    fe-nginx-ingress   nginx   localhost             80      81m
+
+
+# NOTE: Setting no IPAddressPool selector in an L2Advertisement instance is interpreted
+#       as that instance being associated to all the IPAddressPools available.
+
+# DO NOT OVERLAP with POD_CIDR (10.100.0.0/16), and NODE_IPs (192.168.0.10 ~ 12) (master and worker nodes)
+
+cat << EOF > metallb.yaml
+---
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: first-pool
+  namespace: metallb-system
+spec:
+  addresses:
+  - 192.168.0.201-192.168.0.220
+  autoAssign: true
+---
+apiVersion: metallb.io/v1beta1
+kind: L2Advertisement
+metadata:
+  name: default
+  namespace: metallb-system
+spec:
+  ipAddressPools:
+  - first-pool
+EOF
+
+kubectl apply -f metallb.yaml
+
+kubectl get svc -ningress-nginx
+    NAME                                 TYPE           CLUSTER-IP       EXTERNAL-IP     PORT(S)                      AGE
+    ingress-nginx-controller             LoadBalancer   10.102.120.211   192.168.0.201   80:31362/TCP,443:32684/TCP   164m
+    ingress-nginx-controller-admission   ClusterIP      10.99.130.218    <none>          443/TCP                      164m
+
 ```
 
-- Rollback
+- Edit Windows hosts File
+    - C:\Windows\System32\drivers\etc\hosts
+
+```
+192.168.0.201 catornot.com
+
+curl -D- http://192.168.0.201 -H 'Host: catornot.com'
+```
+
+## Application
 
 ```sh
-helm rollback tst-release VERSION_NO
+helm install ...
+
+
+kubectl get pod -o wide
+    NAME                       READY   STATUS    RESTARTS   AGE   IP               NODE      NOMINATED NODE   READINESS GATES
+    be-go-6b6f5fc88d-mxxbg     1/1     Running   0          10m   10.100.235.131   worker1   <none>           <none>
+    be-py-6bc85fcb56-cn8cc     1/1     Running   0          10m   10.100.235.132   worker1   <none>           <none>
+    be-py-6bc85fcb56-lb4rk     1/1     Running   0          10m   10.100.189.68    worker2   <none>           <none>
+    fe-nginx-d7f6d6449-rzmll   1/1     Running   0          10m   10.100.189.67    worker2   <none>           <none>
 ```
 
-- Uninstall (Helm v3)
-    - `helm delete --purge` in Helm V2
+## Docker Registry <a class="headerlink" href="#docker-registry" title="Permanent link"> ¶</a>
+
+### Local Registry
+
+Set up local docker registry that Kubernetes Pods will pull images from. I used `worker1` node to set up a temporary docker registry. I will set-up another raspberry-pi machine in the future.
+
+- Self-signed Certificate
 
 ```sh
-helm uninstall tst-release
+mkdir -p certs
+# Generate SSL Certificates:
+openssl req -newkey rsa:4096 -nodes -sha256 -x509 \
+  -keyout certs/domain.key \
+  -days 365 \
+  -out certs/domain.crt \
+  -subj "/CN=192.168.0.11"
+
+
+# Run the Registry Container with HTTPS:
+docker run -d -p 5000:5000 \
+  --restart=always \
+  --name registry \
+  -v $(pwd)/certs:/certs \
+  -e REGISTRY_HTTP_ADDR=0.0.0.0:5000 \
+  -e REGISTRY_HTTP_TLS_CERTIFICATE=/certs/domain.crt \
+  -e REGISTRY_HTTP_TLS_KEY=/certs/domain.key \
+  registry:2
+
+# Distribute the CA Certificate:
+sudo mkdir -p /etc/docker/certs.d/192.168.0.11:5000
+sudo cp certs/domain.crt /etc/docker/certs.d/192.168.0.11:5000/ca.crt
+
+docker tag your-image 192.168.0.11:5000/your-image
+docker push 192.168.0.11:5000/your-image
 ```
 
-- Helm Repository
-    - While you can deploy a Helm chart directly from the filesystem,
-    - it’s recommended to use Helm repositories.
-    - Helm repositories allow versioning, collaboration, and easy distribution of charts
-    - [`LINK`](https://www.kubernet.dev/getting-started-with-helm-simplifying-kubernetes-application-deployments)
+- Configure Containerd to Use the Secure Registry
+
+```
+# Edit the containerd Configuration:
+sudo vim /etc/containerd/config.toml
+
+[plugins."io.containerd.grpc.v1.cri".registry]
+  [plugins."io.containerd.grpc.v1.cri".registry.mirrors]
+    [plugins."io.containerd.grpc.v1.cri".registry.mirrors."192.168.0.10:5000"]
+      endpoint = ["https://192.168.0.10:5000"]
+  [plugins."io.containerd.grpc.v1.cri".registry.configs]
+    [plugins."io.containerd.grpc.v1.cri".registry.configs."192.168.0.10:5000".tls]
+      ca_file = "/etc/docker/certs.d/192.168.0.10:5000/ca.crt"
+
+sudo systemctl restart containerd
+```
+
+[↑ Back to top](#)
+<br><br>
+
+### Dockerhub
+
+- Authenticate to dockerhub to increase image pull rate limit.
+- [increase-rate-limits](https://www.docker.com/increase-rate-limits/)
+
+```sh
+sudo vim /etc/containerd/config.toml
+      [plugins."io.containerd.grpc.v1.cri".registry.configs]
+        [plugins."io.containerd.grpc.v1.cri".registry.configs."registry-1.docker.io".auth]
+          username = "jnuho"
+          password = "******"
+
+      [plugins."io.containerd.grpc.v1.cri".registry.mirrors]
+        [plugins."io.containerd.grpc.v1.cri".registry.mirrors."registry-1.docker.io"]
+          endpoint = ["https://registry-1.docker.io"]
+
+sudo systemctl restart containerd
+```
+
+[↑ Back to top](#)
+<br><br>
+
+## Argo CD <a class="headerlink" href="#argo-cd" title="Permanent link"> ¶</a>
+
+"Argo CD is implemented as a Kubernetes controller which continuously monitors running applications and compares the current, live state against the desired target state (as specified in the Git repo)"
+
+
+### Install Argo CD
+
+```sh
+kubectl create namespace argocd
+kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+```
+
+
+### Argo CD CLI
+
+```sh
+cat << EOF > install-argocd-cli.sh
+VERSION=$(curl -L -s https://raw.githubusercontent.com/argoproj/argo-cd/stable/VERSION)
+curl -sSL -o argocd-linux-amd64 https://github.com/argoproj/argo-cd/releases/download/v$VERSION/argocd-linux-amd64
+sudo install -m 555 argocd-linux-amd64 /usr/local/bin/argocd
+rm argocd-linux-amd64
+EOF
+
+chmod +x install-argocd-cli.sh
+./install-argocd-cli.sh
+
+# NOTE: INITIAL PASSWORD!
+argocd admin initial-password -n argocd
+
+argocd account update-password --server "https://localhost:8080"
+```
+
+
+### Configure TLS
+
+This default installation will have a self-signed certificate and cannot be accessed without a bit of extra work. Do one of:
+
+```sh
+# default self-signed certificate
+kubectl get secret argocd-secret -nargocd -o yaml
+
+    apiVersion: v1
+    data:
+      admin.password: PASSWORD_HERE
+      admin.passwordMtime: PASSWORD_HERE
+      server.secretkey: SECRETKEY_HERE
+      tls.crt: CERT_HERE
+      tls.key: KEY_HERE
+    kind: Secret
+    metadata:
+      name: argocd-secret
+      namespace: argocd
+    type: Opaque
+```
+
+#### Create self-signed TLS certificate
+
+-  I referred to a book, [`Bulletproof SSL and TLS`](https://www.amazon.com/Bulletproof-SSL-TLS-Understanding-Applications/dp/1907117040).
+
+```sh
+# 1. Generate an RSA private key
+openssl genrsa -out argocd.key 2048
+
+
+# 2. Public key: have just the public part of a key separately
+openssl rsa -in argocd.key -pubout -out argocd-public.key
+
+
+# 3. Certificate Signing Request (CSR).
+# This is a formal request asking a CA to sign a certificate, and it contains the public key of the
+# entity requesting the certificate and some information about the entity.
+# A CSR is always signed with the private key corresponding to the public key it carries.
+# openssl req -new -key argocd.key -out argocd.csr
+# Here, I did Unattended CSR Generation (non-interactive). it requires creating argocd.cnf beforehand.
+cat << EOF > argocd.cnf
+[req]
+prompt = no
+distinguished_name = dn
+req_extensions = ext
+[dn]
+CN = www.catornot.com
+emailAddress = cactoos555@gmail.com
+O = CatOrNot Ltd
+L = Seoul
+C = KR
+
+[ext]
+subjectAltName = @alt_names
+
+[alt_names]
+DNS.1   = *.catornot.com
+DNS.2   = catornot.com
+DNS.3   = argocd-repo-server
+DNS.4   = argocd-repo-server.argo-cd.svc
+DNS.5   = argocd-dex-server
+DNS.6   = argocd-dex-server.argo-cd.svc
+IP.1    = 192.168.0.202
+EOF
+
+openssl req -new -config argocd.cnf -key argocd.key -out argocd.csr
+# double-check that the CSR is correct
+# openssl req -text -in argocd.csr -noout
+
+
+# 4. Signing Your Own Certificates
+# After a CSR is generated, use it to sign your own certificate and/or send it to a public CA
+# and ask him or her to sign the certificate
+# If you’re installing a TLS server for your own use, you probably don’t want to go to a CA to
+# get a publicly trusted certificate. It’s much easier to sign your own. 
+
+# (Required for) Creating Certificates Valid for Multiple Hostnames
+cat << EOF > argocd.ext
+subjectAltName = @alt_names
+[alt_names]
+DNS.1   = *.catornot.com
+DNS.2   = catornot.com
+DNS.3   = argocd-repo-server
+DNS.4   = argocd-repo-server.argo-cd.svc
+DNS.5   = argocd-dex-server
+DNS.6   = argocd-dex-server.argo-cd.svc
+IP.1    = 192.168.0.202
+EOF
+
+openssl x509 -req -days 3650 -in argocd.csr -signkey argocd.key -out argocd.crt -extfile argocd.ext
+
+# examine the created certificate
+openssl x509 -text -in argocd.crt -noout
+```
+
+#### Create secrets using Self-signed certificate
+
+- [TLS configuration](https://argo-cd.readthedocs.io/en/stable/operator-manual/tls/)
+
+"Argo CD provides three inbound TLS endpoints that can be configured:"
+
+- argocd-server
+    - `argocd-server-tls` (higher priority) or `argocd-secret` (deprecated) secret that stores tls.crt and tls.key
+    - if tls.crt and tls.key are found in neither of above secrets, a self-signed certificate is generated into `argocd-secret`
+
+```sh
+# To create this secret manually from an existing key pair, you can use kubectl:
+# Argo CD will pick up changes to the argocd-server-tls secret automatically
+# and will not require restart of the pods to use a renewed certificate.
+cd argocd_certs
+```
+
+kubectl create secret tls catornot-tls \
+  --cert=./argocd.crt \
+  --key=./argocd.key
+
+- argocd-repo-server
+
+```sh
+kubectl create -n argocd secret tls argocd-repo-server-tls \
+  --cert=./argocd.crt \
+  --key=./argocd.key
+
+k get deploy/argocd-repo-server -nargocd
+    NAME                               READY   UP-TO-DATE   AVAILABLE   AGE
+    argocd-repo-server                 1/1     1            1           16h
+
+k rollout restart deploy/argocd-repo-server -nargocd
+k get pod -nargocd
+```
+
+- argocd-dex-server
+    - NOTE: as opposed to argocd-server, the argocd-repo-server is not able to pick up changes
+    - to this secret automatically. If you create (or update) this secret,
+    - the argocd-repo-server pods need to be `restarted`.
+
+```sh
+kubectl create -n argocd secret tls argocd-dex-server-tls \
+  --cert=./argocd.crt \
+  --key=./argocd.key
+
+k get deploy/argocd-dex-server -nargocd
+    NAME                               READY   UP-TO-DATE   AVAILABLE   AGE
+    argocd-dex-server                 1/1     1            1           16h
+
+k rollout restart deploy/argocd-dex-server -nargocd
+k get pod -nargocd
+```
+
+##### Configuring TLS between Argo CD components
+
+- Configuring TLS to argocd-repo-server
+    - Modify the pod startup parameters for argocd-server and argocd-application-controller
+    - to include the `--repo-server-strict-tls` parameter.
+
+```sh
+kubectl get deploy/argocd-server -nargocd
+    NAME            READY   UP-TO-DATE   AVAILABLE   AGE
+    argocd-server   1/1     1            1           17h
+kubectl edit deployment argocd-server -n argocd
+    spec:
+      containers:
+      - args:
+        - /usr/local/bin/argocd-server
+        - --repo-server-strict-tls
+        name: argocd-server
+
+
+kubectl get statefulsets/argocd-application-controller -n argocd
+    NAME                            READY   AGE
+    argocd-application-controller   1/1     17h
+kubectl edit statefulset argocd-application-controller -n argocd
+    spec:
+      containers:
+      - args:
+        - /usr/local/bin/argocd-application-controller
+        - --repo-server-strict-tls
+```
+
+- Configuring TLS to argocd-dex-server
+    - Modify the pod startup parameters for argocd-server to include the --dex-server-strict-tls parameter.
+
+```sh
+kubectl get deploy/argocd-server -nargocd
+    NAME            READY   UP-TO-DATE   AVAILABLE   AGE
+    argocd-server   1/1     1            1           17h
+kubectl edit deployment argocd-server -n argocd
+    spec:
+      containers:
+      - args:
+        - /usr/local/bin/argocd-server
+        - --repo-server-strict-tls
+        - --dex-server-strict-tls
+        name: argocd-server
+```
+
+
+#### Check argocd-server pods if it correctly uses the created certificate!
+
+```sh
+kubectl exec -it argocd-server-66688f65d6-xdcl8 -nargocd /bin/bash
+ls /app/config/server/tls
+
+openssl x509 -text -in /app/config/server/tls/tls.crt -noout
+```
+
+#### Register A Cluster To Deploy Apps To (Optional)
+
+In case, argocd need to deploy application to a different Kubernetes cluster than the cluster that argocd is running in.
+When deploying internally (to the same cluster that Argo CD is running in),
+`https://kubernetes.default.svc` should be used as the application's K8s API server address.
+
+
+```sh
+argocd cluster list
+    SERVER                          NAME        VERSION  STATUS   MESSAGE                                                  PROJECT
+    https://kubernetes.default.svc  in-cluster           Unknown  Cluster has no applications and is not being monitored.
+
+
+    arn:aws:eks:ap-northeast-2:094833749257:cluster/my-cluster
+kubectl config get-contexts -o name
+    minikube
+    pi
+argocd cluster add pi
+
+argocd cluster list
+    SERVER                          NAME        VERSION  STATUS      MESSAGE                                                  PROJECT
+    https://192.168.0.10:6443       pi          1.30     Successful
+    https://kubernetes.default.svc  in-cluster           Unknown     Cluster has no applications and is not being monitored.
+```
+
+.kube/config
+    server: https://192.168.0.10:6443
+
+### Ingress Configuration
+
+- [Kubernetes/ingress-nginx](https://argo-cd.readthedocs.io/en/stable/operator-manual/ingress/#kubernetesingress-nginx)
+    - [Option 1: SSL-Passthrough](https://argo-cd.readthedocs.io/en/stable/operator-manual/ingress/#option-1-ssl-passthrough)
+    - [Option 2: SSL Termination at Ingress Controller](https://argo-cd.readthedocs.io/en/stable/operator-manual/ingress/#option-2-ssl-termination-at-ingress-controller)
+
+
+```sh
+# **TEST** with port-forward just for testing
+kubectl port-forward svc/argocd-server -n argocd 8080:443
+
+# TEST use of Service of type Load Balancer and ROLLBACK to use ingress instead
+kubectl get svc/argocd-server -n argocd
+    NAME            TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)          AGE
+    argocd-server   ClusterIP   10.98.233.38   <none>        80/TCP,443/TCP   15h
+
+kubectl patch svc argocd-server -n argocd -p '{"spec": {"type": "LoadBalancer"}}'
+kubectl get svc/argocd-server -n argocd
+    NAME            TYPE           CLUSTER-IP     EXTERNAL-IP     PORT(S)                      AGE
+    argocd-server   LoadBalancer   10.98.233.38   192.168.0.202   80:32216/TCP,443:32427/TCP   15h
+
+# Access available: http://192.168.0.202
+
+# ROLLBACK
+kubectl patch svc argocd-server -n argocd -p '{"spec": {"type": "ClusterIP"}}'
+```
+
 
 
 [↑ Back to top](#)
 <br><br>
 
+## Reference <a class="headerlink" href="#reference" title="Permanent link"> ¶</a>
 
-## ArgoCD
+- [kubernetes.io](https://kubernetes.io/docs/home/)
+- [server world](https://www.server-world.info/en/note?os=Ubuntu_24.04&p=download)
+- [networking-terminology](https://www.digitalocean.com/community/tutorials/an-introduction-to-networking-terminology-interfaces-and-protocols)
+- [understanding-ip-subnets-and-cidr](https://www.digitalocean.com/community/tutorials/understanding-ip-addresses-subnets-and-cidr-notation-for-networking)
+- [Calico](https://docs.tigera.io/calico/latest/getting-started/kubernetes/self-managed-onprem/onpremises#install-calico)
+- [Argo CD](https://argo-cd.readthedocs.io/en/stable/)
 
-
-```sh
-helm repo add argo https://argoproj.github.io/argo-helm
-helm repo update
-
-helm search repo argocd
-helm show values argo/argo-cd --version 3.35.4 > argocd-defaults.yaml
-# Edit variables and apply
-vim argocd-defaults.yaml
-kubectl apply -f argocd-defaults.yaml
-```
-
-- You can use Terraform as well.
-
-```sh
-# Use Terraform for equivalent command as the following:
-# helm install argocd -n argocd --create-namespace argo/argo-cd --version 3.35.4 -f terraform/values/argocd.yaml
-terraform apply
-
-helm status argocd -n argocd
-# check for failing install
-helm list  --pending -A
-
-helm list -A
-k get pod -n argocd
-k get secrets -n argocd
-k get secrets argocd-intitial-admin-secret -o yaml -n argocd 
-echo -n "PASSWORKDKDKD" | base64 -d
-
-kubectl port-forward svc/argocd-server -n argocd 8080:80
-    http://localhost:8080
-    login with admin/password
-```
-
-
-- Create Git Repository for `yaml` and `helm` chart templates.
-
-```sh
-git clone new-repo
-```
-
-- Setup Dockerhub Account (and Create Repository only for private repo)
-
-```sh
-docker login --username jnuho
-docker pull nginx:1.23.3
-
-docker tag nginx:1.23.3 jnuho/nginx:v0.1.0
-docker push jnuho/nginx:v0.1.0
-
-# Write yaml/helm and push to repo
-git add .
-git commit -m 'add yaml/helm'
-git push origin main
-```
-
-- Configure argocd to watch for Git Repo (yaml/helm)
-    - Create `Application` CRDs for ArgoCD
-
-```sh
-kubectl apply -f script/argocd/application.yaml
-```
-
-
-- Workflow
-    - docker tag
-    - docker push
-    - Edit deployment.yaml's image tag
-        - git push to `cvn-yaml` Git Repo
-    - Argocd detects in 5 minutes
-        - manually `Sync` or
-        - edit application.yaml to automatically `Sync`
-    - Create `upgrade.sh`
-        - Run: ./upgrade.sh v0.1.3
-
-
-
-[↑ Back to top](#)
-<br><br>
-
-
-## TLS
-
-Self-signed SSL/TLS Certificate vs. CA Certificate
-
-The difference between a CA certificate and a self-signed certificate is the issuer of the certificate. 
-
-[↑ Back to top](#)
-<br><br>
-
-
-## Kubernetes for MLOps
-
-
-<img src="https://coffeewhale.com/assets/images/mlops/hidden-model.png" alt="pods" width="580">
-
-<sub>Original image credited to papers.nips.cc/paper/2015/file/86df7dcfd896fcaf2674f757a2463eba-Paper.pdf and coffeewhale.com</sub>
-
-<img src="https://www.determined.ai/assets/images/blogs/kubernetes-bad/kubeflow-unicorns.png" alt="pods" width="480">
-
-<sub>Original image credited to .determined.ai</sub>
-
-
-- Challenges of Using Kubernetes-Based ML Tools
-    - Containerizing Code (Docker Image Build and Execution):
-    - Writing Kubernetes Manifests (YAML Files):
-
-[↑ Back to top](#)
-<br><br>
-
-
-## Appendix
-
-- [Appendix](https://blogd.org/blog/2024/01/01/catvsnoncat-appendix/)
-
-
-### References
-
-- [ingress-nginx doc 1](https://kubernetes.github.io/ingress-nginx/deploy)
-- [ingress-nginx doc 2](https://docs.nginx.com/nginx-ingress-controller/overview/design/#the-nginx-ingress-controller-pod)
-
-
-[↑ Back to top](#)
-<br><br>
