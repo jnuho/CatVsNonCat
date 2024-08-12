@@ -152,7 +152,7 @@ func GetWeatherInfo() ([]WeatherResponse, error) {
 	// cities := []string{"Seattle,WA,US", "Miami,FL,US", "Seongnam-si,KR"} //"Taipei,TW"
 	cities := []string{"Los%20Angeles,CA,US", "Seattle,WA,US", "Miami,FL,US", "Austin,TX,US", "Seongnam-si,KR"} //"Taipei,TW"
 
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
 	ch := make(chan WeatherResponse)
