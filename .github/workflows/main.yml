@@ -5,6 +5,7 @@ on:
     branches:
       - main
     paths:
+      - '.github/workflows/main.yml'
       - 'web/**'
       - 'go.mod'
       - 'go.sum'
