@@ -1,27 +1,27 @@
-name: Build and Push Docker Images
+name: Build, Push Docker Images and update image tags in Helm Chart
 
 on:
   push:
     branches:
       - main
     paths:
-      # fe-nginx
       - 'web/**'
-      # be-go
       - 'go.mod'
       - 'go.sum'
       - 'backend/web/**'
       - 'cmd/backend-web-server/**'
       - 'pkg/weatherapi.go'
-      # be-py
       - 'backend/worker/**'
-      # dockerfiles
       - 'dockerfiles/**'
+    # workflow_dispatch:
 
 jobs:
-  build-nginx:
-    runs-on: ubuntu-latest
-
+  build:
+    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        service: [nginx, go, py]
+    
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
@@ -35,76 +35,20 @@ jobs:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
 
-    - name: Build and push Docker image for Nginx
+    - name: Build and push Docker image
       uses: docker/build-push-action@v5
       with:
         context: ./
-        file: ./dockerfiles/Dockerfile-nginx
+        file: ./dockerfiles/Dockerfile-${{ matrix.service }}
         push: true
-        tags: jnuho/fe-nginx:latest
+        tags: jnuho/${{ matrix.service }}:latest
         platforms: linux/amd64,linux/arm64
-        cache-from: type=registry,ref=jnuho/fe-nginx:latest
+        cache-from: type=registry,ref=jnuho/${{ matrix.service }}:latest
         cache-to: type=inline
 
-
-  build-go:
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
-
-    - name: Log in to Docker Hub
-      uses: docker/login-action@v3
-      with:
-        username: ${{ secrets.DOCKER_USERNAME }}
-        password: ${{ secrets.DOCKER_PASSWORD }}
-
-    - name: Create .env file
+    - name: Create .env file (for Go service)
+      if: matrix.service == 'go'
       run: |
         echo "WEATHER_API_KEY=${{ secrets.WEATHER_API_KEY}}" >> .env
         echo "PYTHON_URL=${{ secrets.PYTHON_URL}}" >> .env
         cat .env
-        # Add more environment variables as needed
-
-    - name: Build and push Docker image for Go
-      uses: docker/build-push-action@v5
-      with:
-        context: ./
-        file: ./dockerfiles/Dockerfile-go
-        push: true
-        tags: jnuho/be-go:latest
-        platforms: linux/amd64,linux/arm64
-        cache-from: type=registry,ref=jnuho/be-go:latest
-        cache-to: type=inline
-
-
-  build-py:
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
-
-    - name: Log in to Docker Hub
-      uses: docker/login-action@v3
-      with:
-        username: ${{ secrets.DOCKER_USERNAME }}
-        password: ${{ secrets.DOCKER_PASSWORD }}
-
-    - name: Build and push Docker image for Python
-      uses: docker/build-push-action@v5
-      with:
-        context: ./
-        file: ./dockerfiles/Dockerfile-py
-        push: true
-        tags: jnuho/be-py:latest
-        platforms: linux/amd64,linux/arm64
-        cache-from: type=registry,ref=jnuho/be-py:latest
-        cache-to: type=inline
