@@ -12,7 +12,9 @@ authors:
     - junho
 ---
 
-<img src="https://imgur.com/DwRBYMd.png" alt="EKS architecture" width="500">
+<p align="left"><strong>Date:</strong> July 11, 2024<br></p>
+
+<img src="https://d17pwbfgewyq5y.cloudfront.net/aws-L4-igc.jpg" alt="EKS architecture" width="500">
 
 The CatVsNonCat image classifier uses a L-layer Neural network model to classify cat images.
 
@@ -33,16 +35,16 @@ Github Repository : [CatVsNonCat](https://github.com/jnuho/CatVsNonCat)
 - [Motivation](#motivation)
 - [Why Kuberenetes?](#why-kubernetes)
     - [Scalability](#scalability)
+        - [Horizontal Pod Autoscaling](#horizontal-pod-autoscaling)
+        - [Metric server](#metric-server)
+        - [How does a HorizontalPodAutoscaler work?](#how-does-a-horizontalpodautoscaler-work)
     - [Load Balancing](#load-balancing)
         - [Nginx Ingress Controller](#nginx-ingress-controller)
         - [AWS Load Balancer Controller](#aws-load-balancer-controller)
-- [Skill Used](#skill-used)
+- [Skill Used](#skills-used)
 - [Microservices](#microservices)
-    - [1.Frontend - Nginx](#frontend-nginx)
-    - [2. Backend - Golang](#backend-golang-web-server)
-    - [3. Backend - Python](#backend-python-web-server)
 - [Dockerize](#dockerize)
-    - [Multi-stage builds](multi-stage-builds)
+    - [Multi-stage builds](#multi-stage-builds)
     - [minikube docker-env](#minikube-docker-env)
 - [IaC](#iac)
     - [Terraform](#terraform)
@@ -70,7 +72,7 @@ The prediction model uses the following steps to train a Neural Network:
 
 <img src="https://miro.medium.com/v2/resize:fit:640/format:webp/1*iNPHcCxIvcm7RwkRaMTx1g.jpeg" alt="gradient descent" width="300">
 
-<sub>Original image credited to towardsdatascience.com</sub>
+<sub><i>Original image credited to towardsdatascience.com</i></sub>
 
 - jupyter [notebook](https://blogd.org/blog/2024/05/31/deep-neural-network-for-image-classification)
 
@@ -117,7 +119,7 @@ Kubernetes offers orchestration of containerized applications across a cluster o
 
 <img src="https://imgur.com/KxETYaG.png" alt="ingress" width="700">
 
-#### Horizonal Pod Autoscaling
+#### Horizontal Pod Autoscaling
 
 HPA control loop checks `CPU` and `Memory` usage via api-server's metric api  and scales accordingly.
 
@@ -192,6 +194,12 @@ spec:
 [↑ Back to top](#)
 <br><br>
 
+#### How does a HorizontalPodAutoscaler work?
+
+- Algorithm details
+
+`desiredReplicas = ceil[currentReplicas * ( currentMetricValue / desiredMetricValue )]`
+
 
 ### Load Balancing
 
@@ -220,14 +228,14 @@ Nginx Ingress Controller is a 3rd party implementation of Ingress controller.
 
 
 
-<img src="https://imgur.com/DwRBYMd.png" alt="EKS architecture" width="750">
+<img src="https://d17pwbfgewyq5y.cloudfront.net/aws-L4-igc.jpg" alt="EKS architecture" width="750">
 
 <div align="center"><b>NLB</b> with Nginx Ingress Controller</div>
 
 
 <img src="https://kubernetes.io/docs/images/ingress.svg" alt="ingress" width="500">
 
-<sub>Original image credited to kubernetes.io</sub>
+<sub><i>Original image credited to kubernetes.io</i></sub>
 
 ```sh
 kubectl get ingressclass -A
@@ -248,7 +256,7 @@ kubectl get ingressclass -A
 
 <img src="https://kubernetes.github.io/ingress-nginx/images/baremetal/baremetal_overview.jpg" alt="ingress" width="500">
 
-<sub>Original image credited to kubernetes.github.io</sub>
+<sub><i>Original image credited to kubernetes.github.io</i></sub>
 
 
 #### AWS Load Balancer Controller
@@ -445,7 +453,7 @@ COPY --from=build /.env /.env
 
 EXPOSE 3001
 
-# When you specify CMD ["go-app"], Docker looks for an executable named go-app in the system’s $PATH.
+# When you specify CMD ["go-app"], Docker looks for an executable named go-app in the system's $PATH.
 # The $PATH includes common directories where executables are stored, such as /usr/local/bin, /usr/bin, and others.
 CMD ["backend-web-server", "-web-host=:3001"]
 ```
@@ -667,7 +675,7 @@ helm uninstall cat-release
 
 - Helm Repository
     - While you can deploy a Helm chart directly from the filesystem,
-    - it’s recommended to use Helm repositories.
+    - it's recommended to use Helm repositories.
     - Helm repositories allow versioning, collaboration, and easy distribution of charts
     - [`LINK`](https://www.kubernet.dev/getting-started-with-helm-simplifying-kubernetes-application-deployments)
 
@@ -774,11 +782,11 @@ The difference between a CA certificate and a self-signed certificate is the iss
 
 <img src="https://coffeewhale.com/assets/images/mlops/hidden-model.png" alt="pods" width="580">
 
-<sub>Original image credited to papers.nips.cc/paper/2015/file/86df7dcfd896fcaf2674f757a2463eba-Paper.pdf and coffeewhale.com</sub>
+<sub><i>Original image credited to papers.nips.cc/paper/2015/file/86df7dcfd896fcaf2674f757a2463eba-Paper.pdf and coffeewhale.com</i></sub>
 
 <img src="https://www.determined.ai/assets/images/blogs/kubernetes-bad/kubeflow-unicorns.png" alt="pods" width="480">
 
-<sub>Original image credited to .determined.ai</sub>
+<sub><i>Original image credited to .determined.ai</i></sub>
 
 
 - Challenges of Using Kubernetes-Based ML Tools
